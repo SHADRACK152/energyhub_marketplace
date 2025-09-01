@@ -66,30 +66,35 @@ const FilterSidebar = ({ isOpen, onClose, filters, onFilterChange }) => {
         />
       )}
       {/* Sidebar */}
-      <div className={`fixed lg:sticky top-0 left-0 h-screen lg:h-auto w-80 bg-card border-r border-border z-50 transform transition-transform duration-300 overflow-y-auto ${
+      <div className={`fixed lg:sticky top-0 left-0 h-screen lg:h-auto w-80 bg-white/60 dark:bg-card/70 border-r border-border z-50 transform transition-transform duration-300 overflow-y-auto backdrop-blur-xl shadow-2xl ${
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      }`}>
+      }`} style={{boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.18)', borderRadius: '1.25rem'}}>
         <div className="p-4 border-b border-border lg:hidden">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Filters</h2>
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <Icon name="Sliders" size={22} className="text-primary" /> Filters
+            </h2>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <Icon name="X" size={20} />
             </Button>
           </div>
         </div>
 
-        <div className="p-4 space-y-6">
+  <div className="p-4 space-y-8">
           {/* Price Range */}
           <div>
             <button
               onClick={() => toggleSection('price')}
-              className="flex items-center justify-between w-full text-left"
+              className="flex items-center justify-between w-full text-left group"
             >
-              <h3 className="font-medium text-foreground">Price Range</h3>
+              <span className="flex items-center gap-2">
+                <Icon name="Wallet" size={18} className="text-primary/80" />
+                <h3 className="font-semibold text-foreground">Price Range</h3>
+              </span>
               <Icon
                 name={expandedSections?.price ? "ChevronUp" : "ChevronDown"}
-                size={16}
-                className="text-muted-foreground"
+                size={18}
+                className="text-muted-foreground group-hover:text-primary"
               />
             </button>
             {expandedSections?.price && (
@@ -123,13 +128,16 @@ const FilterSidebar = ({ isOpen, onClose, filters, onFilterChange }) => {
           <div>
             <button
               onClick={() => toggleSection('brand')}
-              className="flex items-center justify-between w-full text-left"
+              className="flex items-center justify-between w-full text-left group"
             >
-              <h3 className="font-medium text-foreground">Brand</h3>
+              <span className="flex items-center gap-2">
+                <Icon name="BadgePercent" size={18} className="text-primary/80" />
+                <h3 className="font-semibold text-foreground">Brand</h3>
+              </span>
               <Icon
                 name={expandedSections?.brand ? "ChevronUp" : "ChevronDown"}
-                size={16}
-                className="text-muted-foreground"
+                size={18}
+                className="text-muted-foreground group-hover:text-primary"
               />
             </button>
             {expandedSections?.brand && (
@@ -152,13 +160,16 @@ const FilterSidebar = ({ isOpen, onClose, filters, onFilterChange }) => {
           <div>
             <button
               onClick={() => toggleSection('specifications')}
-              className="flex items-center justify-between w-full text-left"
+              className="flex items-center justify-between w-full text-left group"
             >
-              <h3 className="font-medium text-foreground">Specifications</h3>
+              <span className="flex items-center gap-2">
+                <Icon name="Settings" size={18} className="text-primary/80" />
+                <h3 className="font-semibold text-foreground">Specifications</h3>
+              </span>
               <Icon
                 name={expandedSections?.specifications ? "ChevronUp" : "ChevronDown"}
-                size={16}
-                className="text-muted-foreground"
+                size={18}
+                className="text-muted-foreground group-hover:text-primary"
               />
             </button>
             {expandedSections?.specifications && (
@@ -181,13 +192,16 @@ const FilterSidebar = ({ isOpen, onClose, filters, onFilterChange }) => {
           <div>
             <button
               onClick={() => toggleSection('rating')}
-              className="flex items-center justify-between w-full text-left"
+              className="flex items-center justify-between w-full text-left group"
             >
-              <h3 className="font-medium text-foreground">Customer Rating</h3>
+              <span className="flex items-center gap-2">
+                <Icon name="Star" size={18} className="text-primary/80" />
+                <h3 className="font-semibold text-foreground">Customer Rating</h3>
+              </span>
               <Icon
                 name={expandedSections?.rating ? "ChevronUp" : "ChevronDown"}
-                size={16}
-                className="text-muted-foreground"
+                size={18}
+                className="text-muted-foreground group-hover:text-primary"
               />
             </button>
             {expandedSections?.rating && (
@@ -217,13 +231,16 @@ const FilterSidebar = ({ isOpen, onClose, filters, onFilterChange }) => {
           <div>
             <button
               onClick={() => toggleSection('availability')}
-              className="flex items-center justify-between w-full text-left"
+              className="flex items-center justify-between w-full text-left group"
             >
-              <h3 className="font-medium text-foreground">Availability</h3>
+              <span className="flex items-center gap-2">
+                <Icon name="Truck" size={18} className="text-primary/80" />
+                <h3 className="font-semibold text-foreground">Availability</h3>
+              </span>
               <Icon
                 name={expandedSections?.availability ? "ChevronUp" : "ChevronDown"}
-                size={16}
-                className="text-muted-foreground"
+                size={18}
+                className="text-muted-foreground group-hover:text-primary"
               />
             </button>
             {expandedSections?.availability && (

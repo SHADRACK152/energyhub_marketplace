@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useCart } from '../../components/CartContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import MobileTabBar from '../../components/ui/MobileTabBar';
@@ -20,7 +21,7 @@ const ShoppingCartCheckout = () => {
   
   // Checkout flow state
   const [currentStep, setCurrentStep] = useState('cart');
-  const [cartItems, setCartItems] = useState([]);
+  const { cartItems, updateQuantity, removeFromCart, clearCart } = useCart();
   const [promoCode, setPromoCode] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [shippingInfo, setShippingInfo] = useState({
@@ -35,54 +36,8 @@ const ShoppingCartCheckout = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Initialize cart from direct purchase or existing cart
-  useEffect(() => {
-    if (location?.state?.directPurchase) {
-      const { product, quantity } = location?.state?.directPurchase;
-      setCartItems([{
-        id: product?.id,
-        name: product?.name,
-        seller: product?.seller?.name,
-        price: product?.price,
-        originalPrice: product?.originalPrice,
-        quantity: quantity,
-        image: product?.images?.[0],
-        inStock: product?.inStock,
-        stockCount: product?.stockCount
-      }]);
-      setCurrentStep('shipping');
-    } else {
-      // Load existing cart items
-      loadCartItems();
-    }
-  }, [location?.state]);
 
-  const loadCartItems = () => {
-    // Mock cart items
-    const mockCartItems = [
-      {
-        id: 1,
-        name: "Tesla Solar Panel 400W Monocrystalline",
-        seller: "Tesla Energy",
-        price: 299,
-        originalPrice: 349,
-        quantity: 2,
-        image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=200",
-        inStock: true,
-        stockCount: 45
-      },
-      {
-        id: 2,
-        name: "LG Chem RESU 10H Lithium Battery",
-        seller: "LG Energy Solutions",
-        price: 4299,
-        quantity: 1,
-        image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200",
-        inStock: true,
-        stockCount: 12
-      }
-    ];
-    setCartItems(mockCartItems);
-  };
+  // If you want to support direct purchase, you can add logic here to override cartItems
 
   const steps = [
     { id: 'cart', label: 'Cart Review', icon: 'ShoppingCart' },
@@ -126,21 +81,14 @@ const ShoppingCartCheckout = () => {
   // Cart actions
   const handleUpdateQuantity = (itemId, newQuantity) => {
     if (newQuantity === 0) {
-      handleRemoveItem(itemId);
+      removeFromCart(itemId);
       return;
     }
-    
-    setCartItems(prevItems =>
-      prevItems?.map(item =>
-        item?.id === itemId
-          ? { ...item, quantity: Math.min(newQuantity, item?.stockCount) }
-          : item
-      )
-    );
+    updateQuantity(itemId, newQuantity);
   };
 
   const handleRemoveItem = (itemId) => {
-    setCartItems(prevItems => prevItems?.filter(item => item?.id !== itemId));
+    removeFromCart(itemId);
   };
 
   const handleApplyPromoCode = () => {

@@ -126,31 +126,36 @@ const RegisterForm = ({ onSwitchToLogin }) => {
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
-    
     if (!validateForm()) return;
-    
     setIsLoading(true);
-    
+    setErrors({});
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const userData = {
-        id: `${formData?.userType}-${Date.now()}`,
-        name: `${formData?.firstName} ${formData?.lastName}`,
-        email: formData?.email,
-        phone: formData?.phone,
-        role: formData?.userType,
-        company: formData?.userType === 'seller' ? formData?.companyName : null
-      };
-      
-      login(userData);
-      
-      // Redirect based on role
-      if (formData?.userType === 'seller') {
-        navigate('/b2b-seller-dashboard');
+      const res = await fetch('http://localhost:5000/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          name: `${formData.firstName} ${formData.lastName}`,
+          role: formData.userType
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrors({ general: data.error || 'Registration failed. Please try again.' });
+        return;
+      }
+      // Auto-login after registration (use the same structure as login)
+      if (data && data.user) {
+        login({ ...data.user, token: data.token });
+        // Redirect based on role
+        if (data.user.role === 'seller') {
+          navigate('/b2b-seller-dashboard');
+        } else {
+          navigate('/b2c-buyer-dashboard');
+        }
       } else {
-        navigate('/b2c-buyer-dashboard');
+        setErrors({ general: 'Registration failed. Please try again.' });
       }
     } catch (error) {
       setErrors({ general: 'Registration failed. Please try again.' });

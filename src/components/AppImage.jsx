@@ -12,8 +12,11 @@ function Image({
       src={src}
       alt={alt}
       className={className}
+      style={{ background: '#fff', objectFit: 'cover', ...props.style }}
       onError={(e) => {
-        e.target.src = "/assets/images/no_image.png"
+        e.target.src = "/assets/images/no_image.png";
+        e.target.style.background = '#f3f4f6';
+        e.target.style.objectFit = 'contain';
       }}
       {...props}
     />

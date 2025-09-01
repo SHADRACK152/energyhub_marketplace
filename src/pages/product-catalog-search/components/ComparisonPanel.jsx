@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Image from '../../../components/AppImage';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
+import ComparisonModal from './ComparisonModal';
+
 const ComparisonPanel = ({ isOpen, onClose, comparisonProducts, onRemoveFromComparison }) => {
+  const [showModal, setShowModal] = useState(false);
   if (!isOpen || comparisonProducts?.length === 0) return null;
 
   return (
@@ -48,7 +51,7 @@ const ComparisonPanel = ({ isOpen, onClose, comparisonProducts, onRemoveFromComp
               ))}
             </div>
             <div className="mt-4 pt-4 border-t border-border">
-              <Button variant="default" fullWidth>
+              <Button variant="default" fullWidth onClick={() => setShowModal(true)}>
                 View Detailed Comparison
               </Button>
             </div>
@@ -106,7 +109,7 @@ const ComparisonPanel = ({ isOpen, onClose, comparisonProducts, onRemoveFromComp
 
             {comparisonProducts?.length > 0 && (
               <div className="mt-6 space-y-2">
-                <Button variant="default" fullWidth>
+                <Button variant="default" fullWidth onClick={() => setShowModal(true)}>
                   View Detailed Comparison
                 </Button>
                 <Button variant="outline" fullWidth onClick={onClose}>
@@ -114,6 +117,11 @@ const ComparisonPanel = ({ isOpen, onClose, comparisonProducts, onRemoveFromComp
                 </Button>
               </div>
             )}
+            <ComparisonModal
+              isOpen={showModal}
+              onClose={() => setShowModal(false)}
+              products={comparisonProducts}
+            />
           </div>
         </div>
       </div>

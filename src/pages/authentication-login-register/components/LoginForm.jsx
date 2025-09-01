@@ -17,6 +17,11 @@ const LoginForm = ({ onSwitchToRegister }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState('');
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotStatus, setForgotStatus] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState('');
 
   // Mock credentials for different user types
   const mockCredentials = {
@@ -30,7 +35,13 @@ const LoginForm = ({ onSwitchToRegister }) => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    
+    // Password strength feedback
+    if (name === 'password') {
+      if (!value) setPasswordStrength('');
+      else if (value.length < 6) setPasswordStrength('Weak');
+      else if (/^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/.test(value)) setPasswordStrength('Strong');
+      else setPasswordStrength('Medium');
+    }
     // Clear error when user starts typing
     if (errors?.[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -56,44 +67,30 @@ const LoginForm = ({ onSwitchToRegister }) => {
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
-    
     if (!validateForm()) return;
-    
     setIsLoading(true);
-    
+    setErrors({});
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Check mock credentials
-      let userRole = null;
-      if (formData?.email === mockCredentials?.seller?.email && formData?.password === mockCredentials?.seller?.password) {
-        userRole = 'seller';
-      } else if (formData?.email === mockCredentials?.buyer?.email && formData?.password === mockCredentials?.buyer?.password) {
-        userRole = 'buyer';
+      const res = await fetch('http://localhost:5000/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrors({ general: data.error || 'Login failed. Please try again.' });
+        return;
       }
-      
-      if (userRole) {
-        const userData = {
-          id: userRole === 'seller' ? 'seller-001' : 'buyer-001',
-          name: userRole === 'seller' ? 'John Smith' : 'Sarah Johnson',
-          email: formData?.email,
-          role: userRole,
-          company: userRole === 'seller' ? 'Solar Solutions Inc.' : null
-        };
-        
-        login(userData);
-        
-        // Redirect based on role
-        if (userRole === 'seller') {
-          navigate('/b2b-seller-dashboard');
-        } else {
-          navigate('/b2c-buyer-dashboard');
-        }
+      // Store token and user info
+      login({ ...data.user, token: data.token });
+      // Redirect based on role
+      if (data.user.role === 'seller') {
+        navigate('/b2b-seller-dashboard');
       } else {
-        setErrors({ 
-          general: `Invalid credentials. Use seller@energyhub.com / Seller123! or buyer@energyhub.com / Buyer123!` 
-        });
+        navigate('/b2c-buyer-dashboard');
       }
     } catch (error) {
       setErrors({ general: 'Login failed. Please try again.' });
@@ -103,16 +100,43 @@ const LoginForm = ({ onSwitchToRegister }) => {
   };
 
   const handleSocialLogin = (provider) => {
-    // Mock social login
-    console.log(`Social login with ${provider}`);
+    setSocialLoading(provider);
+    setTimeout(() => {
+      setSocialLoading('');
+      alert(`Social login with ${provider} (demo only)`);
+    }, 1200);
+  };
+
+  const handleDemoLogin = (type) => {
+    setFormData({
+      email: mockCredentials[type].email,
+      password: mockCredentials[type].password,
+      rememberMe: false
+    });
+    setPasswordStrength('Strong');
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setForgotStatus('');
+    if (!forgotEmail) {
+      setForgotStatus('Please enter your email.');
+      return;
+    }
+    // Simulate API call
+    setForgotStatus('Sending reset link...');
+    setTimeout(() => {
+      setForgotStatus('If this email exists, a reset link has been sent.');
+    }, 1200);
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-foreground mb-2">Welcome Back</h2>
-        <p className="text-muted-foreground">Sign in to your EnergyHub account</p>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-background py-12 px-2">
+      <div className="w-full max-w-md mx-auto bg-white/90 rounded-2xl shadow-2xl p-8 relative animate-fade-in backdrop-blur-md">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-extrabold text-primary mb-2 tracking-tight drop-shadow">Welcome Back</h2>
+          <p className="text-muted-foreground">Sign in to your EnergyHub account</p>
+        </div>
       {errors?.general && (
         <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
           <div className="flex items-center space-x-2">
@@ -121,7 +145,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
           </div>
         </div>
       )}
-      <form onSubmit={handleSubmit} className="space-y-6">
+  <form onSubmit={handleSubmit} className="space-y-6">
         <Input
           label="Email Address"
           type="email"
@@ -146,11 +170,15 @@ const LoginForm = ({ onSwitchToRegister }) => {
           />
           <button
             type="button"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-9 text-muted-foreground hover:text-foreground transition-smooth"
+            className={`absolute right-3 top-9 text-muted-foreground hover:text-primary transition-transform duration-200 ${showPassword ? 'rotate-12' : ''}`}
           >
             <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={20} />
           </button>
+          {passwordStrength && (
+            <div className={`mt-1 text-xs font-medium ${passwordStrength === 'Strong' ? 'text-success' : passwordStrength === 'Medium' ? 'text-warning' : 'text-error'}`}>Password strength: {passwordStrength}</div>
+          )}
         </div>
 
         <div className="flex items-center justify-between">
@@ -160,10 +188,10 @@ const LoginForm = ({ onSwitchToRegister }) => {
             checked={formData?.rememberMe}
             onChange={handleInputChange}
           />
-          
           <button
             type="button"
             className="text-sm text-primary hover:text-primary/80 transition-smooth"
+            onClick={() => setShowForgotModal(true)}
           >
             Forgot password?
           </button>
@@ -178,6 +206,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
         >
           {isLoading ? 'Signing In...' : 'Sign In'}
         </Button>
+  {/* Demo login buttons removed */}
       </form>
       <div className="mt-6">
         <div className="relative">
@@ -196,8 +225,10 @@ const LoginForm = ({ onSwitchToRegister }) => {
             iconName="Chrome"
             iconPosition="left"
             iconSize={18}
+            loading={socialLoading === 'Google'}
+            disabled={!!socialLoading}
           >
-            Google
+            {socialLoading === 'Google' ? 'Signing in...' : 'Google'}
           </Button>
           <Button
             variant="outline"
@@ -205,8 +236,10 @@ const LoginForm = ({ onSwitchToRegister }) => {
             iconName="Linkedin"
             iconPosition="left"
             iconSize={18}
+            loading={socialLoading === 'LinkedIn'}
+            disabled={!!socialLoading}
           >
-            LinkedIn
+            {socialLoading === 'LinkedIn' ? 'Signing in...' : 'LinkedIn'}
           </Button>
         </div>
       </div>
@@ -221,6 +254,33 @@ const LoginForm = ({ onSwitchToRegister }) => {
             Sign up
           </button>
         </p>
+      </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm relative animate-fade-in">
+            <button className="absolute top-2 right-2 text-muted-foreground hover:text-primary" onClick={() => setShowForgotModal(false)}>
+              <Icon name="X" size={20} />
+            </button>
+            <h3 className="text-lg font-bold mb-2 text-foreground">Reset Password</h3>
+            <form onSubmit={handleForgotPassword} className="space-y-3">
+              <Input
+                label="Email Address"
+                type="email"
+                name="forgotEmail"
+                placeholder="Enter your email"
+                value={forgotEmail}
+                onChange={e => setForgotEmail(e.target.value)}
+                required
+              />
+              <Button type="submit" variant="default" fullWidth>Send Reset Link</Button>
+            </form>
+            {forgotStatus && <div className="mt-2 text-xs text-muted-foreground">{forgotStatus}</div>}
+          </div>
+        </div>
+      )}
+      {/* CLOSE main card container */}
       </div>
     </div>
   );

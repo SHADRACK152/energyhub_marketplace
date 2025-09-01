@@ -1,107 +1,65 @@
 # React
+# EnergyHub Marketplace
 
-A modern React-based project utilizing the latest frontend technologies and tools for building responsive web applications.
+A modern, full-featured B2B/B2C energy marketplace built with React, Vite, and Tailwind CSS.
 
-## 🚀 Features
+## Features
 
-- **React 18** - React version with improved rendering and concurrent features
-- **Vite** - Lightning-fast build tool and development server
-- **Redux Toolkit** - State management with simplified Redux setup
-- **TailwindCSS** - Utility-first CSS framework with extensive customization
-- **React Router v6** - Declarative routing for React applications
-- **Data Visualization** - Integrated D3.js and Recharts for powerful data visualization
-- **Form Management** - React Hook Form for efficient form handling
-- **Animation** - Framer Motion for smooth UI animations
-- **Testing** - Jest and React Testing Library setup
+- **Landing Page:** Visually rich, modern, and attractive homepage with product categories, testimonials, and trust signals.
+- **Authentication:** Secure login/register, password strength meter, forgot password modal, and user context.
+- **Role-Based Dashboards:**
+  - **Buyer Dashboard:** Personalized stats, order summary, wishlist, and recommendations.
+  - **Seller Dashboard:** Inventory management, sales metrics, low inventory alerts, and quick actions.
+- **Product Catalog & Search:**
+  - Advanced sidebar filters (category, price, brand, etc.)
+  - Quick View modal, product Q&A, and social sharing.
+  - Add to cart with animation and toast notification.
+- **Shopping Cart & Checkout:**
+  - Global cart state, quantity updates, and removal.
+  - Multi-step checkout: Cart Review → Shipping → Payment → Review.
+  - Promo code support, order summary, and modern UI.
+- **Order Management:**
+  - Order history, order details, and status tracking.
+- **Mobile-First Design:**
+  - Responsive layouts, mobile tab bar, and touch-friendly UI.
+- **Error Boundaries:**
+  - Graceful error handling and user feedback.
 
-## 📋 Prerequisites
+## Tech Stack
 
-- Node.js (v14.x or higher)
-- npm or yarn
+- **Frontend:** React, Vite, Tailwind CSS
+- **State Management:** React Context API
+- **Routing:** React Router
+- **Backend:** Node.js/Express (API), Supabase (auth & data)
+- **Other:**
+  - Custom UI components (Button, Input, Checkbox, etc.)
+  - Toast notifications
+  - Fly-to-cart animation
 
-## 🛠️ Installation
+## Getting Started
 
-1. Install dependencies:
-   ```bash
+1. **Install dependencies:**
+   ```sh
    npm install
-   # or
-   yarn install
    ```
-   
-2. Start the development server:
-   ```bash
-   npm start
-   # or
-   yarn start
+2. **Start the development server:**
+   ```sh
+   npm run dev
    ```
+3. **Open in browser:**
+   Visit [http://localhost:5173](http://localhost:5173)
 
-## 📁 Project Structure
+## Project Structure
 
-```
-react_app/
-├── public/             # Static assets
-├── src/
-│   ├── components/     # Reusable UI components
-│   ├── pages/          # Page components
-│   ├── styles/         # Global styles and Tailwind configuration
-│   ├── App.jsx         # Main application component
-│   ├── Routes.jsx      # Application routes
-│   └── index.jsx       # Application entry point
-├── .env                # Environment variables
-├── index.html          # HTML template
-├── package.json        # Project dependencies and scripts
-├── tailwind.config.js  # Tailwind CSS configuration
-└── vite.config.js      # Vite configuration
-```
+- `src/pages/` — Main app pages (landing, dashboard, catalog, checkout, etc.)
+- `src/components/` — Shared and UI components
+- `src/utils/` — Utility functions and hooks
+- `public/` — Static assets
 
-## 🧩 Adding Routes
+## Contributing
 
-To add new routes to the application, update the `Routes.jsx` file:
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
-```jsx
-import { useRoutes } from "react-router-dom";
-import HomePage from "pages/HomePage";
-import AboutPage from "pages/AboutPage";
+## License
 
-const ProjectRoutes = () => {
-  let element = useRoutes([
-    { path: "/", element: <HomePage /> },
-    { path: "/about", element: <AboutPage /> },
-    // Add more routes as needed
-  ]);
-
-  return element;
-};
-```
-
-## 🎨 Styling
-
-This project uses Tailwind CSS for styling. The configuration includes:
-
-- Forms plugin for form styling
-- Typography plugin for text styling
-- Aspect ratio plugin for responsive elements
-- Container queries for component-specific responsive design
-- Fluid typography for responsive text
-- Animation utilities
-
-## 📱 Responsive Design
-
-The app is built with responsive design using Tailwind CSS breakpoints.
-
-
-## 📦 Deployment
-
-Build the application for production:
-
-```bash
-npm run build
-```
-
-## 🙏 Acknowledgments
-
-- Built with [Rocket.new](https://rocket.new)
-- Powered by React and Vite
-- Styled with Tailwind CSS
-
-Built with ❤️ on Rocket.new
+MIT

@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useCart } from '../../components/CartContext';
+import { useToast } from '../../components/ui/Toast';
+import { useFlyToCart } from '../../components/ui/useFlyToCart';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../components/ui/AuthenticationRouter';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import MobileTabBar from '../../components/ui/MobileTabBar';
 import Icon from '../../components/AppIcon';
@@ -11,13 +15,13 @@ import FilterSummary from './components/FilterSummary';
 import SearchBar from './components/SearchBar';
 import SortDropdown from './components/SortDropdown';
 import FilterSidebar from './components/FilterSidebar';
-import ProductGrid from './components/ProductGrid';
+import ProductCarousel from './components/ProductCarousel';
 import ComparisonPanel from './components/ComparisonPanel';
 import LoadingSkeleton from './components/LoadingSkeleton';
 
 const ProductCatalogSearch = () => {
   const navigate = useNavigate();
-  const [user] = useState({ role: 'buyer', name: 'John Doe' }); // Mock user
+  const { user } = useAuth(); // Use real user context, will be null if not logged in
 
   // State management
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,7 +32,9 @@ const ProductCatalogSearch = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [wishlistItems, setWishlistItems] = useState([]);
   const [comparisonItems, setComparisonItems] = useState([]);
-  const [cartItems, setCartItems] = useState([]);
+  const { cartItems, addToCart } = useCart();
+  const { showToast } = useToast();
+  const { fly } = useFlyToCart();
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -149,6 +155,43 @@ const ProductCatalogSearch = () => {
       });
     }
 
+    // Brand filter
+    if (filters?.brand?.length > 0) {
+      filtered = filtered?.filter(product =>
+        filters.brand.includes(
+          (product?.seller || '').toLowerCase().split(' ')[0] // match by first word of seller (e.g., 'Tesla')
+            || (product?.brand || '').toLowerCase()
+        )
+      );
+    }
+
+    // Specifications filter (assume product.specifications is an array of ids)
+    if (filters?.specifications?.length > 0) {
+      filtered = filtered?.filter(product =>
+        product?.specifications?.some(spec => filters.specifications.includes(spec))
+      );
+    }
+
+    // Rating filter
+    if (filters?.rating?.length > 0) {
+      filtered = filtered?.filter(product =>
+        filters.rating.some(r => product?.rating >= r)
+      );
+    }
+
+    // Availability filter
+    if (filters?.availability?.length > 0) {
+      filtered = filtered?.filter(product => {
+        let match = true;
+        if (filters.availability.includes('in-stock')) {
+          match = match && product?.inStock;
+        }
+        // For demo, assume all products have free shipping and same day delivery
+        // You can extend this logic if your product data supports it
+        return match;
+      });
+    }
+
     // Sort products
     filtered?.sort((a, b) => {
       switch (sortBy) {
@@ -237,9 +280,26 @@ const ProductCatalogSearch = () => {
     });
   };
 
-  const handleAddToCart = (productId) => {
-    setCartItems(prev => [...prev, productId]);
-    // Show success message or toast
+  const handleAddToCart = (productId, imgRef) => {
+    const product = filteredProducts.find(p => p.id === productId);
+    if (product && imgRef?.current) {
+      // Find cart icon position
+      const cartIcon = document.querySelector('.cart-fly-target');
+      if (cartIcon) {
+        const startRect = imgRef.current.getBoundingClientRect();
+        const endRect = cartIcon.getBoundingClientRect();
+        fly(product.image, startRect, endRect, () => {
+          addToCart(product, 1);
+          showToast(`${product.name} added to cart successfully!`);
+        });
+        return;
+      }
+    }
+    // fallback: just add to cart and show toast
+    if (product) {
+      addToCart(product, 1);
+      showToast(`${product.name} added to cart successfully!`);
+    }
   };
 
   const handleAddToWishlist = (productId) => {
@@ -312,14 +372,16 @@ const ProductCatalogSearch = () => {
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex gap-6">
-            {/* Filter Sidebar */}
+            {/* Filter Sidebar - Only one visible at a time */}
             <div className="hidden lg:block w-80 flex-shrink-0">
-              <FilterSidebar
-                isOpen={true}
-                onClose={() => {}}
-                filters={filters}
-                onFilterChange={handleFilterChange}
-              />
+              {!isFilterOpen && (
+                <FilterSidebar
+                  isOpen={true}
+                  onClose={() => {}}
+                  filters={filters}
+                  onFilterChange={handleFilterChange}
+                />
+              )}
             </div>
 
             {/* Products Section */}
@@ -347,7 +409,7 @@ const ProductCatalogSearch = () => {
               {isLoading ? (
                 <LoadingSkeleton count={12} />
               ) : (
-                <ProductGrid
+                <ProductCarousel
                   products={filteredProducts}
                   onAddToCart={handleAddToCart}
                   onAddToWishlist={handleAddToWishlist}
@@ -387,13 +449,17 @@ const ProductCatalogSearch = () => {
           </div>
         </div>
       </main>
-      {/* Mobile Filter Sidebar */}
-      <FilterSidebar
-        isOpen={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
-        filters={filters}
-        onFilterChange={handleFilterChange}
-      />
+      {/* Mobile Filter Sidebar - Only visible on mobile */}
+      <div className="lg:hidden">
+        {isFilterOpen && (
+          <FilterSidebar
+            isOpen={isFilterOpen}
+            onClose={() => setIsFilterOpen(false)}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+          />
+        )}
+      </div>
       {/* Comparison Panel */}
       <ComparisonPanel
         isOpen={isComparisonOpen}

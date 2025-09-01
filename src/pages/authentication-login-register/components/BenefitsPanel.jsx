@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Icon from '../../../components/AppIcon';
 
@@ -63,43 +64,75 @@ const BenefitsPanel = ({ userType }) => {
   const subtitle = userType === 'seller' ?'Join thousands of successful energy product sellers' :'Join thousands of satisfied energy product buyers';
 
   return (
-    <div className="bg-gradient-to-br from-primary/5 to-secondary/5 p-8 rounded-2xl h-full">
-      <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-foreground mb-2">{title}</h3>
-        <p className="text-muted-foreground">{subtitle}</p>
+  <div className="relative bg-gradient-to-br from-primary/5 to-secondary/10 p-4 rounded-xl h-full shadow-lg border border-primary/10 overflow-hidden animate-fade-in">
+      {/* Decorative background */}
+      <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-2xl opacity-40 pointer-events-none" />
+      <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-secondary/10 rounded-full blur-2xl opacity-30 pointer-events-none" />
+
+      <div className="text-center mb-6">
+        <h3 className="text-xl font-bold text-primary mb-1 tracking-tight">{title}</h3>
+        <p className="text-sm text-muted-foreground font-medium">{subtitle}</p>
       </div>
-      <div className="space-y-6">
+
+      <div className="grid gap-3 md:grid-cols-2">
         {benefits?.map((benefit, index) => (
-          <div key={index} className="flex items-start space-x-4">
-            <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Icon name={benefit?.icon} size={24} className="text-primary" />
+          <div key={index} className="flex items-start space-x-3 bg-white/80 rounded-lg p-2 shadow border border-border hover:scale-[1.01] transition-transform duration-200">
+            <div className="flex-shrink-0 w-9 h-9 bg-primary/20 rounded-md flex items-center justify-center shadow-sm">
+              <Icon name={benefit?.icon} size={18} className="text-primary" />
             </div>
             <div className="flex-1">
-              <h4 className="font-semibold text-foreground mb-1">{benefit?.title}</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">{benefit?.description}</p>
+              <h4 className="font-semibold text-base text-foreground mb-0.5 flex items-center">
+                {benefit?.title}
+                {index === 0 && (
+                  <span className="ml-2 px-1 py-0.5 text-[10px] rounded bg-success/10 text-success font-bold animate-pulse">Popular</span>
+                )}
+              </h4>
+              <p className="text-xs text-muted-foreground leading-snug">{benefit?.description}</p>
             </div>
           </div>
         ))}
       </div>
-      <div className="mt-8 p-6 bg-card rounded-lg border border-border">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="w-10 h-10 bg-success/10 rounded-full flex items-center justify-center">
-            <Icon name="CheckCircle" size={20} className="text-success" />
+
+      {/* Highlighted stats and trust section */}
+      <div className="mt-5 p-3 bg-gradient-to-r from-success/10 to-primary/5 rounded-xl border border-success/20 shadow flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center space-x-2 mb-2 md:mb-0">
+          <div className="w-8 h-8 bg-success/20 rounded-full flex items-center justify-center">
+            <Icon name="CheckCircle" size={18} className="text-success" />
           </div>
           <div>
-            <h4 className="font-semibold text-foreground">Trusted Platform</h4>
-            <p className="text-sm text-muted-foreground">SSL secured & industry certified</p>
+            <h4 className="font-semibold text-base text-success">Trusted Platform</h4>
+            <p className="text-xs text-muted-foreground">SSL secured & industry certified</p>
           </div>
         </div>
-        
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center space-x-2">
-            <Icon name="Users" size={16} className="text-muted-foreground" />
-            <span className="text-muted-foreground">50,000+ Users</span>
+        <div className="flex items-center space-x-4 text-sm font-semibold">
+          <div className="flex items-center space-x-1">
+            <Icon name="Users" size={14} className="text-primary" />
+            <span className="text-primary">50,000+ Users</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <Icon name="Star" size={16} className="text-warning fill-current" />
-            <span className="text-muted-foreground">4.8/5 Rating</span>
+          <div className="flex items-center space-x-1">
+            <Icon name="Star" size={14} className="text-warning fill-current" />
+            <span className="text-warning">4.8/5 Rating</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Testimonials */}
+      <div className="mt-5">
+        <h5 className="text-center text-base font-bold text-foreground mb-2">What our users say</h5>
+        <div className="grid gap-2 md:grid-cols-2">
+          <div className="bg-white/90 rounded-lg p-2 border border-border shadow flex items-start space-x-2">
+            <Icon name="Quote" size={14} className="text-primary mt-1" />
+            <div>
+              <p className="text-xs text-muted-foreground italic">“EnergyHub made it so easy to compare prices and find the best deal. Delivery was fast and the support team is amazing!”</p>
+              <span className="block mt-1 text-[10px] font-semibold text-primary">— Sarah K., Buyer</span>
+            </div>
+          </div>
+          <div className="bg-white/90 rounded-lg p-2 border border-border shadow flex items-start space-x-2">
+            <Icon name="Quote" size={14} className="text-primary mt-1" />
+            <div>
+              <p className="text-xs text-muted-foreground italic">“As a seller, I love the analytics and inventory tools. My sales have grown and the platform is super reliable.”</p>
+              <span className="block mt-1 text-[10px] font-semibold text-primary">— Daniel M., Seller</span>
+            </div>
           </div>
         </div>
       </div>

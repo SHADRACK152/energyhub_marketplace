@@ -67,13 +67,12 @@ const ProductCategoriesSection = () => {
                 <Image
                   src={category?.image}
                   alt={category?.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 bg-white"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                
-                {/* Icon Overlay */}
-                <div className="absolute top-4 right-4 w-12 h-12 bg-card/90 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                  <Icon name={category?.icon} size={24} className="text-primary" />
+                {/* Remove dark overlay for better image visibility */}
+                {/* Icon Overlay - add white background for contrast */}
+                <div className="absolute top-4 right-4 w-12 h-12 bg-white/90 border border-gray-200 rounded-lg flex items-center justify-center shadow-md">
+                  <Icon name={category?.icon} size={28} className="text-primary" />
                 </div>
 
                 {/* Product Count Badge */}

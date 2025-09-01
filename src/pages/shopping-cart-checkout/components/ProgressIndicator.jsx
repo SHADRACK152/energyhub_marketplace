@@ -25,40 +25,41 @@ const ProgressIndicator = ({ steps, currentStep, onStepClick }) => {
         <nav aria-label="Progress">
           <ol className="flex items-center">
             {steps?.map((step, index) => (
-              <li key={step?.id} className={`relative ${index !== steps?.length - 1 ? 'pr-8 sm:pr-20' : ''}`}>
+              <li key={step?.id} className={`relative ${index !== steps?.length - 1 ? 'pr-12 sm:pr-24' : ''}`}>
                 {/* Connector Line */}
                 {index !== steps?.length - 1 && (
                   <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div className={`h-0.5 w-full ${
-                      isStepCompleted(index) ? 'bg-primary' : 'bg-muted-foreground/30'
+                    <div className={`h-1 w-full rounded-full shadow-md transition-all duration-500 ${
+                      isStepCompleted(index) ? 'bg-gradient-to-r from-primary to-accent' : 'bg-muted-foreground/20'
                     }`} />
                   </div>
                 )}
-                
+
                 {/* Step Button */}
                 <button
                   onClick={() => isStepClickable(index) && onStepClick(step?.id)}
                   disabled={!isStepClickable(index)}
-                  className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+                  className={`relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white shadow-xl transition-all duration-300 ${
                     isStepActive(step?.id)
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-gradient-to-br from-primary to-accent text-white scale-110 ring-4 ring-primary/20'
                       : isStepCompleted(index)
-                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                        : 'bg-muted text-muted-foreground'
+                        ? 'bg-primary text-white opacity-80 hover:bg-primary/90'
+                        : 'bg-muted text-muted-foreground opacity-60'
                   } ${
                     isStepClickable(index) ? 'cursor-pointer' : 'cursor-not-allowed'
                   }`}
+                  style={{ boxShadow: isStepActive(step?.id) ? '0 4px 32px 0 rgba(80, 120, 255, 0.18)' : undefined }}
                 >
                   {isStepCompleted(index) ? (
-                    <Icon name="Check" size={16} />
+                    <Icon name="Check" size={22} />
                   ) : (
-                    <Icon name={step?.icon} size={16} />
+                    <Icon name={step?.icon} size={22} />
                   )}
                 </button>
-                
+
                 {/* Step Label */}
-                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                  <span className={`text-sm font-medium ${
+                <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                  <span className={`text-base font-semibold tracking-wide drop-shadow-md ${
                     isStepActive(step?.id) ? 'text-primary' : 'text-muted-foreground'
                   }`}>
                     {step?.label}
@@ -75,14 +76,14 @@ const ProgressIndicator = ({ steps, currentStep, onStepClick }) => {
         <div className="flex items-center space-x-4">
           {/* Current Step Info */}
           <div className="flex items-center space-x-2">
-            <div className={`flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground`}>
-              <Icon name={steps?.find(s => s?.id === currentStep)?.icon} size={14} />
+            <div className={`flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-white shadow-lg`}>
+              <Icon name={steps?.find(s => s?.id === currentStep)?.icon} size={18} />
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-base font-bold text-foreground">
                 Step {getCurrentStepIndex() + 1} of {steps?.length}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {steps?.find(s => s?.id === currentStep)?.label}
               </p>
             </div>
@@ -92,7 +93,7 @@ const ProgressIndicator = ({ steps, currentStep, onStepClick }) => {
           <div className="flex-1">
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
-                className="h-full bg-primary transition-all duration-300 ease-in-out"
+                className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-300 ease-in-out"
                 style={{
                   width: `${((getCurrentStepIndex() + 1) / steps?.length) * 100}%`
                 }}
@@ -106,7 +107,7 @@ const ProgressIndicator = ({ steps, currentStep, onStepClick }) => {
           {steps?.map((step, index) => (
             <div
               key={step?.id}
-              className={`h-2 w-2 rounded-full transition-colors ${
+              className={`h-2.5 w-2.5 rounded-full transition-colors ${
                 index <= getCurrentStepIndex() ? 'bg-primary' : 'bg-muted-foreground/30'
               }`}
             />

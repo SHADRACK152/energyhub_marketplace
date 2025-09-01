@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../components/ui/AuthenticationRouter';
 import { useNavigate } from 'react-router-dom';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import MobileTabBar from '../../components/ui/MobileTabBar';
@@ -15,13 +16,8 @@ const B2CBuyerDashboard = () => {
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Mock user data
-  const user = {
-    id: 1,
-    name: "John Smith",
-    email: "john.smith@email.com",
-    role: "buyer"
-  };
+  // Get authenticated user from context
+  const { user } = useAuth();
 
   // Mock order summary stats
   const orderStats = {
@@ -298,10 +294,10 @@ const B2CBuyerDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10">
       <RoleBasedHeader user={user} onNavigate={handleNavigation} />
-      <main className="pt-16 pb-20 md:pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="pt-20 pb-24 md:pb-12">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
           {/* Pull to refresh indicator */}
           {isRefreshing && (
             <div className="flex justify-center mb-4">
@@ -310,33 +306,45 @@ const B2CBuyerDashboard = () => {
           )}
 
           {/* Welcome Header */}
-          <WelcomeHeader userName={user?.name} />
+          <div className="mb-4 animate-fade-in-up">
+            <WelcomeHeader user={user} />
+          </div>
 
           {/* Order Summary Stats */}
-          <OrderSummaryStats stats={orderStats} />
+          <div className="mb-4 animate-fade-in-up delay-100">
+            <OrderSummaryStats stats={orderStats} />
+          </div>
 
           {/* Promotional Banners */}
-          <PromotionalBanner
-            banners={promotionalBanners}
-            onBannerClick={handleBannerClick}
-            onDismiss={handleBannerDismiss}
-          />
+          <div className="mb-8 animate-fade-in-up delay-200">
+            <PromotionalBanner
+              banners={promotionalBanners}
+              onBannerClick={handleBannerClick}
+              onDismiss={handleBannerDismiss}
+            />
+          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content - Left Column */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-8">
               {/* Recent Orders */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-foreground">Recent Orders</h2>
+              <div className="bg-white/90 border border-primary/10 rounded-2xl p-8 shadow-xl relative overflow-hidden animate-fade-in-up">
+                <div className="absolute -top-8 -right-8 w-32 h-32 bg-primary/10 rounded-full blur-2xl opacity-30 pointer-events-none" />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-2">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
+                      <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18" /></svg>
+                    </span>
+                    <h2 className="text-2xl font-bold text-foreground tracking-tight">Recent Orders</h2>
+                  </div>
                   <button
                     onClick={handleTrackOrders}
-                    className="text-sm text-primary hover:text-primary/80 font-medium"
+                    className="text-sm text-primary hover:text-primary/80 font-semibold border border-primary rounded-lg px-4 py-1.5 bg-primary/5 transition-shadow shadow-sm hover:shadow-md"
                   >
                     View All Orders
                   </button>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {recentOrders?.map((order) => (
                     <OrderStatusCard
                       key={order?.id}
@@ -349,44 +357,52 @@ const B2CBuyerDashboard = () => {
               </div>
 
               {/* Continue Shopping */}
-              <ContinueShoppingSection
-                recentlyViewed={recentlyViewed}
-                abandonedCart={abandonedCart}
-                onAddToCart={handleAddToCart}
-                onViewProduct={handleViewProduct}
-              />
+              <div className="animate-fade-in-up delay-200">
+                <ContinueShoppingSection
+                  recentlyViewed={recentlyViewed}
+                  abandonedCart={abandonedCart}
+                  onAddToCart={handleAddToCart}
+                  onViewProduct={handleViewProduct}
+                />
+              </div>
 
               {/* Recommended Products */}
-              <RecommendedProducts
-                products={recommendedProducts}
-                onAddToCart={handleAddToCart}
-                onViewProduct={handleViewProduct}
-                onAddToWishlist={handleAddToWishlist}
-              />
+              <div className="animate-fade-in-up delay-300">
+                <RecommendedProducts
+                  products={recommendedProducts}
+                  onAddToCart={handleAddToCart}
+                  onViewProduct={handleViewProduct}
+                  onAddToWishlist={handleAddToWishlist}
+                />
+              </div>
             </div>
 
             {/* Sidebar - Right Column */}
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Quick Actions */}
-              <QuickActionsPanel
-                onTrackOrders={handleTrackOrders}
-                onReorderFavorites={handleReorderFavorites}
-                onBrowseCategories={handleBrowseCategories}
-                onViewProfile={handleViewProfile}
-              />
+              <div className="animate-fade-in-up delay-200">
+                <QuickActionsPanel
+                  onTrackOrders={handleTrackOrders}
+                  onReorderFavorites={handleReorderFavorites}
+                  onBrowseCategories={handleBrowseCategories}
+                  onViewProfile={handleViewProfile}
+                />
+              </div>
 
               {/* Wishlist Preview */}
-              <WishlistPreview
-                wishlistItems={wishlistItems}
-                onAddToCart={handleAddToCart}
-                onRemoveFromWishlist={handleRemoveFromWishlist}
-                onViewWishlist={handleViewWishlist}
-              />
+              <div className="animate-fade-in-up delay-300">
+                <WishlistPreview
+                  wishlistItems={wishlistItems}
+                  onAddToCart={handleAddToCart}
+                  onRemoveFromWishlist={handleRemoveFromWishlist}
+                  onViewWishlist={handleViewWishlist}
+                />
+              </div>
             </div>
           </div>
         </div>
       </main>
-      <MobileTabBar user={user} onNavigate={handleNavigation} />
+  <MobileTabBar user={user} onNavigate={handleNavigation} />
     </div>
   );
 };

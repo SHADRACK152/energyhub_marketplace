@@ -8,9 +8,11 @@ import LandingPage from './pages/landing-page';
 import B2BInventoryManagement from './pages/b2b-inventory-management';
 import ProductCatalogSearch from './pages/product-catalog-search';
 import B2CBuyerDashboard from './pages/b2c-buyer-dashboard';
+
 import B2BSellerDashboard from './pages/b2b-seller-dashboard';
 import ProductDetailPage from './pages/product-detail-page';
 import ShoppingCartCheckout from './pages/shopping-cart-checkout';
+import OrdersPage from './pages/orders';
 
 const Routes = () => {
   return (
@@ -28,7 +30,8 @@ const Routes = () => {
         <Route path="/b2b-seller-dashboard" element={<B2BSellerDashboard />} />
         <Route path="/product-detail-page" element={<ProductDetailPage />} />
         <Route path="/product-detail-page/:productId" element={<ProductDetailPage />} />
-        <Route path="/shopping-cart-checkout" element={<ShoppingCartCheckout />} />
+  <Route path="/shopping-cart-checkout" element={<ShoppingCartCheckout />} />
+  <Route path="/orders" element={<OrdersPage />} />
         <Route path="*" element={<NotFound />} />
       </RouterRoutes>
       </ErrorBoundary>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from './AuthenticationRouter';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Icon from '../AppIcon';
 import Button from './Button';
@@ -40,6 +41,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <button
+              type="button"
               onClick={() => handleNavigation('/product-catalog-search')}
               className={`text-sm font-medium transition-smooth ${
                 isActive('/product-catalog-search')
@@ -49,16 +51,18 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
               Browse Products
             </button>
             <Button
+              type="button"
               variant="outline"
               onClick={() => handleNavigation('/authentication-login-register')}
             >
               Sign In
             </Button>
             <Button
+              type="button"
               variant="default"
               onClick={() => handleNavigation('/authentication-login-register')}
             >
-              Get Started
+              Sign Up
             </Button>
           </div>
 
@@ -107,6 +111,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
   );
 
   // B2B Seller Header
+  const { logout } = useAuth();
   const SellerHeader = () => (
     <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-100">
       <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
@@ -144,7 +149,10 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
             >
               Inventory
             </button>
-            <button className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth">
+            <button
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
+              onClick={() => handleNavigation('/orders')}
+            >
               Orders
             </button>
             <button className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth">
@@ -161,6 +169,9 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
                   <Icon name="User" size={16} />
                 </div>
                 <span className="text-sm font-medium">{user?.name || 'Seller'}</span>
+                <Button variant="outline" size="sm" onClick={() => { logout(); navigate('/landing-page'); }}>
+                  Logout
+                </Button>
               </div>
             </div>
           </div>
@@ -199,7 +210,10 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
               >
                 Inventory
               </button>
-              <button className="block w-full text-left px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-smooth">
+              <button
+                className="block w-full text-left px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-smooth"
+                onClick={() => handleNavigation('/orders')}
+              >
                 Orders
               </button>
               <button className="block w-full text-left px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-smooth">
@@ -250,13 +264,21 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
             >
               Browse
             </button>
-            <button className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth">
+            <button
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
+              onClick={() => handleNavigation('/orders')}
+            >
               Orders
             </button>
 
             {/* Cart and User */}
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon" className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative cart-fly-target"
+                onClick={() => handleNavigation('/shopping-cart-checkout')}
+              >
                 <Icon name="ShoppingCart" size={20} />
                 <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   2
@@ -267,6 +289,9 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
                   <Icon name="User" size={16} />
                 </div>
                 <span className="text-sm font-medium">{user?.name || 'Buyer'}</span>
+                <Button variant="outline" size="sm" onClick={() => { logout(); navigate('/landing-page'); }}>
+                  Logout
+                </Button>
               </div>
             </div>
           </div>
@@ -305,7 +330,10 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
               >
                 Browse
               </button>
-              <button className="block w-full text-left px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-smooth">
+              <button
+                className="block w-full text-left px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-smooth"
+                onClick={() => handleNavigation('/orders')}
+              >
                 Orders
               </button>
             </div>

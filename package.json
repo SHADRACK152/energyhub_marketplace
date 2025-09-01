@@ -19,11 +19,6 @@
       "autoprefixer",
       "postcss"
     ],
-    "scripts": [
-      "start",
-      "build",
-      "serve"
-    ],
     "warning": "🚨 CRITICAL: DO NOT REMOVE OR MODIFY ABOVE DEPENDENCIES - Required for app functionality"
   },
   "dependencies": {
@@ -58,7 +53,8 @@
   "scripts": {
     "start": "vite",
     "build": "vite build --sourcemap",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "dev": "concurrently \"npm run start --prefix backend\" \"npm start\""
   },
   "eslintConfig": {
     "extends": [
@@ -85,6 +81,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@vitejs/plugin-react": "4.3.4",
     "autoprefixer": "10.4.2",
+    "concurrently": "^9.2.1",
     "postcss": "8.4.8",
     "tailwindcss": "3.4.6",
     "vite": "5.0.0",

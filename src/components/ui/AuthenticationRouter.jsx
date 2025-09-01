@@ -38,11 +38,15 @@ export const AuthProvider = ({ children }) => {
   const login = (userData) => {
     setUser(userData);
     localStorage.setItem('energyhub_user', JSON.stringify(userData));
+    if (userData.token) {
+      localStorage.setItem('energyhub_token', userData.token);
+    }
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('energyhub_user');
+    localStorage.removeItem('energyhub_token');
   };
 
   const value = {

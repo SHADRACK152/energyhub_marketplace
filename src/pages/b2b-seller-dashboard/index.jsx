@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../components/ui/AuthenticationRouter';
 import { useNavigate } from 'react-router-dom';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import NavigationBreadcrumbs from '../../components/ui/NavigationBreadcrumbs';
@@ -15,14 +16,8 @@ const B2BSellerDashboard = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock user data
-  const user = {
-    id: 1,
-    name: "Sarah Johnson",
-    email: "sarah@energysolutions.com",
-    role: "seller",
-    company: "Energy Solutions Inc."
-  };
+  // Get authenticated user from context
+  const { user } = useAuth();
 
   // Mock metrics data
   const metricsData = [
@@ -238,7 +233,7 @@ const B2BSellerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <RoleBasedHeader user={user} onNavigate={handleNavigation} />
+  <RoleBasedHeader user={user} onNavigate={handleNavigation} />
       <main className="pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <NavigationBreadcrumbs onNavigate={handleNavigation} />
@@ -248,7 +243,7 @@ const B2BSellerDashboard = () => {
             <div>
               <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
               <p className="text-muted-foreground mt-1">
-                Welcome back, {user?.name}. Here's your business overview.
+                Welcome back, {user?.name} ({user?.email}). Here's your business overview.
               </p>
             </div>
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
