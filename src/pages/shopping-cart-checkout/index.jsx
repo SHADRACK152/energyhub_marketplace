@@ -103,24 +103,38 @@ const ShoppingCartCheckout = () => {
   // Final order placement
   const handlePlaceOrder = async () => {
     setIsProcessing(true);
-    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Navigate to success page
+      // Build order payload
+      const orderPayload = {
+        orderNumber: 'ORD-' + Date.now(),
+        productName: cartItems.map(i => i.name).join(', '),
+        productImage: cartItems[0]?.image || '',
+        price: total,
+        orderDate: new Date().toISOString(),
+        deliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        items: cartItems,
+        shippingInfo,
+        paymentInfo,
+        userId: 'demo-user', // Replace with real user ID if available
+      };
+      // Send to backend
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderPayload)
+      });
+      if (!res.ok) throw new Error('Failed to place order');
+      const savedOrder = await res.json();
+      // Navigate to order confirmation page, user can go to orders from there
       navigate('/order-confirmation', {
         state: {
-          orderData: {
-            items: cartItems,
-            total,
-            shippingInfo,
-            paymentInfo
-          }
+          orderData: savedOrder
         }
       });
+      clearCart();
     } catch (error) {
       console.error('Order placement failed:', error);
+      alert('Order placement failed: ' + error.message);
     } finally {
       setIsProcessing(false);
     }

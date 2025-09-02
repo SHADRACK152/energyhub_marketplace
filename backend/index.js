@@ -29,6 +29,10 @@ app.get('/api/health', (req, res) => {
 const qnaRouter = require('./routes/qna');
 app.use('/api/qna', qnaRouter);
 
+// Orders API
+const ordersRouter = require('./routes/orders');
+app.use('/api/orders', ordersRouter);
+
 // Example: Get all products
 app.get('/api/products', async (req, res) => {
   const { data, error } = await supabase.from('products').select('*');

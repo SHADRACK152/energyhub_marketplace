@@ -270,8 +270,7 @@ const B2CBuyerDashboard = () => {
 
   // Quick action handlers
   const handleTrackOrders = () => {
-    console.log('Track orders clicked');
-    // Navigate to orders page
+    navigate('/orders');
   };
 
   const handleReorderFavorites = () => {

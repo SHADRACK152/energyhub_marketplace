@@ -13,6 +13,8 @@ import B2BSellerDashboard from './pages/b2b-seller-dashboard';
 import ProductDetailPage from './pages/product-detail-page';
 import ShoppingCartCheckout from './pages/shopping-cart-checkout';
 import OrdersPage from './pages/orders';
+import OrderConfirmation from './pages/order-confirmation';
+import OrderTracking from './pages/order-tracking';
 
 const Routes = () => {
   return (
@@ -31,7 +33,9 @@ const Routes = () => {
         <Route path="/product-detail-page" element={<ProductDetailPage />} />
         <Route path="/product-detail-page/:productId" element={<ProductDetailPage />} />
   <Route path="/shopping-cart-checkout" element={<ShoppingCartCheckout />} />
+  <Route path="/order-confirmation" element={<OrderConfirmation />} />
   <Route path="/orders" element={<OrdersPage />} />
+  <Route path="/order-tracking/:orderId" element={<OrderTracking />} />
         <Route path="*" element={<NotFound />} />
       </RouterRoutes>
       </ErrorBoundary>
