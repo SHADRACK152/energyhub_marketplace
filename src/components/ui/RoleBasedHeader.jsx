@@ -37,7 +37,6 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
               <span className="text-xl font-semibold">EnergyHub</span>
             </button>
           </div>
-
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <button
@@ -65,7 +64,6 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
               Sign Up
             </Button>
           </div>
-
           {/* Mobile Menu Button */}
           <div className="md:hidden">
             <Button
@@ -77,7 +75,6 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
             </Button>
           </div>
         </div>
-
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-border bg-card">
@@ -270,78 +267,80 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
             >
               Orders
             </button>
-
-            {/* Cart and User */}
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative cart-fly-target"
-                onClick={() => handleNavigation('/shopping-cart-checkout')}
-              >
-                <Icon name="ShoppingCart" size={20} />
-                <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  2
-                </span>
-              </Button>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                  <Icon name="User" size={16} />
-                </div>
-                <span className="text-sm font-medium">{user?.name || 'Buyer'}</span>
-                <Button variant="outline" size="sm" onClick={() => { logout(); navigate('/landing-page'); }}>
-                  Logout
-                </Button>
-              </div>
-            </div>
           </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          {/* Cart, Notifications, and User */}
+          <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="relative cart-fly-target"
+              onClick={() => handleNavigation('/shopping-cart-checkout')}
             >
-              <Icon name={isMobileMenuOpen ? "X" : "Menu"} size={24} />
+              <Icon name="ShoppingCart" size={20} />
+              <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                2
+              </span>
             </Button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border bg-card">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              <button
-                onClick={() => handleNavigation('/b2c-buyer-dashboard')}
-                className={`block w-full text-left px-3 py-2 text-base font-medium rounded-md transition-smooth ${
-                  isActive('/b2c-buyer-dashboard')
-                    ? 'text-primary bg-primary/10' :'text-muted-foreground hover:text-foreground hover:bg-muted'
-                }`}
-              >
-                Dashboard
-              </button>
-              <button
-                onClick={() => handleNavigation('/product-catalog-search')}
-                className={`block w-full text-left px-3 py-2 text-base font-medium rounded-md transition-smooth ${
-                  isActive('/product-catalog-search')
-                    ? 'text-primary bg-primary/10' :'text-muted-foreground hover:text-foreground hover:bg-muted'
-                }`}
-              >
-                Browse
-              </button>
-              <button
-                className="block w-full text-left px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-smooth"
-                onClick={() => handleNavigation('/orders')}
-              >
-                Orders
-              </button>
+            <NotificationsBell />
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                <Icon name="User" size={16} />
+              </div>
+              <span className="text-sm font-medium">{user?.name || 'Buyer'}</span>
+              <Button variant="outline" size="sm" onClick={() => { logout(); navigate('/landing-page'); }}>
+                Logout
+              </Button>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </header>
   );
+};
+
+export default RoleBasedHeader;
+
+// NotificationsBell component (must be outside RoleBasedHeader)
+function NotificationsBell() {
+  const [open, setOpen] = React.useState(false);
+  // Example notifications
+  const notifications = [
+    { id: 1, message: 'Order #ORD-2024-001 has shipped.' },
+    { id: 2, message: 'Order #ORD-2024-002 is now processing.' },
+    { id: 3, message: 'Order #ORD-2024-003 delivered.' },
+  ];
+  return (
+    <div className="relative">
+      <button
+        className="relative focus:outline-none"
+        onClick={() => setOpen(o => !o)}
+        aria-label="Notifications"
+      >
+        <Icon name="Bell" size={22} className="text-primary" />
+        {notifications.length > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">{notifications.length}</span>
+        )}
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-72 bg-white border border-border rounded-xl shadow-lg z-50 animate-fade-in-up">
+          <div className="p-3 border-b border-border font-semibold text-primary">Notifications</div>
+          <ul className="max-h-60 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <li className="p-4 text-center text-muted-foreground">No notifications</li>
+            ) : (
+              notifications.map(n => (
+                <li key={n.id} className="px-4 py-3 border-b border-border last:border-b-0 text-sm text-foreground hover:bg-primary/5 cursor-pointer">
+                  {n.message}
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+
+
 
   // Determine which header to render based on user role
   if (!user) {
@@ -360,4 +359,3 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
   return <PublicHeader />;
 };
 
-export default RoleBasedHeader;
