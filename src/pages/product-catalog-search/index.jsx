@@ -129,6 +129,7 @@ const ProductCatalogSearch = () => {
   const [filteredProducts, setFilteredProducts] = useState(mockProducts);
 
   // Filter products based on active filters
+  // Fix: Remove mockProducts from useCallback dependencies to prevent infinite loop
   const filterProducts = useCallback(() => {
     let filtered = [...mockProducts];
 
@@ -208,7 +209,7 @@ const ProductCatalogSearch = () => {
       }
     });
     setFilteredProducts(filtered);
-  }, [activeCategory, searchQuery, filters, sortBy, mockProducts]);
+  }, [activeCategory, searchQuery, filters, sortBy]);
 
   useEffect(() => {
     filterProducts();
@@ -281,8 +282,10 @@ const ProductCatalogSearch = () => {
 
   const handleAddToCart = (productId, imgRef) => {
     const product = filteredProducts.find(p => p.id === productId);
-    if (product && imgRef?.current) {
-      // Find cart icon position
+    if (!product) return;
+    console.log('handleAddToCart called for', product.name);
+    let didAnimate = false;
+    if (imgRef?.current) {
       const cartIcon = document.querySelector('.cart-fly-target');
       if (cartIcon) {
         const startRect = imgRef.current.getBoundingClientRect();
@@ -291,8 +294,12 @@ const ProductCatalogSearch = () => {
           addToCart(product, 1);
           showToast(`${product.name} added to cart successfully!`);
         });
-        return;
+        didAnimate = true;
       }
+    }
+    // Always add to cart and show toast if animation did not run
+    if (!didAnimate) {
+      addToCart(product, 1);
       showToast(`${product.name} added to cart successfully!`);
     }
   };

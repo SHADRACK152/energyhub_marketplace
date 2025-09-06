@@ -19,22 +19,25 @@ export function CartProvider({ children }) {
 
   const addToCart = (product, quantity = 1) => {
     setCartItems(prev => {
+      const q = Number(quantity) || 1;
+      const p = Number(product.price) || 0;
+      const stock = typeof product.stockCount === 'number' ? product.stockCount : 100;
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
         return prev.map(item =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: Number(item.quantity || 1) + q, price: p, stockCount: stock }
             : item
         );
       }
-      return [...prev, { ...product, quantity }];
+      return [...prev, { ...product, quantity: q, price: p, stockCount: stock }];
     });
   };
 
   const updateQuantity = (productId, quantity) => {
     setCartItems(prev =>
       prev.map(item =>
-        item.id === productId ? { ...item, quantity } : item
+        item.id === productId ? { ...item, quantity: Number(quantity) || 1 } : item
       )
     );
   };

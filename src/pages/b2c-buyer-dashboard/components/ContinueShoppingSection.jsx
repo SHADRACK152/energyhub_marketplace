@@ -4,6 +4,12 @@ import Image from '../../../components/AppImage';
 import Button from '../../../components/ui/Button';
 
 const ContinueShoppingSection = ({ recentlyViewed, abandonedCart, onAddToCart, onViewProduct }) => {
+  const [quantities, setQuantities] = React.useState({});
+
+  const handleQuantityChange = (id, value) => {
+    setQuantities(q => ({ ...q, [id]: Math.max(1, Number(value) || 1) }));
+  };
+
   return (
     <div className="bg-card border border-border rounded-lg p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
@@ -39,18 +45,25 @@ const ContinueShoppingSection = ({ recentlyViewed, abandonedCart, onAddToCart, o
                     </p>
                   </div>
                 </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  fullWidth
-                  className="mt-3"
-                  onClick={() => onAddToCart(item?.id)}
-                  iconName="Plus"
-                  iconPosition="left"
-                  iconSize={14}
-                >
-                  Add to Cart
-                </Button>
+                <div className="flex items-center gap-2 mt-3">
+                  <input
+                    type="number"
+                    min={1}
+                    value={quantities[item?.id] || 1}
+                    onChange={e => handleQuantityChange(item?.id, e.target.value)}
+                    className="w-16 border border-border rounded px-2 py-1 text-sm"
+                  />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onAddToCart(item?.id, quantities[item?.id] || 1)}
+                    iconName="Plus"
+                    iconPosition="left"
+                    iconSize={14}
+                  >
+                    Add to Cart
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

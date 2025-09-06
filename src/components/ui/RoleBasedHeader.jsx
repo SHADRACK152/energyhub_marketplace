@@ -228,13 +228,13 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
 
   // B2C Buyer Header
   const BuyerHeader = () => (
-    <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-100">
+  <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-100">
       <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
             <button
-              onClick={() => handleNavigation('/b2c-buyer-dashboard')}
+              onClick={() => { console.log('Dashboard nav clicked'); handleNavigation('/b2c-buyer-dashboard'); }}
               className="flex items-center space-x-2 text-primary hover:text-primary/80 transition-smooth"
             >
               <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
@@ -247,7 +247,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <button
-              onClick={() => handleNavigation('/b2c-buyer-dashboard')}
+              onClick={() => { console.log('Dashboard nav clicked'); handleNavigation('/b2c-buyer-dashboard'); }}
               className={`text-sm font-medium transition-smooth ${
                 isActive('/b2c-buyer-dashboard')
                   ? 'text-primary' :'text-muted-foreground hover:text-foreground'
@@ -256,7 +256,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
               Dashboard
             </button>
             <button
-              onClick={() => handleNavigation('/product-catalog-search')}
+              onClick={() => { console.log('Browse nav clicked'); handleNavigation('/product-catalog-search'); }}
               className={`text-sm font-medium transition-smooth ${
                 isActive('/product-catalog-search')
                   ? 'text-primary' :'text-muted-foreground hover:text-foreground'
@@ -266,7 +266,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
             </button>
             <button
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
-              onClick={() => handleNavigation('/orders')}
+              onClick={() => { console.log('Orders nav clicked'); handleNavigation('/orders'); }}
             >
               Orders
             </button>
@@ -290,7 +290,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
                   <Icon name="User" size={16} />
                 </div>
                 <span className="text-sm font-medium">{user?.name || 'Buyer'}</span>
-                <Button variant="outline" size="sm" onClick={() => { logout(); navigate('/landing-page'); }}>
+                <Button variant="outline" size="sm" onClick={() => { console.log('Logout nav clicked'); logout(); navigate('/landing-page'); }}>
                   Logout
                 </Button>
               </div>

@@ -48,7 +48,15 @@ const ShoppingCartCheckout = () => {
 
   // Calculate totals
   const subtotal = cartItems?.reduce((sum, item) => sum + (item?.price * item?.quantity), 0);
-  const shipping = subtotal > 500 ? 0 : 25;
+  // Calculate shipping based on selected delivery option
+  let shipping = 0;
+  if (shippingInfo?.deliveryOption === 'express') {
+    shipping = 15;
+  } else if (shippingInfo?.deliveryOption === 'overnight') {
+    shipping = 35;
+  } else {
+    shipping = subtotal > 500 ? 0 : 25;
+  }
   const tax = subtotal * 0.08;
   const discount = promoDiscount;
   const total = subtotal + shipping + tax - discount;
@@ -78,6 +86,7 @@ const ShoppingCartCheckout = () => {
     }
   };
 
+
   // Cart actions
   const handleUpdateQuantity = (itemId, newQuantity) => {
     if (newQuantity === 0) {
@@ -87,12 +96,33 @@ const ShoppingCartCheckout = () => {
     updateQuantity(itemId, newQuantity);
   };
 
+  // Fix: Add missing handleRemoveItem function
+  const handleRemoveItem = (itemId) => {
+    removeFromCart(itemId);
+  };
+
+  const [promoFeedback, setPromoFeedback] = useState('');
   const handleApplyPromoCode = () => {
-    // Mock promo code validation
-    if (promoCode?.toLowerCase() === 'save10') {
+    const code = promoCode?.trim().toLowerCase();
+    if (!code) {
+      setPromoDiscount(0);
+      setPromoFeedback('Please enter a promo code.');
+      return;
+    }
+    // Example codes
+    if (code === 'save10') {
       setPromoDiscount(subtotal * 0.1);
+      setPromoFeedback('Promo code applied: 10% off!');
+    } else if (code === 'freeship') {
+      setPromoDiscount(0);
+      setShippingInfo(prev => ({ ...prev, deliveryOption: 'standard' }));
+      setPromoFeedback('Promo code applied: Free shipping!');
+    } else if (code === 'save50') {
+      setPromoDiscount(50);
+      setPromoFeedback('Promo code applied: $50 off!');
     } else {
       setPromoDiscount(0);
+      setPromoFeedback('Invalid promo code.');
     }
   };
 
@@ -148,6 +178,7 @@ const ShoppingCartCheckout = () => {
             onPromoCodeChange={setPromoCode}
             onApplyPromoCode={handleApplyPromoCode}
             promoDiscount={promoDiscount}
+            promoFeedback={promoFeedback}
           />
         );
       case 'shipping':

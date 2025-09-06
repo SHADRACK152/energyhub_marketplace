@@ -12,25 +12,37 @@ const PaymentSection = ({ paymentInfo, onPaymentInfoChange, shippingInfo }) => {
       id: 'credit-card',
       name: 'Credit Card',
       description: 'Visa, Mastercard, American Express',
-      icon: 'CreditCard'
+  icon: 'https://img.icons8.com/?size=100&id=dCmOgAybZTzH&format=png&color=000000'
     },
     {
       id: 'paypal',
       name: 'PayPal',
       description: 'Pay with your PayPal account',
-      icon: 'Wallet'
+      icon: 'https://img.icons8.com/?size=100&id=13611&format=png&color=000000'
     },
     {
       id: 'apple-pay',
       name: 'Apple Pay',
       description: 'Pay with Touch ID or Face ID',
-      icon: 'Smartphone'
+      icon: 'https://img.icons8.com/?size=100&id=77189&format=png&color=000000'
     },
     {
       id: 'google-pay',
       name: 'Google Pay',
       description: 'Pay with Google Pay',
-      icon: 'Smartphone'
+      icon: 'https://img.icons8.com/?size=100&id=p7OO5M8N611u&format=png&color=000000'
+    },
+    {
+      id: 'mpesa',
+      name: 'M-Pesa',
+      description: 'Pay with M-Pesa mobile money',
+  icon: 'https://img.icons8.com/?size=100&id=kUwZnzomzbTj&format=png&color=000000'
+    },
+    {
+      id: 'airtel-money',
+      name: 'Airtel Money',
+      description: 'Pay with Airtel Money mobile money',
+  icon: 'https://img.icons8.com/?size=100&id=H6oPm9v5Ilx6&format=png&color=000000'
     }
   ];
 
@@ -117,7 +129,11 @@ const PaymentSection = ({ paymentInfo, onPaymentInfoChange, shippingInfo }) => {
                       )}
                     </div>
                     
-                    <Icon name={method?.icon} size={20} className="text-muted-foreground" />
+                    {['mpesa', 'airtel-money', 'google-pay', 'apple-pay', 'paypal', 'credit-card'].includes(method?.id) ? (
+                      <img src={method.icon} alt={method.name + ' logo'} style={{ width: 40, height: 40, objectFit: 'contain', background: '#fff', borderRadius: 6 }} />
+                    ) : (
+                      <Icon name={method?.icon} size={20} className="text-muted-foreground" />
+                    )}
                     
                     <div>
                       <p className="font-medium text-foreground">{method?.name}</p>

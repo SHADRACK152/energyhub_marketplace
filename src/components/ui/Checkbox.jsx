@@ -36,6 +36,7 @@ const Checkbox = React.forwardRef(({
                     disabled={disabled}
                     required={required}
                     className="sr-only"
+                    onChange={props.onChange}
                     {...props}
                 />
 

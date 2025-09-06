@@ -15,7 +15,7 @@ const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
   });
 
   // Mock saved addresses
-  const savedAddresses = [
+  const [savedAddresses, setSavedAddresses] = useState([
     {
       id: 1,
       fullName: 'John Doe',
@@ -36,7 +36,71 @@ const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
       phone: '+1 (555) 987-6543',
       isDefault: false
     }
-  ];
+  ]);
+
+  // Geolocation and address suggestion
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState('');
+  const [nearbyAddresses, setNearbyAddresses] = useState([]);
+
+  const handleFindLocation = () => {
+    setGeoLoading(true);
+    setGeoError('');
+    if (!navigator.geolocation) {
+      setGeoError('Geolocation is not supported by your browser.');
+      setGeoLoading(false);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const { latitude, longitude } = position.coords;
+      try {
+        // Use Nominatim's search API to get up to 5 nearby addresses
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&extratags=1&namedetails=1&lat=${latitude}&lon=${longitude}`);
+        const data = await res.json();
+        let suggested = [];
+        if (Array.isArray(data) && data.length > 0) {
+          suggested = data.map((item, idx) => {
+            const addr = item.address || {};
+            return {
+              id: `geo-${idx+1}`,
+              fullName: '',
+              address: item.display_name,
+              city: addr.city || addr.town || addr.village || addr.hamlet || '',
+              state: addr.state || '',
+              zipCode: addr.postcode || '',
+              phone: '',
+              isDefault: false
+            };
+          });
+        } else {
+          // Fallback: use reverse geocoding to get at least one address
+          const revRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const revData = await revRes.json();
+          const addr = revData.address || {};
+          suggested = [
+            {
+              id: 'geo-1',
+              fullName: '',
+              address: revData.display_name,
+              city: addr.city || addr.town || addr.village || addr.hamlet || '',
+              state: addr.state || '',
+              zipCode: addr.postcode || '',
+              phone: '',
+              isDefault: false
+            }
+          ];
+        }
+        setNearbyAddresses(suggested);
+        setGeoLoading(false);
+      } catch (err) {
+        setGeoError('Could not fetch address from location.');
+        setGeoLoading(false);
+      }
+    }, (err) => {
+      setGeoError('Location permission denied or unavailable.');
+      setGeoLoading(false);
+    });
+  };
 
   const deliveryOptions = [
     {
@@ -84,6 +148,7 @@ const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
         ...newAddress,
         isDefault: false
       };
+      setSavedAddresses([...savedAddresses, address]);
       handleAddressSelect(address);
       setShowAddAddress(false);
       setNewAddress({
@@ -165,6 +230,33 @@ const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
         {showAddAddress && (
           <div className="bg-muted/30 border border-border rounded-lg p-6 mb-6">
             <h4 className="font-medium text-foreground mb-4">Add New Address</h4>
+            <div className="mb-4">
+              <Button variant="secondary" onClick={handleFindLocation} disabled={geoLoading}>
+                {geoLoading ? 'Locating...' : 'Use My Current Location'}
+              </Button>
+              {geoError && (
+                <div className="text-red-500 text-sm mt-2 flex items-center gap-2">
+                  <span>{geoError === 'Could not fetch address from location.'
+                    ? 'Could not fetch address from location. Please check your internet connection or try again later.'
+                    : geoError}
+                  </span>
+                  <Button variant="outline" size="xs" onClick={handleFindLocation}>
+                    Retry
+                  </Button>
+                </div>
+              )}
+              {nearbyAddresses.length > 0 && (
+                <div className="mt-4">
+                  <div className="font-medium mb-2">Suggested Address:</div>
+                  {nearbyAddresses.map((addr) => (
+                    <div key={addr.id} className="border rounded p-3 mb-2 bg-white cursor-pointer hover:border-primary" onClick={() => setNewAddress(addr)}>
+                      <div className="font-semibold">{addr.address}</div>
+                      <div className="text-sm text-muted-foreground">{addr.city}, {addr.state} {addr.zipCode}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Full Name"

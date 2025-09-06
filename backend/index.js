@@ -1,10 +1,24 @@
 require('dotenv').config();
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
 
 const app = express();
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Multer setup for image uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, 'uploads'));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  }
+});
+const upload = multer({ storage });
 app.use(cors());
 
 // Supabase client setup
@@ -40,12 +54,46 @@ app.get('/api/products', async (req, res) => {
   res.json(data);
 });
 
-// Example: Create a new product
-app.post('/api/products', async (req, res) => {
-  const { name, price, description } = req.body;
-  const { data, error } = await supabase.from('products').insert([{ name, price, description }]).select();
-  if (error) return res.status(500).json({ error: error.message });
-  res.status(201).json(data[0]);
+// Create a new product with image upload
+app.post('/api/products', upload.array('images', 10), async (req, res) => {
+  try {
+    // Parse product fields from body (fields sent as JSON string)
+    const {
+      name, brand, sku, category, description, specifications,
+      pricing, inventory, status, featured
+    } = req.body;
+
+    // Parse JSON fields if sent as string
+    const parsedSpecifications = typeof specifications === 'string' ? JSON.parse(specifications) : specifications;
+    const parsedPricing = typeof pricing === 'string' ? JSON.parse(pricing) : pricing;
+    const parsedInventory = typeof inventory === 'string' ? JSON.parse(inventory) : inventory;
+
+    // Handle images
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      imageUrls = req.files.map(file => `/uploads/${file.filename}`);
+    }
+
+    const insertObj = {
+      name,
+      brand,
+      sku,
+      category,
+      description,
+      specifications: parsedSpecifications,
+      pricing: parsedPricing,
+      inventory: parsedInventory,
+      images: imageUrls,
+      status,
+      featured: featured === 'true' || featured === true
+    };
+
+    const { data, error } = await supabase.from('products').insert([insertObj]).select();
+    if (error) return res.status(500).json({ error: error.message });
+    res.status(201).json(data[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 const PORT = process.env.PORT || 5000;

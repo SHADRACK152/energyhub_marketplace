@@ -53,79 +53,28 @@ const B2BSellerDashboard = () => {
     }
   ];
 
-  // Mock recent orders data
-  const recentOrders = [
-    {
-      id: "ORD-2024-001",
-      buyer: {
-        id: 1,
-        name: "Michael Chen",
-        company: "Solar Innovations LLC"
-      },
-      products: [
-        { name: "400W Solar Panel", quantity: 50 }
-      ],
-      value: 25000,
-      status: "pending",
-      date: "2024-08-31"
-    },
-    {
-      id: "ORD-2024-002",
-      buyer: {
-        id: 2,
-        name: "Lisa Rodriguez",
-        company: "Green Energy Corp"
-      },
-      products: [
-        { name: "Tesla Powerwall 2", quantity: 10 }
-      ],
-      value: 75000,
-      status: "processing",
-      date: "2024-08-30"
-    },
-    {
-      id: "ORD-2024-003",
-      buyer: {
-        id: 3,
-        name: "David Kim",
-        company: "Renewable Solutions"
-      },
-      products: [
-        { name: "SolarEdge Inverter", quantity: 25 }
-      ],
-      value: 18750,
-      status: "shipped",
-      date: "2024-08-29"
-    },
-    {
-      id: "ORD-2024-004",
-      buyer: {
-        id: 4,
-        name: "Emma Thompson",
-        company: "EcoTech Systems"
-      },
-      products: [
-        { name: "LG Chem Battery", quantity: 15 }
-      ],
-      value: 45000,
-      status: "delivered",
-      date: "2024-08-28"
-    },
-    {
-      id: "ORD-2024-005",
-      buyer: {
-        id: 5,
-        name: "James Wilson",
-        company: "Sustainable Power Inc"
-      },
-      products: [
-        { name: "Enphase Microinverter", quantity: 100 }
-      ],
-      value: 32000,
-      status: "pending",
-      date: "2024-08-31"
-    }
-  ];
+  // Orders state
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState(null);
+
+  useEffect(() => {
+    setOrdersLoading(true);
+    setOrdersError(null);
+    fetch('/api/orders')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch orders');
+        return res.json();
+      })
+      .then(data => {
+        setRecentOrders(Array.isArray(data) ? data : []);
+        setOrdersLoading(false);
+      })
+      .catch(err => {
+        setOrdersError(err.message);
+        setOrdersLoading(false);
+      });
+  }, []);
 
   // Mock low inventory items
   const lowStockItems = [
@@ -273,12 +222,18 @@ const B2BSellerDashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
             {/* Recent Orders - Desktop Table */}
             <div className="lg:col-span-8 hidden md:block">
-              <RecentOrdersTable
-                orders={recentOrders}
-                onViewOrder={handleViewOrder}
-                onFulfillOrder={handleFulfillOrder}
-                onContactBuyer={handleContactBuyer}
-              />
+              {ordersLoading ? (
+                <div className="p-8 text-center text-muted-foreground">Loading orders...</div>
+              ) : ordersError ? (
+                <div className="p-8 text-center text-error">{ordersError}</div>
+              ) : (
+                <RecentOrdersTable
+                  orders={recentOrders}
+                  onViewOrder={handleViewOrder}
+                  onFulfillOrder={handleFulfillOrder}
+                  onContactBuyer={handleContactBuyer}
+                />
+              )}
             </div>
 
             {/* Recent Orders - Mobile Cards */}
@@ -287,17 +242,23 @@ const B2BSellerDashboard = () => {
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold text-foreground">Recent Orders</h3>
                 </div>
-                <div className="space-y-4">
-                  {recentOrders?.slice(0, 3)?.map((order) => (
-                    <MobileOrderCard
-                      key={order?.id}
-                      order={order}
-                      onViewOrder={handleViewOrder}
-                      onFulfillOrder={handleFulfillOrder}
-                      onContactBuyer={handleContactBuyer}
-                    />
-                  ))}
-                </div>
+                {ordersLoading ? (
+                  <div className="p-8 text-center text-muted-foreground">Loading orders...</div>
+                ) : ordersError ? (
+                  <div className="p-8 text-center text-error">{ordersError}</div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentOrders?.slice(0, 3)?.map((order) => (
+                      <MobileOrderCard
+                        key={order?.id}
+                        order={order}
+                        onViewOrder={handleViewOrder}
+                        onFulfillOrder={handleFulfillOrder}
+                        onContactBuyer={handleContactBuyer}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

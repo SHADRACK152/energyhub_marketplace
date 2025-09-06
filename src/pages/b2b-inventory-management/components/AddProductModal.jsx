@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import Icon from '../../../components/AppIcon';
 
-const AddProductModal = ({ isOpen, onClose, onSave }) => {
+const AddProductModal = ({ isOpen, onClose, onSave, product, isEdit }) => {
   const [activeTab, setActiveTab] = useState('basic');
-  const [productData, setProductData] = useState({
+  const emptyProduct = {
     name: '',
     brand: '',
     sku: '',
@@ -37,7 +37,19 @@ const AddProductModal = ({ isOpen, onClose, onSave }) => {
     images: [],
     status: 'active',
     featured: false
-  });
+  };
+  const [productData, setProductData] = useState(emptyProduct);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (isEdit && product) {
+        setProductData(product);
+      } else {
+        setProductData(emptyProduct);
+      }
+      setActiveTab('basic');
+    }
+  }, [isOpen, isEdit, product]);
 
   const categoryOptions = [
     { value: 'solar-panels', label: 'Solar Panels' },
@@ -54,6 +66,41 @@ const AddProductModal = ({ isOpen, onClose, onSave }) => {
     { id: 'pricing', label: 'Pricing', icon: 'DollarSign' },
     { id: 'images', label: 'Images', icon: 'Image' }
   ];
+
+  // Validation for each step
+  const validateTab = (tabId) => {
+    if (tabId === 'basic') {
+      return productData.name && productData.brand && productData.sku && productData.category && productData.description;
+    }
+    if (tabId === 'specifications') {
+      const s = productData.specifications;
+      return s.power && s.voltage && s.efficiency && s.warranty && s.dimensions && s.weight;
+    }
+    if (tabId === 'pricing') {
+      return productData.pricing.basePrice && productData.inventory.stock;
+    }
+    if (tabId === 'images') {
+      return productData.images && productData.images.length > 0;
+    }
+    return true;
+  };
+
+  // Find the index of the current tab
+  const currentTabIdx = tabs.findIndex(t => t.id === activeTab);
+
+  // Only allow navigation to next tab if current is valid
+  const goToTab = (tabId) => {
+    const targetIdx = tabs.findIndex(t => t.id === tabId);
+    if (targetIdx > currentTabIdx) {
+      // Only allow forward if all previous tabs are valid
+      for (let i = 0; i <= currentTabIdx; i++) {
+        if (!validateTab(tabs[i].id)) {
+          return;
+        }
+      }
+    }
+    setActiveTab(tabId);
+  };
 
   const handleInputChange = (section, field, value) => {
     if (section) {
@@ -124,95 +171,147 @@ const AddProductModal = ({ isOpen, onClose, onSave }) => {
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-border">
-          <div className="flex overflow-x-auto">
-            {tabs?.map((tab) => (
-              <button
-                key={tab?.id}
-                onClick={() => setActiveTab(tab?.id)}
-                className={`flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2 transition-smooth ${
-                  activeTab === tab?.id
-                    ? 'border-primary text-primary' :'border-transparent text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Icon name={tab?.icon} size={16} />
-                {tab?.label}
-              </button>
-            ))}
-          </div>
+        {/* Modern Stepper */}
+        <div className="flex items-center justify-center gap-4 py-6 bg-gradient-to-r from-primary/10 to-accent/10">
+          {tabs.map((tab, idx) => {
+            let disabled = false;
+            if (idx > currentTabIdx) {
+              for (let i = 0; i < idx; i++) {
+                if (!validateTab(tabs[i].id)) disabled = true;
+              }
+            }
+            return (
+              <div key={tab.id} className="flex items-center">
+                <button
+                  onClick={() => !disabled && goToTab(tab.id)}
+                  disabled={disabled}
+                  className={`rounded-full w-10 h-10 flex items-center justify-center border-2 transition-all duration-200 shadow-sm
+                    ${activeTab === tab.id ? 'bg-primary text-white border-primary scale-110' : disabled ? 'bg-muted text-muted-foreground border-border opacity-50 cursor-not-allowed' : 'bg-background text-primary border-primary/40 hover:bg-primary/10'}
+                  `}
+                  aria-label={tab.label}
+                >
+                  <Icon name={tab.icon} size={20} />
+                </button>
+                {idx < tabs.length - 1 && (
+                  <div className="w-10 h-1 bg-gradient-to-r from-primary/40 to-accent/40 mx-2 rounded-full" />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[60vh]">
-          {activeTab === 'basic' && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Product Name"
-                  required
-                  value={productData?.name}
-                  onChange={(e) => handleInputChange(null, 'name', e?.target?.value)}
-                  placeholder="Enter product name"
-                />
-                <Input
-                  label="Brand"
-                  required
-                  value={productData?.brand}
-                  onChange={(e) => handleInputChange(null, 'brand', e?.target?.value)}
-                  placeholder="Enter brand name"
-                />
+  <div className="p-8 overflow-y-auto max-h-[65vh] animate-fade-in rounded-b-lg bg-gradient-to-br from-background via-white/80 to-accent/10 shadow-xl">
+          {tabs.map((tab, idx) => (
+            activeTab === tab.id && (
+              <div key={tab.id} className="space-y-4">
+                {/* ...existing code for each tab, unchanged... */}
+                {tab.id === 'basic' && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Product Name"
+                        required
+                        value={productData?.name}
+                        onChange={(e) => handleInputChange(null, 'name', e?.target?.value)}
+                        placeholder="Enter product name"
+                      />
+                      <Input
+                        label="Brand"
+                        required
+                        value={productData?.brand}
+                        onChange={(e) => handleInputChange(null, 'brand', e?.target?.value)}
+                        placeholder="Enter brand name"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="SKU"
+                        required
+                        value={productData?.sku}
+                        onChange={(e) => handleInputChange(null, 'sku', e?.target?.value)}
+                        placeholder="Enter SKU"
+                      />
+                      <Select
+                        label="Category"
+                        required
+                        options={categoryOptions}
+                        value={productData?.category}
+                        onChange={(value) => handleInputChange(null, 'category', value)}
+                        placeholder="Select category"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Description
+                      </label>
+                      <textarea
+                        value={productData?.description}
+                        onChange={(e) => handleInputChange(null, 'description', e?.target?.value)}
+                        placeholder="Enter product description"
+                        rows={4}
+                        className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Checkbox
+                        label="Featured Product"
+                        checked={productData?.featured}
+                        onChange={(e) => handleInputChange(null, 'featured', e?.target?.checked)}
+                      />
+                      <Select
+                        label="Status"
+                        options={[
+                          { value: 'active', label: 'Active' },
+                          { value: 'inactive', label: 'Inactive' },
+                          { value: 'draft', label: 'Draft' }
+                        ]}
+                        value={productData?.status}
+                        onChange={(value) => handleInputChange(null, 'status', value)}
+                      />
+                    </div>
+                  </>
+                )}
+                {tab.id === 'specifications' && (
+                  // ...existing code for specifications tab...
+                  <>{/* ...existing code... */}</>
+                )}
+                {tab.id === 'pricing' && (
+                  // ...existing code for pricing tab...
+                  <>{/* ...existing code... */}</>
+                )}
+                {tab.id === 'images' && (
+                  // ...existing code for images tab...
+                  <>{/* ...existing code... */}</>
+                )}
+                {/* Navigation buttons */}
+                <div className="flex justify-between pt-8 gap-4">
+                  <Button
+                    variant="ghost"
+                    className="rounded-full px-6 py-2 text-base shadow hover:bg-primary/10 transition-all duration-150"
+                    onClick={() => {
+                      if (currentTabIdx > 0) setActiveTab(tabs[currentTabIdx - 1].id);
+                    }}
+                    disabled={currentTabIdx === 0}
+                  >
+                    <Icon name="ArrowLeft" size={18} className="mr-2" /> Previous
+                  </Button>
+                  {currentTabIdx < tabs.length - 1 ? (
+                    <Button
+                      variant="default"
+                      className="rounded-full px-8 py-2 text-base shadow-lg bg-gradient-to-r from-primary to-accent text-white hover:scale-105 hover:from-accent hover:to-primary transition-all duration-150"
+                      onClick={() => {
+                        if (validateTab(activeTab)) setActiveTab(tabs[currentTabIdx + 1].id);
+                      }}
+                      disabled={!validateTab(activeTab)}
+                    >
+                      Next <Icon name="ArrowRight" size={18} className="ml-2" />
+                    </Button>
+                  ) : null}
+                </div>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="SKU"
-                  required
-                  value={productData?.sku}
-                  onChange={(e) => handleInputChange(null, 'sku', e?.target?.value)}
-                  placeholder="Enter SKU"
-                />
-                <Select
-                  label="Category"
-                  required
-                  options={categoryOptions}
-                  value={productData?.category}
-                  onChange={(value) => handleInputChange(null, 'category', value)}
-                  placeholder="Select category"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Description
-                </label>
-                <textarea
-                  value={productData?.description}
-                  onChange={(e) => handleInputChange(null, 'description', e?.target?.value)}
-                  placeholder="Enter product description"
-                  rows={4}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Checkbox
-                  label="Featured Product"
-                  checked={productData?.featured}
-                  onChange={(e) => handleInputChange(null, 'featured', e?.target?.checked)}
-                />
-                <Select
-                  label="Status"
-                  options={[
-                    { value: 'active', label: 'Active' },
-                    { value: 'inactive', label: 'Inactive' },
-                    { value: 'draft', label: 'Draft' }
-                  ]}
-                  value={productData?.status}
-                  onChange={(value) => handleInputChange(null, 'status', value)}
-                />
-              </div>
-            </div>
-          )}
+            )
+          ))}
 
           {activeTab === 'specifications' && (
             <div className="space-y-4">
@@ -326,11 +425,70 @@ const AddProductModal = ({ isOpen, onClose, onSave }) => {
                 <p className="text-sm text-muted-foreground mb-4">
                   Drag and drop images here, or click to browse
                 </p>
-                <Button variant="outline">
-                  Choose Files
-                </Button>
+                <div className="inline-block">
+                  <input
+                    id="product-image-upload"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      // Only allow up to 10 images
+                      const limitedFiles = files.slice(0, 10 - productData.images.length);
+                      // Filter valid images and check size
+                      const validFiles = limitedFiles.filter(file => file.size <= 5 * 1024 * 1024);
+                      // Read files as data URLs for preview
+                      Promise.all(validFiles.map(file => {
+                        return new Promise((resolve, reject) => {
+                          const reader = new FileReader();
+                          reader.onload = () => resolve({ name: file.name, url: reader.result, file });
+                          reader.onerror = reject;
+                          reader.readAsDataURL(file);
+                        });
+                      })).then(images => {
+                        setProductData(prev => ({
+                          ...prev,
+                          images: [...prev.images, ...images]
+                        }));
+                      });
+                      // Reset input value so same file can be selected again
+                      e.target.value = '';
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    as="span"
+                    onClick={() => document.getElementById('product-image-upload').click()}
+                  >
+                    Choose Files
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-4 mt-6 justify-center">
+                  {productData.images && productData.images.length > 0 && productData.images.filter(img => img.url).map((img, idx) => (
+                    <div key={idx} className="relative w-24 h-24 rounded overflow-hidden border border-border bg-muted">
+                      <img
+                        src={img.url}
+                        alt={img.name || `Product Image ${idx + 1}`}
+                        className="object-cover w-full h-full"
+                      />
+                      <button
+                        type="button"
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 hover:bg-black/80"
+                        onClick={() => {
+                          setProductData(prev => ({
+                            ...prev,
+                            images: prev.images.filter((_, i) => i !== idx)
+                          }));
+                        }}
+                        title="Remove image"
+                      >
+                        <Icon name="X" size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-              
               <div className="text-sm text-muted-foreground">
                 <p>• Recommended size: 800x800px or larger</p>
                 <p>• Supported formats: JPG, PNG, WebP</p>

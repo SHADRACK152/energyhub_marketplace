@@ -1,14 +1,9 @@
 import React from 'react';
 
-function Image({
-  src,
-  alt = "Image Name",
-  className = "",
-  ...props
-}) {
-
+const Image = React.forwardRef(({ src, alt = "Image Name", className = "", ...props }, ref) => {
   return (
     <img
+      ref={ref}
       src={src}
       alt={alt}
       className={className}
@@ -21,6 +16,8 @@ function Image({
       {...props}
     />
   );
-}
+});
+
+Image.displayName = 'Image';
 
 export default Image;

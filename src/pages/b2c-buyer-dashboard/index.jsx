@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useCart } from '../../components/CartContext';
+import { useToast } from '../../components/ui/Toast';
 import { useAuth } from '../../components/ui/AuthenticationRouter';
 import { useNavigate } from 'react-router-dom';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
@@ -15,6 +17,8 @@ import PromotionalBanner from './components/PromotionalBanner';
 const B2CBuyerDashboard = () => {
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { addToCart } = useCart();
+  const { showToast } = useToast();
 
   // Get authenticated user from context
   const { user } = useAuth();
@@ -61,105 +65,33 @@ const B2CBuyerDashboard = () => {
     }
   ];
 
-  // Mock abandoned cart items
-  const abandonedCart = [
-    {
-      id: 1,
-      name: "Enphase IQ8+ Microinverter",
-      price: 299,
-      image: "https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=400"
-    },
-    {
-      id: 2,
-      name: "Goal Zero Yeti 1500X Power Station",
-      price: 1999,
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400"
-    }
-  ];
+  // Real products state
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState(null);
 
-  // Mock recently viewed products
-  const recentlyViewed = [
-    {
-      id: 1,
-      name: "Canadian Solar 400W Panel",
-      price: 189,
-      image: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=400"
-    },
-    {
-      id: 2,
-      name: "Victron Energy SmartSolar MPPT",
-      price: 245,
-      image: "https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=400"
-    },
-    {
-      id: 3,
-      name: "BYD Battery-Box Premium LVS",
-      price: 3299,
-      image: "https://images.unsplash.com/photo-1593941707882-a5bac6861d75?w=400"
-    },
-    {
-      id: 4,
-      name: "Fronius Primo 8.2-1 Inverter",
-      price: 1899,
-      image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400"
-    }
-  ];
+  useEffect(() => {
+    setProductsLoading(true);
+    setProductsError(null);
+    fetch('/api/products')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch products');
+        return res.json();
+      })
+      .then(data => {
+        setProducts(Array.isArray(data) ? data : []);
+        setProductsLoading(false);
+      })
+      .catch(err => {
+        setProductsError(err.message);
+        setProductsLoading(false);
+      });
+  }, []);
 
-  // Mock recommended products
-  const recommendedProducts = [
-    {
-      id: 1,
-      name: "Tesla Solar Roof Tiles - Premium Glass",
-      brand: "Tesla",
-      price: 21850,
-      originalPrice: 24500,
-      image: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=400",
-      rating: 4.8,
-      reviewCount: 156,
-      inStock: true,
-      isNew: true,
-      isWishlisted: false
-    },
-    {
-      id: 2,
-      name: "Enphase Ensemble Energy Management System",
-      brand: "Enphase",
-      price: 4299,
-      originalPrice: null,
-      image: "https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=400",
-      rating: 4.6,
-      reviewCount: 89,
-      inStock: true,
-      isNew: false,
-      isWishlisted: true
-    },
-    {
-      id: 3,
-      name: "LG Chem RESU16H Prime Battery",
-      brand: "LG Chem",
-      price: 8999,
-      originalPrice: 9999,
-      image: "https://images.unsplash.com/photo-1593941707882-a5bac6861d75?w=400",
-      rating: 4.7,
-      reviewCount: 203,
-      inStock: true,
-      isNew: false,
-      isWishlisted: false
-    },
-    {
-      id: 4,
-      name: "SMA Sunny Boy 7.7-1 SP-US Inverter",
-      brand: "SMA",
-      price: 1649,
-      originalPrice: null,
-      image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400",
-      rating: 4.5,
-      reviewCount: 124,
-      inStock: false,
-      isNew: false,
-      isWishlisted: false
-    }
-  ];
+  // Use products for all product displays
+  const recentlyViewed = products.slice(0, 4);
+  const recommendedProducts = products.slice(0, 8);
+  const abandonedCart = products.slice(8, 10);
 
   // Mock wishlist items
   const wishlistItems = [
@@ -226,7 +158,8 @@ const B2CBuyerDashboard = () => {
 
   // Navigation handlers
   const handleNavigation = (path) => {
-    navigate(path);
+  console.log('Navigating to:', path);
+  navigate(path);
   };
 
   const handleTrackOrder = (orderId) => {
@@ -236,12 +169,44 @@ const B2CBuyerDashboard = () => {
 
   const handleBuyAgain = (productId) => {
     console.log('Buy again product:', productId);
-    // Add product to cart
+    // Find product in recommended, recent, or mock data
+    const allProducts = [...recommendedProducts, ...recentlyViewed, ...abandonedCart];
+    let product = allProducts.find(p => p.id === productId);
+    if (product) {
+      // Defensive: ensure price and quantity are valid numbers
+      product = {
+        ...product,
+        price: Number(product.price) || 0,
+        quantity: 1,
+        stockCount: typeof product.stockCount === 'number' ? product.stockCount : 100,
+      };
+      addToCart(product, 1);
+      showToast(`${product.name} added to cart!`);
+    } else {
+      showToast('Product not found.');
+    }
   };
 
   const handleAddToCart = (productId) => {
-    console.log('Adding to cart:', productId);
-    // Add product to cart
+    return (quantity = 1) => {
+      console.log('Adding to cart:', productId, 'qty:', quantity);
+      // Find product in recommended, recent, or mock data
+      const allProducts = [...recommendedProducts, ...recentlyViewed, ...abandonedCart];
+      let product = allProducts.find(p => p.id === productId);
+      if (product) {
+        // Defensive: ensure price and quantity are valid numbers
+        product = {
+          ...product,
+          price: Number(product.price) || 0,
+          quantity: Number(quantity) || 1,
+          stockCount: typeof product.stockCount === 'number' ? product.stockCount : 100,
+        };
+        addToCart(product, Number(quantity) || 1);
+        showToast(`${product.name} added to cart!`);
+      } else {
+        showToast('Product not found.');
+      }
+    };
   };
 
   const handleViewProduct = (productId) => {
@@ -357,22 +322,30 @@ const B2CBuyerDashboard = () => {
 
               {/* Continue Shopping */}
               <div className="animate-fade-in-up delay-200">
-                <ContinueShoppingSection
-                  recentlyViewed={recentlyViewed}
-                  abandonedCart={abandonedCart}
-                  onAddToCart={handleAddToCart}
-                  onViewProduct={handleViewProduct}
-                />
+                {productsLoading ? (
+                  <div className="bg-card border border-border rounded-lg p-8 text-center text-muted-foreground">Loading products...</div>
+                ) : productsError ? (
+                  <div className="bg-card border border-border rounded-lg p-8 text-center text-error">{productsError}</div>
+                ) : (
+                  <ContinueShoppingSection
+                    recentlyViewed={recentlyViewed}
+                    abandonedCart={abandonedCart}
+                    onAddToCart={handleAddToCart}
+                    onViewProduct={handleViewProduct}
+                  />
+                )}
               </div>
 
               {/* Recommended Products */}
               <div className="animate-fade-in-up delay-300">
-                <RecommendedProducts
-                  products={recommendedProducts}
-                  onAddToCart={handleAddToCart}
-                  onViewProduct={handleViewProduct}
-                  onAddToWishlist={handleAddToWishlist}
-                />
+                {!productsLoading && !productsError && (
+                  <RecommendedProducts
+                    products={recommendedProducts}
+                    onAddToCart={handleAddToCart}
+                    onViewProduct={handleViewProduct}
+                    onAddToWishlist={handleAddToWishlist}
+                  />
+                )}
               </div>
             </div>
 

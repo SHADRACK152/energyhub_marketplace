@@ -1,3 +1,31 @@
+  // Update product price handler
+  const handleUpdatePrice = async (productId, newPrice) => {
+    try {
+      const res = await fetch(`/api/products/${productId}/price`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ price: newPrice })
+      });
+      if (!res.ok) throw new Error('Failed to update price');
+      setProducts(prev => prev.map(p => p.id === productId ? { ...p, price: newPrice } : p));
+    } catch (err) {
+      alert(err.message || 'Error updating price');
+    }
+  };
+  // Update product stock handler
+  const handleUpdateStock = async (productId, newStock) => {
+    try {
+      const res = await fetch(`/api/products/${productId}/stock`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stock: newStock })
+      });
+      if (!res.ok) throw new Error('Failed to update stock');
+      setProducts(prev => prev.map(p => p.id === productId ? { ...p, stock: newStock } : p));
+    } catch (err) {
+      alert(err.message || 'Error updating stock');
+    }
+  };
 import React, { useState, useEffect } from 'react';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import NavigationBreadcrumbs from '../../components/ui/NavigationBreadcrumbs';
@@ -11,6 +39,18 @@ import Button from '../../components/ui/Button';
 import Icon from '../../components/AppIcon';
 
 const B2BInventoryManagement = () => {
+  // Delete product handler
+  const handleDeleteProduct = async (productId) => {
+    if (!window.confirm('Are you sure you want to delete this product?')) return;
+    try {
+      // Optionally show loading state here
+      const res = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete product');
+      setProducts(prev => prev.filter(p => p.id !== productId));
+    } catch (err) {
+      alert(err.message || 'Error deleting product');
+    }
+  };
   const [user] = useState({ 
     id: 1, 
     name: 'John Smith', 
@@ -32,138 +72,27 @@ const B2BInventoryManagement = () => {
     featured: false
   });
 
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Monocrystalline Solar Panel 400W",
-      brand: "SolarTech Pro",
-      sku: "ST-400-MONO-2024",
-      category: "Solar Panels",
-      description: "High-efficiency monocrystalline solar panel with 22.1% efficiency rating and 25-year warranty.",
-      image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&h=400&fit=crop",
-      stock: 150,
-      price: 299.99,
-      status: "active",
-      specifications: {
-        power: "400W",
-        voltage: "24V",
-        efficiency: "22.1%",
-        warranty: "25 years",
-        dimensions: "2108×1048×40mm",
-        weight: "22.5kg"
-      },
-      featured: true,
-      lastUpdated: new Date(2024, 7, 28)
-    },
-    {
-      id: 2,
-      name: "Lithium Iron Phosphate Battery 100Ah",
-      brand: "PowerStore",
-      sku: "PS-100-LFP-2024",
-      category: "Batteries",
-      description: "Deep cycle LiFePO4 battery with built-in BMS and 10-year warranty.",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop",
-      stock: 8,
-      price: 899.99,
-      status: "active",
-      specifications: {
-        capacity: "100Ah",
-        voltage: "12.8V",
-        cycles: "6000+",
-        warranty: "10 years",
-        dimensions: "330×173×220mm",
-        weight: "13.5kg"
-      },
-      featured: false,
-      lastUpdated: new Date(2024, 7, 25)
-    },
-    {
-      id: 3,
-      name: "Pure Sine Wave Inverter 3000W",
-      brand: "InverTech",
-      sku: "IT-3000-PSW-2024",
-      category: "Inverters",
-      description: "High-efficiency pure sine wave inverter with remote monitoring capabilities.",
-      image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=400&h=400&fit=crop",
-      stock: 0,
-      price: 549.99,
-      status: "active",
-      specifications: {
-        power: "3000W",
-        efficiency: "95%",
-        waveform: "Pure Sine Wave",
-        warranty: "5 years",
-        dimensions: "450×200×100mm",
-        weight: "8.2kg"
-      },
-      featured: true,
-      lastUpdated: new Date(2024, 7, 30)
-    },
-    {
-      id: 4,
-      name: "Roof Mounting System Kit",
-      brand: "MountMax",
-      sku: "MM-ROOF-KIT-2024",
-      category: "Mounting Systems",
-      description: "Complete roof mounting system for residential solar installations.",
-      image: "https://images.unsplash.com/photo-1497440001374-f26997328c1b?w=400&h=400&fit=crop",
-      stock: 75,
-      price: 189.99,
-      status: "inactive",
-      specifications: {
-        panels: "Up to 20 panels",
-        material: "Aluminum",
-        tilt: "0-60 degrees",
-        warranty: "15 years",
-        weight: "45kg per kit"
-      },
-      featured: false,
-      lastUpdated: new Date(2024, 7, 20)
-    },
-    {
-      id: 5,
-      name: "MPPT Charge Controller 60A",
-      brand: "ChargeMax",
-      sku: "CM-MPPT-60A-2024",
-      category: "Charge Controllers",
-      description: "Maximum Power Point Tracking charge controller with LCD display.",
-      image: "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=400&fit=crop",
-      stock: 45,
-      price: 159.99,
-      status: "active",
-      specifications: {
-        current: "60A",
-        voltage: "12V/24V",
-        efficiency: "98%",
-        warranty: "3 years",
-        dimensions: "175×145×38mm",
-        weight: "1.2kg"
-      },
-      featured: false,
-      lastUpdated: new Date(2024, 7, 22)
-    },
-    {
-      id: 6,
-      name: "Solar Cable 4mm² Red/Black",
-      brand: "CableTech",
-      sku: "CT-SOLAR-4MM-2024",
-      category: "Cables & Wiring",
-      description: "UV-resistant solar cable suitable for outdoor installations.",
-      image: "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=400&fit=crop",
-      stock: 500,
-      price: 2.99,
-      status: "active",
-      specifications: {
-        gauge: "4mm²",
-        voltage: "1000V DC",
-        temperature: "-40°C to +90°C",
-        warranty: "25 years",
-        length: "Per meter"
-      },
-      featured: false,
-      lastUpdated: new Date(2024, 7, 15)
-    }
-  ]);
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState(null);
+
+  useEffect(() => {
+    setProductsLoading(true);
+    setProductsError(null);
+    fetch('/api/products')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch products');
+        return res.json();
+      })
+      .then(data => {
+        setProducts(Array.isArray(data) ? data : []);
+        setProductsLoading(false);
+      })
+      .catch(err => {
+        setProductsError(err.message);
+        setProductsLoading(false);
+      });
+  }, []);
 
   // Filter products based on search and filters
   const filteredProducts = products?.filter(product => {
@@ -230,37 +159,76 @@ const B2BInventoryManagement = () => {
     // Implement export functionality
   };
 
-  const handleEditProduct = (productId) => {
-    console.log('Editing product:', productId);
-    // Implement edit functionality
-  };
+  // Edit product handler
+  const [editProductId, setEditProductId] = useState(null);
+  const [editProductData, setEditProductData] = useState(null);
 
-  const handleDeleteProduct = (productId) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      setProducts(prev => prev?.filter(p => p?.id !== productId));
-      setSelectedProducts(prev => prev?.filter(id => id !== productId));
+  const handleEditProduct = (productId) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      setEditProductId(productId);
+      setEditProductData({ ...product });
+      setShowAddModal(true);
     }
   };
 
-  const handleUpdateStock = (productId, newStock) => {
-    setProducts(prev => prev?.map(p => 
-      p?.id === productId ? { ...p, stock: newStock, lastUpdated: new Date() } : p
-    ));
+  // Save handler for both add and edit
+  const handleSaveProduct = async (productData) => {
+    if (editProductId) {
+      // Edit existing product
+      try {
+        const res = await fetch(`/api/products/${editProductId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productData)
+        });
+        if (!res.ok) throw new Error('Failed to update product');
+        setProducts(prev => prev.map(p => p.id === editProductId ? { ...productData, id: editProductId } : p));
+      } catch (err) {
+        alert(err.message || 'Error updating product');
+      }
+      setEditProductId(null);
+      setEditProductData(null);
+    } else {
+      // Add new product with images using FormData
+      try {
+        const formData = new FormData();
+        // Append all fields except images
+        Object.entries(productData).forEach(([key, value]) => {
+          if (key === 'images') return;
+          // Stringify objects/arrays
+          if (typeof value === 'object' && value !== null) {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, value);
+          }
+        });
+        // Append images as files
+        if (productData.images && productData.images.length > 0) {
+          productData.images.forEach(imgObj => {
+            if (imgObj.file) formData.append('images', imgObj.file);
+          });
+        }
+        const res = await fetch('/api/products', {
+          method: 'POST',
+          body: formData
+        });
+        if (!res.ok) throw new Error('Failed to add product');
+        const newProduct = await res.json();
+        setProducts(prev => [...prev, newProduct]);
+      } catch (err) {
+        alert(err.message || 'Error adding product');
+      }
+    }
+    setShowAddModal(false);
   };
 
-  const handleUpdatePrice = (productId, newPrice) => {
-    setProducts(prev => prev?.map(p => 
-      p?.id === productId ? { ...p, price: newPrice, lastUpdated: new Date() } : p
-    ));
-  };
-
+  // Toggle product status (active/inactive)
   const handleToggleStatus = (productId) => {
-    setProducts(prev => prev?.map(p => 
-      p?.id === productId ? { 
-        ...p, 
-        status: p?.status === 'active' ? 'inactive' : 'active',
-        lastUpdated: new Date()
-      } : p
+    setProducts(prev => prev?.map(p =>
+      p?.id === productId
+        ? { ...p, status: p?.status === 'active' ? 'inactive' : 'active', lastUpdated: new Date() }
+        : p
     ));
   };
 
@@ -333,49 +301,57 @@ const B2BInventoryManagement = () => {
               />
 
               {/* Products Display */}
-              {filteredProducts?.length === 0 ? (
-                <div className="bg-card border border-border rounded-lg p-12 text-center">
-                  <Icon name="Package" size={48} className="mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-2">No products found</h3>
-                  <p className="text-muted-foreground mb-6">
-                    {searchQuery || Object.values(filters)?.some(f => f) 
-                      ? 'Try adjusting your search or filters' : 'Get started by adding your first product'
-                    }
-                  </p>
-                  <Button
-                    variant="default"
-                    iconName="Plus"
-                    onClick={() => setShowAddModal(true)}
-                  >
-                    Add Product
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  {viewMode === 'table' ? (
-                    <ProductTable
-                      products={filteredProducts}
-                      selectedProducts={selectedProducts}
-                      onSelectProduct={handleSelectProduct}
-                      onSelectAll={handleSelectAll}
-                      onEditProduct={handleEditProduct}
-                      onDeleteProduct={handleDeleteProduct}
-                      onUpdateStock={handleUpdateStock}
-                      onUpdatePrice={handleUpdatePrice}
-                      onToggleStatus={handleToggleStatus}
-                    />
-                  ) : (
-                    <ProductGrid
-                      products={filteredProducts}
-                      selectedProducts={selectedProducts}
-                      onSelectProduct={handleSelectProduct}
-                      onEditProduct={handleEditProduct}
-                      onDeleteProduct={handleDeleteProduct}
-                      onToggleStatus={handleToggleStatus}
-                    />
-                  )}
-                </>
-              )}
+                {productsLoading ? (
+                  <div className="bg-card border border-border rounded-lg p-12 text-center text-muted-foreground">
+                    Loading products...
+                  </div>
+                ) : productsError ? (
+                  <div className="bg-card border border-border rounded-lg p-12 text-center text-error">
+                    {productsError}
+                  </div>
+                ) : filteredProducts?.length === 0 ? (
+                  <div className="bg-card border border-border rounded-lg p-12 text-center">
+                    <Icon name="Package" size={48} className="mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">No products found</h3>
+                    <p className="text-muted-foreground mb-6">
+                      {searchQuery || Object.values(filters)?.some(f => f) 
+                        ? 'Try adjusting your search or filters' : 'Get started by adding your first product'
+                      }
+                    </p>
+                    <Button
+                      variant="default"
+                      iconName="Plus"
+                      onClick={() => setShowAddModal(true)}
+                    >
+                      Add Product
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    {viewMode === 'table' ? (
+                      <ProductTable
+                        products={filteredProducts}
+                        selectedProducts={selectedProducts}
+                        onSelectProduct={handleSelectProduct}
+                        onSelectAll={handleSelectAll}
+                        onEditProduct={handleEditProduct}
+                        onDeleteProduct={handleDeleteProduct}
+                        onUpdateStock={handleUpdateStock}
+                        onUpdatePrice={handleUpdatePrice}
+                        onToggleStatus={handleToggleStatus}
+                      />
+                    ) : (
+                      <ProductGrid
+                        products={filteredProducts}
+                        selectedProducts={selectedProducts}
+                        onSelectProduct={handleSelectProduct}
+                        onEditProduct={handleEditProduct}
+                        onDeleteProduct={handleDeleteProduct}
+                        onToggleStatus={handleToggleStatus}
+                      />
+                    )}
+                  </>
+                )}
             </div>
           </div>
         </div>
@@ -383,8 +359,14 @@ const B2BInventoryManagement = () => {
       {/* Modals */}
       <AddProductModal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSave={handleAddProduct}
+        onClose={() => {
+          setShowAddModal(false);
+          setEditProductId(null);
+          setEditProductData(null);
+        }}
+        onSave={handleSaveProduct}
+        product={editProductData}
+        isEdit={!!editProductId}
       />
       <BulkUploadModal
         isOpen={showBulkModal}

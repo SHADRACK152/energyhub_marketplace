@@ -30,8 +30,20 @@ function OrdersPage() {
   useEffect(() => {
     fetch('/api/orders')
       .then(res => res.json())
-      .then(data => setOrders(data))
-      .catch(err => console.error('Failed to fetch orders:', err));
+      .then(data => {
+        // Defensive: ensure data is always an array
+        if (Array.isArray(data)) {
+          setOrders(data);
+        } else if (data && typeof data === 'object') {
+          setOrders([data]);
+        } else {
+          setOrders([]);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch orders:', err);
+        setOrders([]);
+      });
   }, [location.pathname]);
 
   // Ensure statusSteps is always an array
@@ -148,8 +160,8 @@ function OrdersPage() {
             {filteredOrders.length === 0 && (
               <div className="col-span-full text-center text-muted-foreground py-12">No orders found.</div>
             )}
-            {filteredOrders.map(order => (
-              <div key={order.id} className="bg-white rounded-xl shadow p-6 flex flex-col gap-3 hover:shadow-lg transition">
+            {filteredOrders.map((order, idx) => (
+              <div key={order.id || idx} className="bg-white rounded-xl shadow p-6 flex flex-col gap-3 hover:shadow-lg transition">
                 <div className="flex items-center gap-4 cursor-pointer" onClick={() => setModalOrder(order)}>
                   <Image src={order.productImage} alt={order.productName} className="w-16 h-16 rounded-lg object-cover" />
                   <div className="flex-1">

@@ -11,7 +11,8 @@ const CartSection = ({
   promoCode,
   onPromoCodeChange,
   onApplyPromoCode,
-  promoDiscount
+  promoDiscount,
+  promoFeedback
 }) => {
   const handleQuantityChange = (itemId, change) => {
     const item = cartItems?.find(i => i?.id === itemId);
@@ -190,11 +191,12 @@ const CartSection = ({
           </Button>
         </div>
         
-        {promoDiscount > 0 && (
-          <div className="mt-3 flex items-center space-x-2 text-success">
-            <Icon name="CheckCircle" size={16} />
+        {promoFeedback && (
+          <div className={`mt-3 flex items-center space-x-2 ${promoDiscount > 0 ? 'text-success' : 'text-error'}`}>
+            <Icon name={promoDiscount > 0 ? 'CheckCircle' : 'AlertTriangle'} size={16} />
             <span className="text-sm font-medium">
-              Promo code applied! You saved ${promoDiscount?.toFixed(2)}
+              {promoFeedback}
+              {promoDiscount > 0 && ` You saved $${promoDiscount?.toFixed(2)}`}
             </span>
           </div>
         )}
