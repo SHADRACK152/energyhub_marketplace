@@ -14,7 +14,7 @@ const LandingPage = () => {
       <RoleBasedHeader user={null} />
 
       {/* Main Content */}
-      <main className="pt-2 pb-2">
+  <main className="pt-20 pb-2">
         {/* Hero Section */}
         <div className="mb-12">
           <HeroSection />

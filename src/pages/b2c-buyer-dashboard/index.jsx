@@ -295,7 +295,7 @@ const B2CBuyerDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10">
       <RoleBasedHeader user={user} onNavigate={handleNavigation} />
-      <main className="pt-20 pb-24 md:pb-12">
+  <main className="pt-20 pb-24 md:pb-12">
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
           {/* Pull to refresh indicator */}
           {isRefreshing && (

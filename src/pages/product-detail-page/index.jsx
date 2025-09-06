@@ -149,7 +149,7 @@ const ProductDetailPage = () => {
     <div className="min-h-screen bg-background">
       <RoleBasedHeader user={user} onNavigate={navigate} />
       
-      <main className="pt-16 pb-20 lg:pb-8">
+      <main className="pt-20 pb-20 lg:pb-8">
         {/* Breadcrumbs */}
         <div className="bg-muted/30 border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">

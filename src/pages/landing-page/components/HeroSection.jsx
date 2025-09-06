@@ -140,13 +140,13 @@ const HeroSection = () => {
 
           {/* Hero Image with Glassmorphism and Floating Icons */}
           <div className="relative flex items-center justify-center">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10 backdrop-blur-xl bg-white/10">
+            <div className="relative rounded-3xl shadow-2xl border-4 border-white/10 bg-white">
               <Image
-                src="https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+                src="/assets/images/solar.jpg"
                 alt="Solar panels and renewable energy infrastructure"
                 className="w-full h-[400px] lg:h-[500px] object-cover scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent pointer-events-none"></div>
+              {/* Overlay removed for full image clarity */}
               {/* Floating icons */}
               <Icon name="Sun" size={48} className="absolute top-6 left-6 text-yellow-400/90 animate-float drop-shadow-lg" />
               <Icon name="Battery" size={40} className="absolute bottom-8 right-8 text-green-400/90 animate-float-reverse drop-shadow-lg" />

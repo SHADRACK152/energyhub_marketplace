@@ -87,10 +87,6 @@ const ShoppingCartCheckout = () => {
     updateQuantity(itemId, newQuantity);
   };
 
-  const handleRemoveItem = (itemId) => {
-    removeFromCart(itemId);
-  };
-
   const handleApplyPromoCode = () => {
     // Mock promo code validation
     if (promoCode?.toLowerCase() === 'save10') {

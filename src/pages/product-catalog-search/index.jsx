@@ -207,9 +207,8 @@ const ProductCatalogSearch = () => {
           return 0;
       }
     });
-
     setFilteredProducts(filtered);
-  }, [activeCategory, searchQuery, filters, sortBy]);
+  }, [activeCategory, searchQuery, filters, sortBy, mockProducts]);
 
   useEffect(() => {
     filterProducts();
@@ -294,10 +293,6 @@ const ProductCatalogSearch = () => {
         });
         return;
       }
-    }
-    // fallback: just add to cart and show toast
-    if (product) {
-      addToCart(product, 1);
       showToast(`${product.name} added to cart successfully!`);
     }
   };
@@ -487,6 +482,6 @@ const ProductCatalogSearch = () => {
       <MobileTabBar user={user} onNavigate={navigate} />
     </div>
   );
-};
+}
 
 export default ProductCatalogSearch;

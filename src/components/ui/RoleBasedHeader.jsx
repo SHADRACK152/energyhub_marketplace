@@ -37,6 +37,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
               <span className="text-xl font-semibold">EnergyHub</span>
             </button>
           </div>
+
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <button
@@ -64,6 +65,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
               Sign Up
             </Button>
           </div>
+
           {/* Mobile Menu Button */}
           <div className="md:hidden">
             <Button
@@ -75,6 +77,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
             </Button>
           </div>
         </div>
+
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-border bg-card">
@@ -267,38 +270,47 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
             >
               Orders
             </button>
-          </div>
-          {/* Cart, Notifications, and User */}
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative cart-fly-target"
-              onClick={() => handleNavigation('/shopping-cart-checkout')}
-            >
-              <Icon name="ShoppingCart" size={20} />
-              <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                2
-              </span>
-            </Button>
-            <NotificationsBell />
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                <Icon name="User" size={16} />
-              </div>
-              <span className="text-sm font-medium">{user?.name || 'Buyer'}</span>
-              <Button variant="outline" size="sm" onClick={() => { logout(); navigate('/landing-page'); }}>
-                Logout
+
+            {/* Cart, Notifications, and User */}
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative cart-fly-target"
+                onClick={() => handleNavigation('/shopping-cart-checkout')}
+              >
+                <Icon name="ShoppingCart" size={20} />
+                <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  2
+                </span>
               </Button>
+              <NotificationsBell />
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                  <Icon name="User" size={16} />
+                </div>
+                <span className="text-sm font-medium">{user?.name || 'Buyer'}</span>
+                <Button variant="outline" size="sm" onClick={() => { logout(); navigate('/landing-page'); }}>
+                  Logout
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </header>
   );
-};
 
-export default RoleBasedHeader;
+  // Determine which header to render based on user role
+  if (!user) {
+    return <PublicHeader />;
+  }
+  if (user.role === 'seller') {
+    return <SellerHeader />;
+  }
+  // Default to buyer header
+  return <BuyerHeader />;
+};
 
 // NotificationsBell component (must be outside RoleBasedHeader)
 function NotificationsBell() {
@@ -339,23 +351,7 @@ function NotificationsBell() {
       )}
     </div>
   );
+}
 
 
-
-  // Determine which header to render based on user role
-  if (!user) {
-    return <PublicHeader />;
-  }
-
-  if (user?.role === 'seller' || user?.role === 'b2b') {
-    return <SellerHeader />;
-  }
-
-  if (user?.role === 'buyer' || user?.role === 'b2c') {
-    return <BuyerHeader />;
-  }
-
-  // Default to public header
-  return <PublicHeader />;
-};
-
+export default RoleBasedHeader;

@@ -234,7 +234,7 @@ const B2BSellerDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
   <RoleBasedHeader user={user} onNavigate={handleNavigation} />
-      <main className="pt-16">
+  <main className="pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <NavigationBreadcrumbs onNavigate={handleNavigation} />
           

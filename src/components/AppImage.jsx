@@ -14,7 +14,7 @@ function Image({
       className={className}
       style={{ background: '#fff', objectFit: 'cover', ...props.style }}
       onError={(e) => {
-        e.target.src = "/assets/images/no_image.png";
+        e.target.src = "/assets/images/solar.jpg";
         e.target.style.background = '#f3f4f6';
         e.target.style.objectFit = 'contain';
       }}

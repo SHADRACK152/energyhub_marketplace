@@ -28,7 +28,6 @@ const B2BInventoryManagement = () => {
     category: '',
     status: '',
     stockLevel: '',
-    priceMin: '',
     priceMax: '',
     featured: false
   });
