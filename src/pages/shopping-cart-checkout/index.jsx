@@ -130,7 +130,7 @@ const ShoppingCartCheckout = () => {
   const handlePlaceOrder = async () => {
     setIsProcessing(true);
     try {
-      // Build order payload
+      // Build order payload with seller information
       const orderPayload = {
         orderNumber: 'ORD-' + Date.now(),
         productName: cartItems.map(i => i.name).join(', '),
@@ -138,25 +138,53 @@ const ShoppingCartCheckout = () => {
         price: total,
         orderDate: new Date().toISOString(),
         deliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-        items: cartItems,
+        items: cartItems.map(item => ({
+          ...item,
+          productId: item.id, // Ensure product ID is included
+          sellerId: item.sellerId || null, // Include seller ID if available
+          subtotal: item.price * item.quantity
+        })),
         shippingInfo,
         paymentInfo,
-        userId: 'demo-user', // Replace with real user ID if available
+        userId: user?.id || 'demo-buyer-' + Date.now(),
+        buyerName: user?.name || 'Demo Buyer',
+        buyerEmail: user?.email || 'buyer@example.com',
+        subtotal: subtotal,
+        shipping: shipping,
+        tax: tax,
+        discount: discount,
+        total: total,
+        currency: 'USD',
+        needsSellerAction: true,
+        // Additional metadata for seller
+        orderSource: 'b2c_marketplace',
+        priority: 'standard'
       };
+      
+      console.log('Placing order:', orderPayload);
+      
       // Send to backend
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload)
       });
-      if (!res.ok) throw new Error('Failed to place order');
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to place order');
+      }
+      
       const savedOrder = await res.json();
-      // Navigate to order confirmation page, user can go to orders from there
+      console.log('Order placed successfully:', savedOrder);
+      
+      // Navigate to order confirmation page
       navigate('/order-confirmation', {
         state: {
           orderData: savedOrder
         }
       });
+      
       clearCart();
     } catch (error) {
       console.error('Order placement failed:', error);

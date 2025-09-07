@@ -57,41 +57,69 @@ app.get('/api/products', async (req, res) => {
 // Create a new product with image upload
 app.post('/api/products', upload.array('images', 10), async (req, res) => {
   try {
+    console.log('Adding new product...');
+    console.log('Request body:', req.body);
+    console.log('Request files:', req.files);
+
     // Parse product fields from body (fields sent as JSON string)
     const {
       name, brand, sku, category, description, specifications,
       pricing, inventory, status, featured
     } = req.body;
 
+    // Validate required fields
+    if (!name || !category) {
+      return res.status(400).json({ error: 'Name and category are required' });
+    }
+
     // Parse JSON fields if sent as string
-    const parsedSpecifications = typeof specifications === 'string' ? JSON.parse(specifications) : specifications;
-    const parsedPricing = typeof pricing === 'string' ? JSON.parse(pricing) : pricing;
-    const parsedInventory = typeof inventory === 'string' ? JSON.parse(inventory) : inventory;
+    let parsedSpecifications, parsedPricing, parsedInventory;
+    
+    try {
+      parsedSpecifications = typeof specifications === 'string' ? JSON.parse(specifications) : specifications;
+      parsedPricing = typeof pricing === 'string' ? JSON.parse(pricing) : pricing;
+      parsedInventory = typeof inventory === 'string' ? JSON.parse(inventory) : inventory;
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return res.status(400).json({ error: 'Invalid JSON in request data' });
+    }
 
     // Handle images
     let imageUrls = [];
     if (req.files && req.files.length > 0) {
       imageUrls = req.files.map(file => `/uploads/${file.filename}`);
+      console.log('Image URLs:', imageUrls);
     }
 
     const insertObj = {
       name,
-      brand,
-      sku,
+      brand: brand || null,
+      sku: sku || null,
       category,
-      description,
-      specifications: parsedSpecifications,
-      pricing: parsedPricing,
-      inventory: parsedInventory,
+      description: description || null,
+      specifications: parsedSpecifications || {},
+      pricing: parsedPricing || {},
+      inventory: parsedInventory || {},
       images: imageUrls,
-      status,
-      featured: featured === 'true' || featured === true
+      status: status || 'active',
+      featured: featured === 'true' || featured === true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
+    console.log('Insert object:', insertObj);
+
     const { data, error } = await supabase.from('products').insert([insertObj]).select();
-    if (error) return res.status(500).json({ error: error.message });
+    
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    console.log('Product created successfully:', data[0]);
     res.status(201).json(data[0]);
   } catch (err) {
+    console.error('Server error:', err);
     res.status(500).json({ error: err.message });
   }
 });

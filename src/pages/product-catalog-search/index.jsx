@@ -45,12 +45,15 @@ const ProductCatalogSearch = () => {
     availability: []
   });
 
-  // Mock data
+  // Enhanced categories for energy marketplace
   const categories = [
-    { id: 'solar-panels', name: 'Solar Panels', icon: 'Sun', count: 156 },
-    { id: 'batteries', name: 'Batteries', icon: 'Battery', count: 89 },
-    { id: 'inverters', name: 'Inverters', icon: 'Zap', count: 67 },
-    { id: 'accessories', name: 'Accessories', icon: 'Settings', count: 234 }
+    { id: 'all', name: 'All Products', icon: 'Grid', count: 546 },
+    { id: 'solar-panels', name: 'Solar Panels', icon: 'Sun', count: 156, energyType: 'solar' },
+    { id: 'batteries', name: 'Energy Storage', icon: 'Battery', count: 89, energyType: 'storage' },
+    { id: 'inverters', name: 'Inverters', icon: 'Zap', count: 67, energyType: 'conversion' },
+    { id: 'complete-systems', name: 'Complete Systems', icon: 'Home', count: 34, energyType: 'systems' },
+    { id: 'smart-devices', name: 'Smart Devices', icon: 'Smartphone', count: 78, energyType: 'smart' },
+    { id: 'accessories', name: 'Accessories', icon: 'Settings', count: 234, energyType: 'accessories' }
   ];
 
   const mockProducts = [
@@ -123,6 +126,84 @@ const ProductCatalogSearch = () => {
       badge: "Popular",
       inStock: true,
       category: 'batteries'
+    },
+    // Enhanced Energy Marketplace Products
+    {
+      id: 7,
+      name: "Complete Solar Home System - 10kW",
+      seller: "SunPower Corporation",
+      price: 28999,
+      originalPrice: 32999,
+      rating: 4.9,
+      reviewCount: 156,
+      image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400",
+      badge: "Complete System",
+      inStock: true,
+      category: 'complete-systems',
+      energySavings: { monthly: 320, annual: 3840 },
+      specifications: {
+        power: '10kW',
+        panels: '25 x 400W panels',
+        inverter: 'String inverter included',
+        warranty: '25 years'
+      },
+      incentives: ['30% Federal Tax Credit', 'State Rebates Available'],
+      installationTime: '2-3 days'
+    },
+    {
+      id: 8,
+      name: "Smart Energy Management System",
+      seller: "Schneider Electric",
+      price: 1899,
+      rating: 4.6,
+      reviewCount: 89,
+      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+      badge: "Smart",
+      inStock: true,
+      category: 'smart-devices',
+      specifications: {
+        monitoring: 'Real-time energy tracking',
+        control: 'Smart load management',
+        connectivity: 'WiFi, Bluetooth',
+        compatibility: 'Works with all solar systems'
+      }
+    },
+    {
+      id: 9,
+      name: "Residential Wind Turbine 5kW",
+      seller: "Bergey Windpower",
+      price: 15999,
+      rating: 4.3,
+      reviewCount: 67,
+      image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400",
+      badge: "Alternative Energy",
+      inStock: true,
+      category: 'complete-systems',
+      energySavings: { monthly: 180, annual: 2160 },
+      specifications: {
+        power: '5kW rated',
+        height: '35 ft tower',
+        warranty: '5 years',
+        windSpeed: '7-45 mph operating'
+      }
+    },
+    {
+      id: 10,
+      name: "EV Charging Station - Level 2",
+      seller: "ChargePoint",
+      price: 699,
+      rating: 4.7,
+      reviewCount: 234,
+      image: "https://images.unsplash.com/photo-1593941707882-a5bac6861d75?w=400",
+      badge: "EV Ready",
+      inStock: true,
+      category: 'smart-devices',
+      specifications: {
+        power: '7.2kW output',
+        connector: 'J1772',
+        connectivity: 'WiFi enabled',
+        installation: 'Professional required'
+      }
     }
   ];
 

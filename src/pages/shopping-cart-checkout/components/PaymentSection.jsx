@@ -1,11 +1,50 @@
+
 import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import { Checkbox } from '../../../components/ui/Checkbox';
 
-const PaymentSection = ({ paymentInfo, onPaymentInfoChange, shippingInfo }) => {
+const PaymentSection = ({ paymentInfo, onPaymentInfoChange, shippingInfo, total }) => {
   const [sameAsShipping, setSameAsShipping] = useState(true);
+  // Demo state for mobile money (must be inside the component)
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [mobilePayStatus, setMobilePayStatus] = useState(null); // null | 'pending' | 'success' | 'error'
+  const [smsSent, setSmsSent] = useState(false);
+  // Modal state for PIN entry
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pin, setPin] = useState('');
+  // Simulate mobile money payment
+  const handleMobileMoneyPay = () => {
+    setSmsSent(true);
+    setMobilePayStatus('pending');
+    setTimeout(() => {
+      // Accept Kenyan numbers: +2547XXXXXXXX or 07XXXXXXXX (10 or 12 digits)
+      const valid =
+        mobileNumber &&
+        (
+          /^\+2547\d{8}$/.test(mobileNumber) ||
+          /^07\d{8}$/.test(mobileNumber)
+        );
+      if (valid) {
+        setShowPinModal(true);
+      } else {
+        setMobilePayStatus('error');
+      }
+    }, 2000);
+  };
+  const handleConfirmPin = () => {
+    setMobilePayStatus('pending');
+    setShowPinModal(false);
+    setTimeout(() => {
+      if (pin && pin.length >= 4) {
+        setMobilePayStatus('success');
+      } else {
+        setMobilePayStatus('error');
+      }
+      setPin('');
+    }, 1200);
+  };
 
   const paymentMethods = [
     {
@@ -99,10 +138,33 @@ const PaymentSection = ({ paymentInfo, onPaymentInfoChange, shippingInfo }) => {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-xl font-semibold text-foreground mb-6">Payment Information</h2>
-
+    <>
+      {showPinModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs text-center">
+            <h4 className="font-semibold mb-2">Enter your mobile money PIN</h4>
+            <div className="mb-2 text-sm text-muted-foreground">EnergyHub Online Store</div>
+            <div className="mb-4 text-lg font-bold text-primary">Amount: KES {total?.toLocaleString()}</div>
+            <Input
+              label="PIN"
+              type="password"
+              value={pin}
+              onChange={e => setPin(e.target.value)}
+              placeholder="Enter PIN"
+              maxLength={6}
+              autoFocus
+            />
+            <div className="flex gap-2 mt-4">
+              <Button variant="default" onClick={handleConfirmPin} disabled={pin.length < 4}>Confirm</Button>
+              <Button variant="outline" onClick={() => { setShowPinModal(false); setMobilePayStatus(null); setPin(''); }}>Cancel</Button>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-xl font-semibold text-foreground mb-6">Payment Information</h2>
+        </div>
         {/* Payment Method Selection */}
         <div className="space-y-4 mb-8">
           <h3 className="font-medium text-foreground">Payment Method</h3>
@@ -134,13 +196,11 @@ const PaymentSection = ({ paymentInfo, onPaymentInfoChange, shippingInfo }) => {
                     ) : (
                       <Icon name={method?.icon} size={20} className="text-muted-foreground" />
                     )}
-                    
                     <div>
                       <p className="font-medium text-foreground">{method?.name}</p>
                       <p className="text-sm text-muted-foreground">{method?.description}</p>
                     </div>
                   </div>
-                  
                   {/* Security badges for some methods */}
                   {method?.id === 'credit-card' && (
                     <div className="flex items-center space-x-1">
@@ -153,182 +213,55 @@ const PaymentSection = ({ paymentInfo, onPaymentInfoChange, shippingInfo }) => {
             ))}
           </div>
         </div>
-
-        {/* Credit Card Details */}
-        {paymentInfo?.method === 'credit-card' && (
-          <div className="space-y-6 mb-8">
-            <h3 className="font-medium text-foreground">Card Information</h3>
-            
-            <div className="bg-muted/30 border border-border rounded-lg p-6 space-y-4">
-              <div className="grid grid-cols-1 gap-4">
-                <Input
-                  label="Card Number"
-                  value={paymentInfo?.cardDetails?.number || ''}
-                  onChange={(e) => handleCardDetailsChange('number', formatCardNumber(e?.target?.value))}
-                  placeholder="1234 5678 9012 3456"
-                  maxLength={19}
-                  required
-                />
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="Expiry Date"
-                    value={paymentInfo?.cardDetails?.expiry || ''}
-                    onChange={(e) => handleCardDetailsChange('expiry', formatExpiryDate(e?.target?.value))}
-                    placeholder="MM/YY"
-                    maxLength={5}
-                    required
-                  />
-                  <Input
-                    label="CVV"
-                    value={paymentInfo?.cardDetails?.cvv || ''}
-                    onChange={(e) => handleCardDetailsChange('cvv', e?.target?.value?.replace(/[^0-9]/g, ''))}
-                    placeholder="123"
-                    maxLength={4}
-                    required
-                  />
-                </div>
-                
-                <Input
-                  label="Name on Card"
-                  value={paymentInfo?.cardDetails?.name || ''}
-                  onChange={(e) => handleCardDetailsChange('name', e?.target?.value)}
-                  placeholder="John Doe"
-                  required
-                />
-              </div>
-
-              {/* Security Notice */}
-              <div className="flex items-start space-x-2 mt-4 p-3 bg-success/10 border border-success/20 rounded-md">
-                <Icon name="Lock" size={16} className="text-success mt-0.5" />
-                <div>
-                  <p className="text-sm text-success font-medium">Your payment is secure</p>
-                  <p className="text-xs text-success/80">
-                    We use 256-bit SSL encryption to protect your card information
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* PayPal Integration */}
-        {paymentInfo?.method === 'paypal' && (
+        {/* Mpesa & Airtel Money Demo Payment */}
+        {(paymentInfo?.method === 'mpesa' || paymentInfo?.method === 'airtel-money') && (
           <div className="mb-8">
             <div className="bg-muted/30 border border-border rounded-lg p-6 text-center">
-              <Icon name="Wallet" size={48} className="mx-auto text-muted-foreground mb-4" />
-              <h4 className="font-medium text-foreground mb-2">Continue with PayPal</h4>
-              <p className="text-sm text-muted-foreground mb-4">
-                You'll be redirected to PayPal to complete your payment securely
-              </p>
-              <Button variant="outline" iconName="ExternalLink" iconPosition="right">
-                Continue to PayPal
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Digital Wallet Integration */}
-        {(paymentInfo?.method === 'apple-pay' || paymentInfo?.method === 'google-pay') && (
-          <div className="mb-8">
-            <div className="bg-muted/30 border border-border rounded-lg p-6 text-center">
-              <Icon name="Smartphone" size={48} className="mx-auto text-muted-foreground mb-4" />
+              <img
+                src={paymentInfo?.method === 'mpesa'
+                  ? 'https://img.icons8.com/?size=100&id=kUwZnzomzbTj&format=png&color=000000'
+                  : 'https://img.icons8.com/?size=100&id=H6oPm9v5Ilx6&format=png&color=000000'}
+                alt={paymentInfo?.method === 'mpesa' ? 'Mpesa' : 'Airtel Money'}
+                style={{ width: 48, height: 48, objectFit: 'contain', margin: '0 auto 1rem' }}
+              />
               <h4 className="font-medium text-foreground mb-2">
-                Continue with {paymentInfo?.method === 'apple-pay' ? 'Apple Pay' : 'Google Pay'}
+                Pay with {paymentInfo?.method === 'mpesa' ? 'M-Pesa' : 'Airtel Money'}
               </h4>
               <p className="text-sm text-muted-foreground mb-4">
-                Use your {paymentInfo?.method === 'apple-pay' ? 'Touch ID, Face ID, or passcode' : 'fingerprint or PIN'} to pay
+                Enter your mobile number to receive a payment prompt on your phone.
               </p>
-              <Button variant="outline" iconName="Fingerprint" iconPosition="left">
-                {paymentInfo?.method === 'apple-pay' ? 'Pay with Apple Pay' : 'Pay with Google Pay'}
+              <Input
+                label="Mobile Number"
+                value={mobileNumber}
+                onChange={e => setMobileNumber(e.target.value)}
+                placeholder="e.g. +254712345678"
+                required
+                className="mb-2"
+                maxLength={15}
+              />
+              <Button
+                variant="default"
+                onClick={handleMobileMoneyPay}
+                disabled={mobilePayStatus === 'pending' || !mobileNumber}
+                className="w-full mt-2"
+              >
+                {mobilePayStatus === 'pending' ? 'Processing...' : `Pay with ${paymentInfo?.method === 'mpesa' ? 'M-Pesa' : 'Airtel Money'}`}
               </Button>
+              {smsSent && mobilePayStatus === 'pending' && (
+                <div className="text-blue-600 mt-4">SMS sent to {mobileNumber}. Please check your phone to complete the payment.</div>
+              )}
+              {mobilePayStatus === 'success' && (
+                <div className="text-green-600 mt-4">Payment successful! Thank you.</div>
+              )}
+              {mobilePayStatus === 'error' && (
+                <div className="text-red-500 mt-4">Payment failed. Please check your number and try again.</div>
+              )}
             </div>
           </div>
         )}
-
-        {/* Billing Address */}
-        <div className="space-y-4">
-          <h3 className="font-medium text-foreground">Billing Address</h3>
-          
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              checked={sameAsShipping}
-              onCheckedChange={setSameAsShipping}
-              id="same-as-shipping"
-            />
-            <label htmlFor="same-as-shipping" className="text-sm text-foreground cursor-pointer">
-              Same as shipping address
-            </label>
-          </div>
-
-          {!sameAsShipping && (
-            <div className="bg-muted/30 border border-border rounded-lg p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Full Name"
-                  value={paymentInfo?.billingAddress?.fullName || ''}
-                  onChange={(e) => handleBillingAddressChange('fullName', e?.target?.value)}
-                  placeholder="Enter full name"
-                  required
-                />
-                <Input
-                  label="Phone Number"
-                  value={paymentInfo?.billingAddress?.phone || ''}
-                  onChange={(e) => handleBillingAddressChange('phone', e?.target?.value)}
-                  placeholder="Enter phone number"
-                />
-                <div className="md:col-span-2">
-                  <Input
-                    label="Address"
-                    value={paymentInfo?.billingAddress?.address || ''}
-                    onChange={(e) => handleBillingAddressChange('address', e?.target?.value)}
-                    placeholder="Street address"
-                    required
-                  />
-                </div>
-                <Input
-                  label="City"
-                  value={paymentInfo?.billingAddress?.city || ''}
-                  onChange={(e) => handleBillingAddressChange('city', e?.target?.value)}
-                  placeholder="Enter city"
-                  required
-                />
-                <Input
-                  label="State"
-                  value={paymentInfo?.billingAddress?.state || ''}
-                  onChange={(e) => handleBillingAddressChange('state', e?.target?.value)}
-                  placeholder="Enter state"
-                  required
-                />
-                <Input
-                  label="ZIP Code"
-                  value={paymentInfo?.billingAddress?.zipCode || ''}
-                  onChange={(e) => handleBillingAddressChange('zipCode', e?.target?.value)}
-                  placeholder="Enter ZIP code"
-                  required
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Payment Security Info */}
-        <div className="bg-muted/30 rounded-lg p-4">
-          <div className="flex items-start space-x-3">
-            <Icon name="Shield" size={20} className="text-success mt-0.5" />
-            <div>
-              <h4 className="font-medium text-foreground mb-2">Your Payment is Protected</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Industry-standard SSL encryption</li>
-                <li>• PCI DSS compliant payment processing</li>
-                <li>• 24/7 fraud monitoring</li>
-                <li>• Secure data storage with encryption at rest</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        {/* ...existing code for payment details, billing address, and security info... */}
       </div>
-    </div>
+    </>
   );
 };
 

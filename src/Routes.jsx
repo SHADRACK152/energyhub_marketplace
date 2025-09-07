@@ -15,6 +15,7 @@ import ShoppingCartCheckout from './pages/shopping-cart-checkout';
 import OrdersPage from './pages/orders';
 import OrderConfirmation from './pages/order-confirmation';
 import OrderTracking from './pages/order-tracking';
+import AnalyticsPage from './pages/analytics';
 
 const Routes = () => {
   return (
@@ -35,6 +36,7 @@ const Routes = () => {
   <Route path="/shopping-cart-checkout" element={<ShoppingCartCheckout />} />
   <Route path="/order-confirmation" element={<OrderConfirmation />} />
   <Route path="/orders" element={<OrdersPage />} />
+  <Route path="/analytics" element={<AnalyticsPage />} />
   <Route path="/order-tracking/:orderId" element={<OrderTracking />} />
         <Route path="*" element={<NotFound />} />
       </RouterRoutes>

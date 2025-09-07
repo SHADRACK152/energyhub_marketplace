@@ -10,6 +10,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleNavigation = (path) => {
+    console.log('Navigation clicked:', path, 'onNavigate prop:', onNavigate);
     if (onNavigate) {
       onNavigate(path);
     } else {
@@ -22,7 +23,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
 
   // Public Header for unauthenticated users
   const PublicHeader = () => (
-    <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-100">
+    <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-50">
       <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -113,7 +114,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
   // B2B Seller Header
   const { logout } = useAuth();
   const SellerHeader = () => (
-    <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-100">
+    <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-50">
       <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -150,12 +151,21 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
               Inventory
             </button>
             <button
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
               onClick={() => handleNavigation('/orders')}
+              className={`text-sm font-medium transition-smooth ${
+                isActive('/orders')
+                  ? 'text-primary' :'text-muted-foreground hover:text-foreground'
+              }`}
             >
               Orders
             </button>
-            <button className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth">
+            <button 
+              onClick={() => handleNavigation('/analytics')}
+              className={`text-sm font-medium transition-smooth ${
+                isActive('/analytics')
+                  ? 'text-primary' :'text-muted-foreground hover:text-foreground'
+              }`}
+            >
               Analytics
             </button>
 
@@ -228,7 +238,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
 
   // B2C Buyer Header
   const BuyerHeader = () => (
-  <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-100">
+  <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-50">
       <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}

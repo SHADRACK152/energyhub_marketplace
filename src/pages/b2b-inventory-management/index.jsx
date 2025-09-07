@@ -1,32 +1,6 @@
-  // Update product price handler
-  const handleUpdatePrice = async (productId, newPrice) => {
-    try {
-      const res = await fetch(`/api/products/${productId}/price`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ price: newPrice })
-      });
-      if (!res.ok) throw new Error('Failed to update price');
-      setProducts(prev => prev.map(p => p.id === productId ? { ...p, price: newPrice } : p));
-    } catch (err) {
-      alert(err.message || 'Error updating price');
-    }
-  };
-  // Update product stock handler
-  const handleUpdateStock = async (productId, newStock) => {
-    try {
-      const res = await fetch(`/api/products/${productId}/stock`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stock: newStock })
-      });
-      if (!res.ok) throw new Error('Failed to update stock');
-      setProducts(prev => prev.map(p => p.id === productId ? { ...p, stock: newStock } : p));
-    } catch (err) {
-      alert(err.message || 'Error updating stock');
-    }
-  };
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../components/ui/AuthenticationRouter';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import NavigationBreadcrumbs from '../../components/ui/NavigationBreadcrumbs';
 import InventoryToolbar from './components/InventoryToolbar';
@@ -36,343 +10,537 @@ import ProductGrid from './components/ProductGrid';
 import AddProductModal from './components/AddProductModal';
 import BulkUploadModal from './components/BulkUploadModal';
 import Button from '../../components/ui/Button';
-import Icon from '../../components/AppIcon';
 
 const B2BInventoryManagement = () => {
-  // Delete product handler
-  const handleDeleteProduct = async (productId) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
-    try {
-      // Optionally show loading state here
-      const res = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete product');
-      setProducts(prev => prev.filter(p => p.id !== productId));
-    } catch (err) {
-      alert(err.message || 'Error deleting product');
-    }
-  };
-  const [user] = useState({ 
-    id: 1, 
-    name: 'John Smith', 
-    role: 'seller',
-    email: 'john.smith@energyhub.com'
-  });
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
+  // Navigation handler
+  const handleNavigation = (path) => {
+    console.log('Navigation to:', path);
+    navigate(path);
+  };
+
+  // State management
   const [viewMode, setViewMode] = useState('table');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
+  const [showTradeModal, setShowTradeModal] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   const [filters, setFilters] = useState({
     category: '',
     status: '',
     stockLevel: '',
-    priceMax: '',
-    featured: false
+    priceRange: { min: '', max: '' },
+    supplier: '',
+    tradeType: ''
   });
-
   const [products, setProducts] = useState([]);
-  const [productsLoading, setProductsLoading] = useState(true);
-  const [productsError, setProductsError] = useState(null);
+  const [tradeOffers, setTradeOffers] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [loading, setLoading] = useState(false);
 
+  // Initialize with enhanced sample products for energy marketplace
   useEffect(() => {
-    setProductsLoading(true);
-    setProductsError(null);
-    fetch('/api/products')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch products');
-        return res.json();
-      })
-      .then(data => {
-        setProducts(Array.isArray(data) ? data : []);
-        setProductsLoading(false);
-      })
-      .catch(err => {
-        setProductsError(err.message);
-        setProductsLoading(false);
-      });
+    // Initialize suppliers
+    setSuppliers([
+      { id: 1, name: 'Tesla Energy', type: 'Manufacturer', rating: 4.8, verified: true },
+      { id: 2, name: 'SolarEdge Technologies', type: 'Manufacturer', rating: 4.7, verified: true },
+      { id: 3, name: 'LG Energy Solution', type: 'Manufacturer', rating: 4.9, verified: true },
+      { id: 4, name: 'Enphase Energy', type: 'Manufacturer', rating: 4.6, verified: true },
+      { id: 5, name: 'GreenTech Distributors', type: 'Distributor', rating: 4.5, verified: true }
+    ]);
+
+    setProducts([
+      {
+        id: 1,
+        name: 'Tesla Powerwall',
+        sku: 'TSL-PW2',
+        category: 'Energy Storage',
+        price: 12500,
+        wholesalePrice: 11000,
+        bulkPrice: 10500, // Price for orders >10 units
+        stock: 8,
+        minStock: 5,
+        supplierId: 1,
+        supplier: 'Tesla Energy',
+        tradeType: 'Both', // B2B, B2C, Both
+        tradeType: 'Both', // B2B, B2C, Both
+        status: 'active',
+        image: '/api/placeholder/150/150',
+        description: 'Home battery for backup protection and solar energy storage',
+        specifications: {
+          capacity: '13.5 kWh',
+          power: '5 kW continuous',
+          efficiency: '90%',
+          warranty: '10 years'
+        },
+        certifications: ['UL 1973', 'UL 1642', 'FCC Part 15'],
+        lastUpdated: new Date(),
+        tradingTerms: {
+          minOrderQty: 1,
+          bulkOrderQty: 10,
+          leadTime: '2-4 weeks',
+          paymentTerms: 'Net 30'
+        }
+      },
+      {
+        id: 2,
+        name: 'SolarEdge Inverter',
+        sku: 'SE-7600H',
+        category: 'Inverters',
+        price: 1850,
+        wholesalePrice: 1600,
+        bulkPrice: 1500,
+        stock: 15,
+        minStock: 10,
+        supplierId: 2,
+        supplier: 'SolarEdge Technologies',
+        tradeType: 'Both',
+        status: 'active',
+        image: '/api/placeholder/150/150',
+        description: 'Single phase inverter with HD-Wave technology',
+        specifications: {
+          power: '7.6 kW',
+          efficiency: '99.2%',
+          warranty: '12 years',
+          monitoring: 'Built-in'
+        },
+        certifications: ['UL 1741', 'IEEE 1547', 'FCC Part 15'],
+        lastUpdated: new Date(),
+        tradingTerms: {
+          minOrderQty: 1,
+          bulkOrderQty: 5,
+          leadTime: '1-2 weeks',
+          paymentTerms: 'Net 30'
+        }
+      },
+      {
+        id: 3,
+        name: 'LG Solar Panel',
+        sku: 'LG-400W',
+        category: 'Solar Panels',
+        price: 320,
+        wholesalePrice: 280,
+        bulkPrice: 250,
+        stock: 25,
+        minStock: 15,
+        supplierId: 3,
+        supplier: 'LG Energy Solution',
+        tradeType: 'Both',
+        status: 'active',
+        image: '/api/placeholder/150/150',
+        description: 'High-efficiency monocrystalline solar panel',
+        specifications: {
+          power: '400W',
+          efficiency: '21.7%',
+          warranty: '25 years',
+          technology: 'Monocrystalline'
+        },
+        certifications: ['IEC 61215', 'IEC 61730', 'UL 1703'],
+        lastUpdated: new Date(),
+        tradingTerms: {
+          minOrderQty: 10,
+          bulkOrderQty: 50,
+          leadTime: '3-5 weeks',
+          paymentTerms: 'Net 45'
+        }
+      },
+      {
+        id: 4,
+        name: 'Enphase IQ7+',
+        sku: 'ENP-IQ7',
+        category: 'Microinverters',
+        price: 350,
+        wholesalePrice: 310,
+        bulkPrice: 290,
+        stock: 45,
+        minStock: 20,
+        supplierId: 4,
+        supplier: 'Enphase Energy',
+        tradeType: 'B2B',
+        status: 'active',
+        image: '/api/placeholder/150/150',
+        description: 'Microinverter for residential solar installations',
+        specifications: {
+          power: '290W',
+          efficiency: '97.0%',
+          warranty: '25 years',
+          monitoring: 'Per-panel'
+        },
+        certifications: ['UL 1741', 'IEEE 1547', 'FCC Part 15'],
+        lastUpdated: new Date(),
+        tradingTerms: {
+          minOrderQty: 20,
+          bulkOrderQty: 100,
+          leadTime: '2-3 weeks',
+          paymentTerms: 'Net 30'
+        }
+      },
+      {
+        id: 5,
+        name: 'Commercial Energy Storage System',
+        sku: 'CES-500',
+        category: 'Energy Storage',
+        price: 75000,
+        wholesalePrice: 65000,
+        bulkPrice: 60000,
+        stock: 3,
+        minStock: 2,
+        supplierId: 5,
+        supplier: 'GreenTech Distributors',
+        tradeType: 'B2B',
+        status: 'active',
+        image: '/api/placeholder/150/150',
+        description: 'Large-scale commercial battery storage solution',
+        specifications: {
+          capacity: '500 kWh',
+          power: '250 kW',
+          efficiency: '95%',
+          warranty: '15 years'
+        },
+        certifications: ['UL 9540', 'IEEE 1547', 'NFPA 855'],
+        lastUpdated: new Date(),
+        tradingTerms: {
+          minOrderQty: 1,
+          bulkOrderQty: 3,
+          leadTime: '8-12 weeks',
+          paymentTerms: 'Letter of Credit'
+        }
+      }
+    ]);
+
+    // Initialize trade offers
+    setTradeOffers([
+      {
+        id: 1,
+        productId: 1,
+        buyerCompany: 'SolarMax Installers',
+        quantity: 15,
+        requestedPrice: 11800,
+        status: 'pending',
+        message: 'Bulk order for Q4 installations',
+        createdAt: new Date()
+      },
+      {
+        id: 2,
+        productId: 3,
+        buyerCompany: 'Green Energy Corp',
+        quantity: 100,
+        requestedPrice: 260,
+        status: 'negotiating',
+        message: 'Large commercial project - seeking best pricing',
+        createdAt: new Date()
+      }
+    ]);
   }, []);
 
-  // Filter products based on search and filters
-  const filteredProducts = products?.filter(product => {
-    const matchesSearch = searchQuery === '' || 
-      product?.name?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      product?.sku?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      product?.brand?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      product?.description?.toLowerCase()?.includes(searchQuery?.toLowerCase());
-
-    const matchesCategory = !filters?.category || product?.category?.toLowerCase()?.replace(/\s+/g, '-') === filters?.category;
-    const matchesStatus = !filters?.status || product?.status === filters?.status;
-    
-    const matchesStockLevel = !filters?.stockLevel || 
-      (filters?.stockLevel === 'in-stock' && product?.stock > 10) ||
-      (filters?.stockLevel === 'low-stock' && product?.stock > 0 && product?.stock <= 10) ||
-      (filters?.stockLevel === 'out-of-stock' && product?.stock === 0);
-
-    const matchesPriceMin = !filters?.priceMin || product?.price >= parseFloat(filters?.priceMin);
-    const matchesPriceMax = !filters?.priceMax || product?.price <= parseFloat(filters?.priceMax);
-    const matchesFeatured = !filters?.featured || product?.featured;
-
-    return matchesSearch && matchesCategory && matchesStatus && matchesStockLevel && 
-           matchesPriceMin && matchesPriceMax && matchesFeatured;
-  });
-
-  const handleSelectProduct = (productId) => {
-    setSelectedProducts(prev => 
-      prev?.includes(productId) 
-        ? prev?.filter(id => id !== productId)
-        : [...prev, productId]
-    );
-  };
-
-  const handleSelectAll = () => {
-    if (selectedProducts?.length === filteredProducts?.length) {
-      setSelectedProducts([]);
-    } else {
-      setSelectedProducts(filteredProducts?.map(p => p?.id));
-    }
-  };
-
-  const handleBulkAction = (action) => {
-    console.log(`Performing ${action} on products:`, selectedProducts);
-    // Implement bulk actions here
-    setSelectedProducts([]);
-  };
-
+  // Product handlers
   const handleAddProduct = (productData) => {
     const newProduct = {
+      id: Date.now(),
       ...productData,
-      id: products?.length + 1,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
+      status: 'active'
     };
-    setProducts(prev => [...prev, newProduct]);
-  };
-
-  const handleBulkUpload = (file, validationResults) => {
-    console.log('Bulk uploading:', file, validationResults);
-    // Implement bulk upload logic here
-  };
-
-  const handleExport = () => {
-    console.log('Exporting products...');
-    // Implement export functionality
-  };
-
-  // Edit product handler
-  const [editProductId, setEditProductId] = useState(null);
-  const [editProductData, setEditProductData] = useState(null);
-
-  const handleEditProduct = (productId) => {
-    const product = products.find(p => p.id === productId);
-    if (product) {
-      setEditProductId(productId);
-      setEditProductData({ ...product });
-      setShowAddModal(true);
-    }
-  };
-
-  // Save handler for both add and edit
-  const handleSaveProduct = async (productData) => {
-    if (editProductId) {
-      // Edit existing product
-      try {
-        const res = await fetch(`/api/products/${editProductId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(productData)
-        });
-        if (!res.ok) throw new Error('Failed to update product');
-        setProducts(prev => prev.map(p => p.id === editProductId ? { ...productData, id: editProductId } : p));
-      } catch (err) {
-        alert(err.message || 'Error updating product');
-      }
-      setEditProductId(null);
-      setEditProductData(null);
-    } else {
-      // Add new product with images using FormData
-      try {
-        const formData = new FormData();
-        // Append all fields except images
-        Object.entries(productData).forEach(([key, value]) => {
-          if (key === 'images') return;
-          // Stringify objects/arrays
-          if (typeof value === 'object' && value !== null) {
-            formData.append(key, JSON.stringify(value));
-          } else {
-            formData.append(key, value);
-          }
-        });
-        // Append images as files
-        if (productData.images && productData.images.length > 0) {
-          productData.images.forEach(imgObj => {
-            if (imgObj.file) formData.append('images', imgObj.file);
-          });
-        }
-        const res = await fetch('/api/products', {
-          method: 'POST',
-          body: formData
-        });
-        if (!res.ok) throw new Error('Failed to add product');
-        const newProduct = await res.json();
-        setProducts(prev => [...prev, newProduct]);
-      } catch (err) {
-        alert(err.message || 'Error adding product');
-      }
-    }
+    setProducts(prev => [newProduct, ...prev]);
     setShowAddModal(false);
   };
 
-  // Toggle product status (active/inactive)
-  const handleToggleStatus = (productId) => {
-    setProducts(prev => prev?.map(p =>
-      p?.id === productId
-        ? { ...p, status: p?.status === 'active' ? 'inactive' : 'active', lastUpdated: new Date() }
+  const handleUpdatePrice = (productId, newPrice) => {
+    setProducts(prev => prev.map(p => 
+      p.id === productId ? { ...p, price: newPrice, lastUpdated: new Date() } : p
+    ));
+  };
+
+  const handleUpdateStock = (productId, newStock) => {
+    setProducts(prev => prev.map(p => 
+      p.id === productId ? { ...p, stock: newStock, lastUpdated: new Date() } : p
+    ));
+  };
+
+  const handleBulkAction = (action) => {
+    switch (action) {
+      case 'delete':
+        setProducts(prev => prev.filter(p => !selectedProducts.includes(p.id)));
+        setSelectedProducts([]);
+        break;
+      case 'activate':
+        setProducts(prev => prev.map(p => 
+          selectedProducts.includes(p.id) ? { ...p, status: 'active', lastUpdated: new Date() } : p
+        ));
+        setSelectedProducts([]);
+        break;
+      case 'deactivate':
+        setProducts(prev => prev.map(p => 
+          selectedProducts.includes(p.id) ? { ...p, status: 'inactive', lastUpdated: new Date() } : p
+        ));
+        setSelectedProducts([]);
+        break;
+      case 'export_b2c':
+        // Export selected products to B2C marketplace
+        console.log('Exporting to B2C marketplace:', selectedProducts);
+        setSelectedProducts([]);
+        break;
+      case 'bulk_pricing':
+        setShowPricingModal(true);
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Enhanced marketplace functions
+  const handleTradeOffer = (productId, offer) => {
+    setTradeOffers(prev => [...prev, {
+      id: Date.now(),
+      productId,
+      ...offer,
+      status: 'pending',
+      createdAt: new Date()
+    }]);
+  };
+
+  const handleTradeResponse = (offerId, response, counterOffer = null) => {
+    setTradeOffers(prev => prev.map(offer => 
+      offer.id === offerId 
+        ? { 
+            ...offer, 
+            status: response,
+            counterOffer,
+            updatedAt: new Date() 
+          }
+        : offer
+    ));
+  };
+
+  const handlePricingTier = (productId, pricingData) => {
+    setProducts(prev => prev.map(p => 
+      p.id === productId 
+        ? { 
+            ...p, 
+            wholesalePrice: pricingData.wholesale,
+            bulkPrice: pricingData.bulk,
+            tradingTerms: { ...p.tradingTerms, ...pricingData.terms },
+            lastUpdated: new Date() 
+          }
         : p
     ));
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      <RoleBasedHeader user={user} onNavigate={() => {}} />
-      <div className="pt-16">
-        <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <NavigationBreadcrumbs onNavigate={() => {}} />
-          
-          {/* Page Header */}
-          <div className="mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">Inventory Management</h1>
-                <p className="text-muted-foreground mt-1">
-                  Manage your product catalog, pricing, and stock levels
-                </p>
+  const handleSupplierManagement = (supplierId, action, data = null) => {
+    switch (action) {
+      case 'verify':
+        setSuppliers(prev => prev.map(s => 
+          s.id === supplierId ? { ...s, verified: true } : s
+        ));
+        break;
+      case 'update_rating':
+        setSuppliers(prev => prev.map(s => 
+          s.id === supplierId ? { ...s, rating: data.rating } : s
+        ));
+        break;
+      case 'add_supplier':
+        setSuppliers(prev => [...prev, { id: Date.now(), ...data }]);
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Enhanced filter products for marketplace
+  const filteredProducts = products.filter(product => {
+    if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !product.sku.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !product.supplier.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    if (filters.category && product.category !== filters.category) return false;
+    if (filters.status && product.status !== filters.status) return false;
+    if (filters.supplier && product.supplier !== filters.supplier) return false;
+    if (filters.tradeType && product.tradeType !== filters.tradeType && product.tradeType !== 'Both') return false;
+    if (filters.stockLevel) {
+      if (filters.stockLevel === 'low' && product.stock >= product.minStock) return false;
+      if (filters.stockLevel === 'normal' && (product.stock < product.minStock || product.stock === 0)) return false;
+      if (filters.stockLevel === 'out' && product.stock > 0) return false;
+    }
+    if (filters.priceRange.min && product.price < parseFloat(filters.priceRange.min)) return false;
+    if (filters.priceRange.max && product.price > parseFloat(filters.priceRange.max)) return false;
+    return true;
+  });
+
+  // Calculate marketplace metrics
+  const marketplaceMetrics = {
+    totalProducts: products.length,
+    activeProducts: products.filter(p => p.status === 'active').length,
+    b2bProducts: products.filter(p => p.tradeType === 'B2B' || p.tradeType === 'Both').length,
+    b2cProducts: products.filter(p => p.tradeType === 'B2C' || p.tradeType === 'Both').length,
+    pendingTrades: tradeOffers.filter(t => t.status === 'pending').length,
+    totalValue: products.reduce((sum, p) => sum + (p.price * p.stock), 0),
+    lowStockItems: products.filter(p => p.stock <= p.minStock).length,
+    verifiedSuppliers: suppliers.filter(s => s.verified).length
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <RoleBasedHeader user={user} onNavigate={handleNavigation} />
+        <div className="pt-16">
+          <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="animate-pulse space-y-6">
+              <div className="h-8 bg-muted rounded w-1/4"></div>
+              <div className="h-12 bg-muted rounded"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="h-64 bg-muted rounded-lg"></div>
+                ))}
               </div>
-              
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  iconName="Filter"
-                  onClick={() => setShowFilters(true)}
-                  className="lg:hidden"
-                >
-                  Filters
-                </Button>
-                <div className="text-sm text-muted-foreground">
-                  {filteredProducts?.length} of {products?.length} products
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-6">
-            {/* Filter Sidebar */}
-            <div className="hidden lg:block w-80 flex-shrink-0">
-              <FilterSidebar
-                isOpen={true}
-                onClose={() => {}}
-                filters={filters}
-                onFiltersChange={setFilters}
-                resultCount={filteredProducts?.length}
-              />
-            </div>
-
-            {/* Mobile Filter Sidebar */}
-            <FilterSidebar
-              isOpen={showFilters}
-              onClose={() => setShowFilters(false)}
-              filters={filters}
-              onFiltersChange={setFilters}
-              resultCount={filteredProducts?.length}
-            />
-
-            {/* Main Content */}
-            <div className="flex-1 min-w-0">
-              <InventoryToolbar
-                onAddProduct={() => setShowAddModal(true)}
-                onBulkUpload={() => setShowBulkModal(true)}
-                onExport={handleExport}
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                selectedCount={selectedProducts?.length}
-                onBulkAction={handleBulkAction}
-              />
-
-              {/* Products Display */}
-                {productsLoading ? (
-                  <div className="bg-card border border-border rounded-lg p-12 text-center text-muted-foreground">
-                    Loading products...
-                  </div>
-                ) : productsError ? (
-                  <div className="bg-card border border-border rounded-lg p-12 text-center text-error">
-                    {productsError}
-                  </div>
-                ) : filteredProducts?.length === 0 ? (
-                  <div className="bg-card border border-border rounded-lg p-12 text-center">
-                    <Icon name="Package" size={48} className="mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium text-foreground mb-2">No products found</h3>
-                    <p className="text-muted-foreground mb-6">
-                      {searchQuery || Object.values(filters)?.some(f => f) 
-                        ? 'Try adjusting your search or filters' : 'Get started by adding your first product'
-                      }
-                    </p>
-                    <Button
-                      variant="default"
-                      iconName="Plus"
-                      onClick={() => setShowAddModal(true)}
-                    >
-                      Add Product
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    {viewMode === 'table' ? (
-                      <ProductTable
-                        products={filteredProducts}
-                        selectedProducts={selectedProducts}
-                        onSelectProduct={handleSelectProduct}
-                        onSelectAll={handleSelectAll}
-                        onEditProduct={handleEditProduct}
-                        onDeleteProduct={handleDeleteProduct}
-                        onUpdateStock={handleUpdateStock}
-                        onUpdatePrice={handleUpdatePrice}
-                        onToggleStatus={handleToggleStatus}
-                      />
-                    ) : (
-                      <ProductGrid
-                        products={filteredProducts}
-                        selectedProducts={selectedProducts}
-                        onSelectProduct={handleSelectProduct}
-                        onEditProduct={handleEditProduct}
-                        onDeleteProduct={handleDeleteProduct}
-                        onToggleStatus={handleToggleStatus}
-                      />
-                    )}
-                  </>
-                )}
             </div>
           </div>
         </div>
       </div>
-      {/* Modals */}
-      <AddProductModal
-        isOpen={showAddModal}
-        onClose={() => {
-          setShowAddModal(false);
-          setEditProductId(null);
-          setEditProductData(null);
-        }}
-        onSave={handleSaveProduct}
-        product={editProductData}
-        isEdit={!!editProductId}
-      />
-      <BulkUploadModal
-        isOpen={showBulkModal}
-        onClose={() => setShowBulkModal(false)}
-        onUpload={handleBulkUpload}
-      />
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <RoleBasedHeader user={user} onNavigate={handleNavigation} />
+      <div className="pt-16">
+        <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <NavigationBreadcrumbs onNavigate={handleNavigation} />
+          
+          {/* Enhanced Marketplace Header */}
+          <div className="mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Energy Marketplace - B2B Trading</h1>
+                <p className="text-muted-foreground mt-1">
+                  Manage inventory, trade with suppliers, and expand to B2C retail
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowTradeModal(true)}
+                >
+                  View Trade Offers ({marketplaceMetrics.pendingTrades})
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowBulkModal(true)}
+                >
+                  Bulk Upload
+                </Button>
+                <Button
+                  onClick={() => setShowAddModal(true)}
+                >
+                  Add Product
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Marketplace Metrics Dashboard */}
+          <div className="mb-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            <div className="bg-card rounded-lg p-4 border">
+              <div className="text-2xl font-bold text-primary">{marketplaceMetrics.totalProducts}</div>
+              <div className="text-sm text-muted-foreground">Total Products</div>
+            </div>
+            <div className="bg-card rounded-lg p-4 border">
+              <div className="text-2xl font-bold text-green-600">{marketplaceMetrics.activeProducts}</div>
+              <div className="text-sm text-muted-foreground">Active</div>
+            </div>
+            <div className="bg-card rounded-lg p-4 border">
+              <div className="text-2xl font-bold text-blue-600">{marketplaceMetrics.b2bProducts}</div>
+              <div className="text-sm text-muted-foreground">B2B Products</div>
+            </div>
+            <div className="bg-card rounded-lg p-4 border">
+              <div className="text-2xl font-bold text-purple-600">{marketplaceMetrics.b2cProducts}</div>
+              <div className="text-sm text-muted-foreground">B2C Ready</div>
+            </div>
+            <div className="bg-card rounded-lg p-4 border">
+              <div className="text-2xl font-bold text-orange-600">{marketplaceMetrics.pendingTrades}</div>
+              <div className="text-sm text-muted-foreground">Pending Trades</div>
+            </div>
+            <div className="bg-card rounded-lg p-4 border">
+              <div className="text-2xl font-bold text-emerald-600">${(marketplaceMetrics.totalValue / 1000).toFixed(0)}K</div>
+              <div className="text-sm text-muted-foreground">Inventory Value</div>
+            </div>
+            <div className="bg-card rounded-lg p-4 border">
+              <div className="text-2xl font-bold text-red-600">{marketplaceMetrics.lowStockItems}</div>
+              <div className="text-sm text-muted-foreground">Low Stock</div>
+            </div>
+            <div className="bg-card rounded-lg p-4 border">
+              <div className="text-2xl font-bold text-indigo-600">{marketplaceMetrics.verifiedSuppliers}</div>
+              <div className="text-sm text-muted-foreground">Verified Suppliers</div>
+            </div>
+          </div>
+
+          {/* Toolbar */}
+          <InventoryToolbar
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            showFilters={showFilters}
+            onToggleFilters={() => setShowFilters(!showFilters)}
+            selectedCount={selectedProducts.length}
+            onBulkAction={handleBulkAction}
+          />
+
+          {/* Content */}
+          <div className="flex gap-6">
+            {/* Filters Sidebar */}
+            {showFilters && (
+              <div className="w-80 flex-shrink-0">
+                <FilterSidebar
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  productCount={filteredProducts.length}
+                />
+              </div>
+            )}
+
+            {/* Products Display */}
+            <div className="flex-1 min-w-0">
+              {viewMode === 'table' ? (
+                <ProductTable
+                  products={filteredProducts}
+                  selectedProducts={selectedProducts}
+                  onSelectionChange={setSelectedProducts}
+                  onUpdatePrice={handleUpdatePrice}
+                  onUpdateStock={handleUpdateStock}
+                />
+              ) : (
+                <ProductGrid
+                  products={filteredProducts}
+                  onUpdatePrice={handleUpdatePrice}
+                  onUpdateStock={handleUpdateStock}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Modals */}
+          <AddProductModal
+            isOpen={showAddModal}
+            onClose={() => setShowAddModal(false)}
+            onAddProduct={handleAddProduct}
+          />
+
+          <BulkUploadModal
+            isOpen={showBulkModal}
+            onClose={() => setShowBulkModal(false)}
+            onUpload={(products) => {
+              setProducts(prev => [...products, ...prev]);
+              setShowBulkModal(false);
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 };

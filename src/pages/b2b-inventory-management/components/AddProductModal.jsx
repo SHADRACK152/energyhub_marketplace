@@ -120,8 +120,18 @@ const AddProductModal = ({ isOpen, onClose, onSave, product, isEdit }) => {
   };
 
   const handleSave = () => {
+    // Validate required fields
+    if (!productData.name || !productData.category) {
+      alert('Please fill in all required fields (Name and Category)');
+      return;
+    }
+    
+    console.log('Saving product with data:', productData);
+    console.log('Images to upload:', productData.images.length);
+    
     onSave(productData);
     onClose();
+    
     // Reset form
     setProductData({
       name: '',
@@ -437,12 +447,33 @@ const AddProductModal = ({ isOpen, onClose, onSave, product, isEdit }) => {
                       // Only allow up to 10 images
                       const limitedFiles = files.slice(0, 10 - productData.images.length);
                       // Filter valid images and check size
-                      const validFiles = limitedFiles.filter(file => file.size <= 5 * 1024 * 1024);
+                      const validFiles = limitedFiles.filter(file => {
+                        if (file.size > 5 * 1024 * 1024) {
+                          alert(`File ${file.name} is too large. Maximum size is 5MB.`);
+                          return false;
+                        }
+                        if (!file.type.startsWith('image/')) {
+                          alert(`File ${file.name} is not a valid image.`);
+                          return false;
+                        }
+                        return true;
+                      });
+                      
+                      if (validFiles.length === 0) {
+                        e.target.value = '';
+                        return;
+                      }
+
                       // Read files as data URLs for preview
                       Promise.all(validFiles.map(file => {
                         return new Promise((resolve, reject) => {
                           const reader = new FileReader();
-                          reader.onload = () => resolve({ name: file.name, url: reader.result, file });
+                          reader.onload = () => resolve({ 
+                            name: file.name, 
+                            url: reader.result, 
+                            file: file,
+                            id: Date.now() + Math.random() // unique ID for removal
+                          });
                           reader.onerror = reject;
                           reader.readAsDataURL(file);
                         });
@@ -451,6 +482,10 @@ const AddProductModal = ({ isOpen, onClose, onSave, product, isEdit }) => {
                           ...prev,
                           images: [...prev.images, ...images]
                         }));
+                        console.log('Images added for preview:', images.length);
+                      }).catch(error => {
+                        console.error('Error reading files:', error);
+                        alert('Error reading some files. Please try again.');
                       });
                       // Reset input value so same file can be selected again
                       e.target.value = '';
@@ -466,20 +501,26 @@ const AddProductModal = ({ isOpen, onClose, onSave, product, isEdit }) => {
                 </div>
                 <div className="flex flex-wrap gap-4 mt-6 justify-center">
                   {productData.images && productData.images.length > 0 && productData.images.filter(img => img.url).map((img, idx) => (
-                    <div key={idx} className="relative w-24 h-24 rounded overflow-hidden border border-border bg-muted">
+                    <div key={img.id || idx} className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-border bg-muted shadow-sm">
                       <img
                         src={img.url}
                         alt={img.name || `Product Image ${idx + 1}`}
-                        className="object-cover w-full h-full"
+                        className="object-cover w-full h-full hover:scale-105 transition-transform duration-200"
+                        onLoad={() => console.log(`Image ${idx + 1} loaded successfully`)}
+                        onError={() => console.error(`Failed to load image ${idx + 1}`)}
                       />
+                      <div className="absolute inset-x-0 bottom-0 bg-black/60 text-white text-xs p-1 truncate">
+                        {img.name || `Image ${idx + 1}`}
+                      </div>
                       <button
                         type="button"
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 hover:bg-black/80"
+                        className="absolute top-1 right-1 bg-red-500/80 text-white rounded-full p-1.5 hover:bg-red-600/90 transition-colors shadow-sm"
                         onClick={() => {
                           setProductData(prev => ({
                             ...prev,
                             images: prev.images.filter((_, i) => i !== idx)
                           }));
+                          console.log(`Image ${idx + 1} removed`);
                         }}
                         title="Remove image"
                       >
@@ -487,6 +528,12 @@ const AddProductModal = ({ isOpen, onClose, onSave, product, isEdit }) => {
                       </button>
                     </div>
                   ))}
+                  {productData.images && productData.images.length === 0 && (
+                    <div className="text-center text-muted-foreground py-8">
+                      <Icon name="Image" size={48} className="mx-auto mb-2 opacity-50" />
+                      <p>No images selected yet</p>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="text-sm text-muted-foreground">

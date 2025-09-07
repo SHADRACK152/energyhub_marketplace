@@ -10,20 +10,41 @@ import LowInventoryAlert from './components/LowInventoryAlert';
 import SalesChart from './components/SalesChart';
 import TopProductsChart from './components/TopProductsChart';
 import MobileOrderCard from './components/MobileOrderCard';
+import OrderManagementPanel from './components/OrderManagementPanel';
+import OrderDetailsModal from './components/OrderDetailsModal';
+import FulfillmentModal from './components/FulfillmentModal';
 
 const B2BSellerDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  // State management
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [pendingOrders, setPendingOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState(null);
+  
+  // Modal states
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [showFulfillmentModal, setShowFulfillmentModal] = useState(false);
+  const [orderToFulfill, setOrderToFulfill] = useState(null);
+  
+  // Metrics data
+  const [metrics, setMetrics] = useState({
+    totalRevenue: 284750,
+    activeListings: 156,
+    pendingOrders: 0,
+    inventoryValue: 1250000
+  });
 
-  // Get authenticated user from context
-  const { user } = useAuth();
-
-  // Mock metrics data
+  // Mock metrics data based on real orders
   const metricsData = [
     {
       title: "Total Revenue",
-      value: "284,750",
+      value: metrics.totalRevenue.toLocaleString(),
       change: "+12.5%",
       changeType: "positive",
       icon: "DollarSign",
@@ -31,21 +52,21 @@ const B2BSellerDashboard = () => {
     },
     {
       title: "Active Listings",
-      value: "156",
+      value: metrics.activeListings.toString(),
       change: "+8",
       changeType: "positive",
       icon: "Package"
     },
     {
       title: "Pending Orders",
-      value: "23",
-      change: "+5",
-      changeType: "positive",
+      value: metrics.pendingOrders.toString(),
+      change: pendingOrders.length > 0 ? `+${pendingOrders.length}` : "0",
+      changeType: pendingOrders.length > 0 ? "positive" : "neutral",
       icon: "Clock"
     },
     {
       title: "Inventory Value",
-      value: "1,250,000",
+      value: metrics.inventoryValue.toLocaleString(),
       change: "-2.1%",
       changeType: "negative",
       icon: "Warehouse",
@@ -53,27 +74,41 @@ const B2BSellerDashboard = () => {
     }
   ];
 
-  // Orders state
-  const [recentOrders, setRecentOrders] = useState([]);
-  const [ordersLoading, setOrdersLoading] = useState(true);
-  const [ordersError, setOrdersError] = useState(null);
-
+  // Fetch orders that need seller action
   useEffect(() => {
-    setOrdersLoading(true);
-    setOrdersError(null);
-    fetch('/api/orders')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch orders');
-        return res.json();
-      })
-      .then(data => {
-        setRecentOrders(Array.isArray(data) ? data : []);
+    const fetchOrders = async () => {
+      setOrdersLoading(true);
+      setOrdersError(null);
+      try {
+        // Fetch all orders for the seller
+        const allOrdersRes = await fetch('/api/orders');
+        const allOrders = await allOrdersRes.json();
+        
+        // Fetch orders needing action
+        const pendingRes = await fetch('/api/orders?needsAction=true');
+        const pending = await pendingRes.json();
+        
+        setRecentOrders(Array.isArray(allOrders) ? allOrders.slice(0, 10) : []);
+        setPendingOrders(Array.isArray(pending) ? pending : []);
+        
+        // Update metrics
+        setMetrics(prev => ({
+          ...prev,
+          pendingOrders: Array.isArray(pending) ? pending.length : 0
+        }));
+        
         setOrdersLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
         setOrdersError(err.message);
         setOrdersLoading(false);
-      });
+      }
+    };
+
+    fetchOrders();
+    
+    // Refresh orders every 30 seconds
+    const interval = setInterval(fetchOrders, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Mock low inventory items
@@ -135,40 +170,101 @@ const B2BSellerDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Enhanced action handlers
+  const handleViewOrder = (orderId) => {
+    setSelectedOrderId(orderId);
+    setShowOrderDetails(true);
+  };
+
+  const handleConfirmOrder = async (orderId) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'Confirmed',
+          sellerNotes: 'Order confirmed and will be processed within 24 hours',
+          confirmedAt: new Date().toISOString(),
+          estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+        })
+      });
+      
+      if (response.ok) {
+        // Refresh orders
+        const pendingRes = await fetch('/api/orders?needsAction=true');
+        const pending = await pendingRes.json();
+        setPendingOrders(Array.isArray(pending) ? pending : []);
+        
+        const allOrdersRes = await fetch('/api/orders');
+        const allOrders = await allOrdersRes.json();
+        setRecentOrders(Array.isArray(allOrders) ? allOrders.slice(0, 10) : []);
+        
+        alert('Order confirmed successfully!');
+      } else {
+        throw new Error('Failed to confirm order');
+      }
+    } catch (error) {
+      console.error('Error confirming order:', error);
+      alert('Failed to confirm order. Please try again.');
+    }
+  };
+
+  const handleFulfillOrder = (orderId) => {
+    const order = recentOrders.find(o => o.id === orderId) || pendingOrders.find(o => o.id === orderId);
+    if (order) {
+      setOrderToFulfill(order);
+      setShowFulfillmentModal(true);
+    }
+  };
+
+  const handleOrderFulfillment = async (orderId, fulfillmentData) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'Shipped',
+          ...fulfillmentData
+        })
+      });
+
+      if (response.ok) {
+        // Refresh orders
+        const allOrdersRes = await fetch('/api/orders');
+        const allOrders = await allOrdersRes.json();
+        setRecentOrders(Array.isArray(allOrders) ? allOrders.slice(0, 10) : []);
+        
+        const pendingRes = await fetch('/api/orders?needsAction=true');
+        const pending = await pendingRes.json();
+        setPendingOrders(Array.isArray(pending) ? pending : []);
+        
+        alert('Order shipped successfully!');
+        return true;
+      } else {
+        throw new Error('Failed to ship order');
+      }
+    } catch (error) {
+      console.error('Error shipping order:', error);
+      alert('Failed to ship order. Please try again.');
+      return false;
+    }
+  };
+
   // Navigation handlers
   const handleNavigation = (path) => {
     navigate(path);
   };
 
-  // Action handlers
-  const handleViewOrder = (orderId) => {
-    console.log('Viewing order:', orderId);
-    // Navigate to order details page
-  };
-
-  const handleFulfillOrder = (orderId) => {
-    console.log('Fulfilling order:', orderId);
-    // Open fulfill order modal
-  };
-
-  const handleContactBuyer = (buyerId) => {
-    console.log('Contacting buyer:', buyerId);
-    // Open contact modal
-  };
-
   const handleAddProduct = () => {
-    console.log('Adding new product');
-    // Navigate to add product page
+    navigate('/b2b-inventory-management');
   };
 
   const handleBulkUpload = () => {
-    console.log('Bulk upload products');
-    // Open bulk upload modal
+    navigate('/b2b-inventory-management');
   };
 
   const handleUpdatePricing = () => {
-    console.log('Update pricing');
-    // Navigate to pricing management
+    navigate('/b2b-inventory-management');
   };
 
   const handleRestockItem = (itemId) => {
@@ -178,6 +274,11 @@ const B2BSellerDashboard = () => {
 
   const handleViewInventory = () => {
     navigate('/b2b-inventory-management');
+  };
+
+  const handleContactBuyer = (buyerId) => {
+    console.log('Contacting buyer:', buyerId);
+    // Open contact modal or navigate to messaging
   };
 
   return (
@@ -216,6 +317,84 @@ const B2BSellerDashboard = () => {
                 currency={metric?.currency}
               />
             ))}
+          </div>
+
+          {/* Pending Orders Alert */}
+          {pendingOrders.length > 0 && (
+            <div className="mb-8 bg-warning/10 border border-warning/30 rounded-lg p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-warning rounded-full flex items-center justify-center">
+                    <span className="text-sm font-bold text-warning-foreground">{pendingOrders.length}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">
+                      {pendingOrders.length} Order{pendingOrders.length > 1 ? 's' : ''} Need Your Attention
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Review and confirm new orders from customers
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/orders')}
+                  iconName="ExternalLink"
+                  iconPosition="right"
+                >
+                  View All Orders
+                </Button>
+              </div>
+              
+              {/* Quick Order Actions */}
+              <div className="mt-4 space-y-3">
+                {pendingOrders.slice(0, 3).map((order) => (
+                  <div key={order.id} className="flex items-center justify-between bg-background/50 rounded-lg p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-2 h-2 bg-warning rounded-full animate-pulse"></div>
+                      <div>
+                        <p className="font-medium text-sm">Order #{order.orderNumber}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {order.productName} • ${order.price?.toFixed(2)} • {new Date(order.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button 
+                        size="sm" 
+                        variant="default"
+                        onClick={() => handleConfirmOrder(order.id)}
+                      >
+                        Confirm
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleViewOrder(order.id)}
+                      >
+                        View
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {pendingOrders.length > 3 && (
+                  <div className="text-center">
+                    <Button variant="ghost" size="sm" onClick={() => navigate('/orders')}>
+                      View {pendingOrders.length - 3} more pending orders
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Order Management Panel */}
+          <div className="mb-8">
+            <OrderManagementPanel
+              onViewOrder={handleViewOrder}
+              onConfirmOrder={handleConfirmOrder}
+              onFulfillOrder={handleFulfillOrder}
+            />
           </div>
 
           {/* Main Content Grid */}
@@ -285,6 +464,20 @@ const B2BSellerDashboard = () => {
           </div>
         </div>
       </main>
+
+      {/* Modals */}
+      <OrderDetailsModal
+        isOpen={showOrderDetails}
+        onClose={() => setShowOrderDetails(false)}
+        orderId={selectedOrderId}
+      />
+
+      <FulfillmentModal
+        isOpen={showFulfillmentModal}
+        onClose={() => setShowFulfillmentModal(false)}
+        order={orderToFulfill}
+        onFulfill={handleOrderFulfillment}
+      />
     </div>
   );
 };
