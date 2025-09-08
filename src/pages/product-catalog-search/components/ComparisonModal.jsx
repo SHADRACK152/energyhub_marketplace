@@ -10,7 +10,7 @@ const ComparisonModal = ({ isOpen, onClose, products }) => {
     { label: 'Image', key: 'image', type: 'image' },
     { label: 'Name', key: 'name' },
     { label: 'Brand', key: 'seller' },
-    { label: 'Price', key: 'price', prefix: '$' },
+    { label: 'Price', key: 'price', prefix: 'KSh ' },
     { label: 'Rating', key: 'rating', icon: 'Star' },
     { label: 'Stock', key: 'inStock', render: v => v ? 'In Stock' : 'Out of Stock' },
     { label: 'Badge', key: 'badge' },

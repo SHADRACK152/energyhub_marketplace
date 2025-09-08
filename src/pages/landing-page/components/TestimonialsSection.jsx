@@ -72,9 +72,9 @@ const TestimonialsSection = () => {
       role: "Facilities Manager",
       company: "GreenTech Manufacturing",
       avatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80",
-      content: `Sourcing energy storage systems for our factory was complex until we found EnergyHub. The comparison tools and bulk pricing options saved us $50K on our renewable energy project.`,
+      content: `Sourcing energy storage systems for our factory was complex until we found EnergyHub. The comparison tools and bulk pricing options saved us KSh 50K on our renewable energy project.`,
       metrics: {
-        savings: "$50K saved",
+        savings: "KSh 50K saved",
         efficiency: "Bulk pricing",
         project: "Complete"
       },

@@ -1,40 +1,62 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '../../components/ui/Button';
 import Icon from '../../components/AppIcon';
-import { useState } from 'react';
-
-// Demo orders for dashboard
-const orders = [
-  {
-    id: 'ORD-2024-001',
-    date: '2024-12-28',
-    expected: '2025-01-02',
-    total: 8500,
-    status: 'Shipped',
-    product: 'Tesla Powerwall 2 Home Battery',
-    statusColor: 'primary',
-  },
-  {
-    id: 'ORD-2024-002',
-    date: '2024-12-30',
-    expected: '2025-01-05',
-    total: 2100,
-    status: 'Processing',
-    product: 'SolarEdge SE7600H-US Inverter',
-    statusColor: 'warning',
-  },
-  {
-    id: 'ORD-2024-003',
-    date: '2024-12-20',
-    expected: '2024-12-25',
-    total: 1899,
-    status: 'Delivered',
-    product: 'LG NeON R 365W Solar Panel',
-    statusColor: 'success',
-  },
-];
 
 const OrdersPage = () => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Transform backend order format to component format
+  const transformOrder = (backendOrder) => {
+    const getStatusColor = (status) => {
+      switch(status.toLowerCase()) {
+        case 'delivered': return 'success';
+        case 'shipped': 
+        case 'shipping': return 'primary';
+        case 'processing': 
+        case 'reviewing': return 'warning';
+        case 'cancelled': return 'destructive';
+        default: return 'warning';
+      }
+    };
+
+    return {
+      id: backendOrder.orderNumber || backendOrder.id,
+      product: backendOrder.productName,
+      status: backendOrder.status,
+      statusColor: getStatusColor(backendOrder.status),
+      date: backendOrder.orderDate || backendOrder.createdAt,
+      expected: backendOrder.deliveryDate,
+      total: backendOrder.price || backendOrder.totalAmount || 0
+    };
+  };
+
+  // Fetch orders from backend
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:5000/api/orders?userId=demo-user');
+        if (!response.ok) {
+          throw new Error('Failed to fetch orders');
+        }
+        const data = await response.json();
+        // Transform backend orders to component format
+        const transformedOrders = data.map(transformOrder);
+        setOrders(transformedOrders);
+      } catch (err) {
+        console.error('Error fetching orders:', err);
+        setError(err.message);
+        // No fallback orders - show empty state if API fails
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top Navigation */}
@@ -84,50 +106,67 @@ const OrdersPage = () => {
         </div>
 
         {/* Orders Table */}
-        <div className="overflow-x-auto rounded-xl shadow bg-white">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-muted/30">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Order #</th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Product</th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Ordered</th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Expected</th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Total</th>
-                <th className="px-6 py-3 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-border">
-              {orders.map(order => (
-                <tr key={order.id} className="hover:bg-muted/10 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap font-semibold text-primary">{order.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{order.product}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border 
-                      ${order.statusColor === 'success' ? 'bg-success/10 text-success border-success/20' : ''}
-                      ${order.statusColor === 'primary' ? 'bg-primary/10 text-primary border-primary/20' : ''}
-                      ${order.statusColor === 'warning' ? 'bg-warning/10 text-warning border-warning/20' : ''}
-                    `}>{order.status}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">{new Date(order.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{new Date(order.expected).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right font-bold">${order.total.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="flex gap-2 justify-center">
-                      <Button variant="outline" size="xs" iconName="Eye" iconPosition="left">View</Button>
-                      {order.status === 'Delivered' && (
-                        <Button variant="outline" size="xs" iconName="Repeat" iconPosition="left">Buy Again</Button>
-                      )}
-                      {(order.status === 'Shipped' || order.status === 'Processing') && (
-                        <Button variant="outline" size="xs" iconName="Truck" iconPosition="left">Track</Button>
-                      )}
-                    </div>
-                  </td>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <Icon name="Loader2" className="animate-spin mx-auto mb-4 text-primary" size={40} />
+              <p className="text-muted-foreground">Loading your orders...</p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <Icon name="AlertTriangle" className="mx-auto mb-4 text-warning" size={40} />
+            <p className="text-muted-foreground mb-4">Failed to load orders: {error}</p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Retry
+            </Button>
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="text-center py-12">
+            <Icon name="ShoppingCart" className="mx-auto mb-4 text-muted-foreground" size={40} />
+            <p className="text-muted-foreground mb-4">No orders found</p>
+            <Button onClick={() => window.location.href = '/product-catalog-search'} variant="default">
+              Start Shopping
+            </Button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-xl shadow bg-white">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted/30">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Order #</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Product</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Ordered</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Expected</th>
+                  <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Total</th>
+                  <th className="px-6 py-3 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="bg-white divide-y divide-border">
+                {orders.map(order => (
+                  <tr key={order.id} className="hover:bg-muted/10 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-primary">{order.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{order.product}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold border 
+                        ${order.statusColor === 'success' ? 'bg-success/10 text-success border-success/20' : ''}
+                        ${order.statusColor === 'primary' ? 'bg-primary/10 text-primary border-primary/20' : ''}
+                        ${order.statusColor === 'warning' ? 'bg-warning/10 text-warning border-warning/20' : ''}
+                      `}>{order.status}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{new Date(order.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{new Date(order.expected).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right font-bold">KSh {order.total.toLocaleString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <Button variant="ghost" size="sm" iconName="Eye">View</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </main>
     </div>
   );

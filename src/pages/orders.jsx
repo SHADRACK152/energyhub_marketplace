@@ -206,7 +206,7 @@ function OrdersPage() {
               <div>Order Number: <span className="font-semibold text-foreground">{normalizedModalOrder.orderNumber}</span></div>
               <div>Ordered: {new Date(normalizedModalOrder.orderDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
               <div>Expected Delivery: {new Date(normalizedModalOrder.deliveryDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
-              <div>Price: <span className="font-bold text-primary">${normalizedModalOrder.price.toLocaleString()}</span></div>
+              <div>Price: <span className="font-bold text-primary">KSh {normalizedModalOrder.price.toLocaleString()}</span></div>
             </div>
             <div className="flex gap-2 mt-4">
               <Button variant="outline" size="sm" iconName="Download" iconPosition="left" onClick={() => handleDownloadInvoice(normalizedModalOrder.id)}>Download Invoice</Button>

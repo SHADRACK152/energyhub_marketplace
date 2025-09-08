@@ -11,11 +11,13 @@ import LowInventoryAlert from './components/LowInventoryAlert';
 import SalesChart from './components/SalesChart';
 import TopProductsChart from './components/TopProductsChart';
 import MobileOrderCard from './components/MobileOrderCard';
+import PromoCodesTab from './components/PromoCodesTab';
 
 const B2BSellerDashboard = () => {
   const navigate = useNavigate();
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Get authenticated user from context
   const { user } = useAuth();
@@ -298,33 +300,66 @@ const B2BSellerDashboard = () => {
                 Welcome back, {user?.name || 'Seller'} ({user?.email}). Manage your business and connect with buyers.
               </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                {isLoading && (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                )}
-                <span>Last updated: {lastUpdated?.toLocaleTimeString()}</span>
-              </div>
-              <Button variant="outline" onClick={handleViewInventory}>
-                Manage Inventory
-              </Button>
-            </div>
           </div>
 
-          {/* Metrics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {metricsData?.map((metric, index) => (
-              <MetricsCard
-                key={index}
-                title={metric?.title}
-                value={metric?.value}
-                change={metric?.change}
-                changeType={metric?.changeType}
-                icon={metric?.icon}
-                currency={metric?.currency}
-              />
-            ))}
+          {/* Tab Navigation */}
+          <div className="border-b border-border mb-8">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'dashboard'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'
+                }`}
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => setActiveTab('promo-codes')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'promo-codes'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'
+                }`}
+              >
+                Promo Codes
+              </button>
+            </nav>
           </div>
+
+          {/* Tab Content */}
+          {activeTab === 'dashboard' && (
+            <>
+              {/* Dashboard Action Buttons */}
+              <div className="flex items-center justify-end mb-8">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                    {isLoading && (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                    )}
+                    <span>Last updated: {lastUpdated?.toLocaleTimeString()}</span>
+                  </div>
+                  <Button variant="outline" onClick={handleViewInventory}>
+                    Manage Inventory
+                  </Button>
+                </div>
+              </div>
+
+              {/* Metrics Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {metricsData?.map((metric, index) => (
+                  <MetricsCard
+                    key={index}
+                    title={metric?.title}
+                    value={metric?.value}
+                    change={metric?.change}
+                    changeType={metric?.changeType}
+                    icon={metric?.icon}
+                    currency={metric?.currency}
+                  />
+                ))}
+              </div>
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
@@ -419,6 +454,15 @@ const B2BSellerDashboard = () => {
             <SalesChart data={salesChartData} />
             <TopProductsChart data={topProductsData} />
           </div>
+              </>
+            )}
+
+            {activeTab === 'promo-codes' && (
+              <PromoCodesTab 
+                sellerId={user?.id || 'seller1'} 
+                sellerName={user?.name || 'Demo Seller'} 
+              />
+            )}
         </div>
       </main>
     </div>

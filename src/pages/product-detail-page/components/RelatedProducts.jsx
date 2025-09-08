@@ -112,7 +112,7 @@ const RelatedProducts = ({ products }) => {
                 <Icon name="Zap" size={24} className="text-primary" />
               </div>
               <span className="text-sm font-medium">This Product</span>
-              <p className="text-xs text-muted-foreground">$299</p>
+              <p className="text-xs text-muted-foreground">KSh 299</p>
             </div>
             
             <Icon name="Plus" size={16} className="text-muted-foreground" />
@@ -122,7 +122,7 @@ const RelatedProducts = ({ products }) => {
                 <Icon name="Battery" size={24} className="text-secondary" />
               </div>
               <span className="text-sm font-medium">Power Storage</span>
-              <p className="text-xs text-muted-foreground">$1,299</p>
+              <p className="text-xs text-muted-foreground">KSh 1,299</p>
             </div>
             
             <Icon name="Plus" size={16} className="text-muted-foreground" />
@@ -132,16 +132,16 @@ const RelatedProducts = ({ products }) => {
                 <Icon name="Settings" size={24} className="text-accent" />
               </div>
               <span className="text-sm font-medium">Installation Kit</span>
-              <p className="text-xs text-muted-foreground">$89</p>
+              <p className="text-xs text-muted-foreground">KSh 89</p>
             </div>
           </div>
           
           <div className="text-center space-y-4">
             <div>
-              <span className="text-2xl font-bold text-foreground">$1,687</span>
-              <span className="text-lg text-muted-foreground line-through ml-2">$1,799</span>
+              <span className="text-2xl font-bold text-foreground">KSh 1,687</span>
+              <span className="text-lg text-muted-foreground line-through ml-2">KSh 1,799</span>
               <span className="text-sm bg-success text-success-foreground px-2 py-1 rounded-md ml-2">
-                Save $112
+                Save KSh 112
               </span>
             </div>
             

@@ -114,11 +114,11 @@ const FilterSidebar = ({ isOpen, onClose, filters, onFilterChange }) => {
                   />
                 </div>
                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <span>$0</span>
+                  <span>KSh 0</span>
                   <div className="flex-1 h-2 bg-muted rounded-full relative">
                     <div className="absolute left-1/4 right-1/3 h-full bg-primary rounded-full"></div>
                   </div>
-                  <span>$10,000+</span>
+                  <span>KSh 10,000+</span>
                 </div>
               </div>
             )}

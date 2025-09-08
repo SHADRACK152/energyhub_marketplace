@@ -1,7 +1,9 @@
 import React from 'react';
+import { useTranslation } from '../../../utils/i18n.jsx';
 import Icon from '../../../components/AppIcon';
 
 const ProgressIndicator = ({ steps, currentStep, onStepClick }) => {
+  const { t } = useTranslation();
   const getCurrentStepIndex = () => {
     return steps?.findIndex(step => step?.id === currentStep);
   };
@@ -81,7 +83,7 @@ const ProgressIndicator = ({ steps, currentStep, onStepClick }) => {
             </div>
             <div>
               <p className="text-base font-bold text-foreground">
-                Step {getCurrentStepIndex() + 1} of {steps?.length}
+                {t('checkout.step', { current: getCurrentStepIndex() + 1, total: steps?.length })}
               </p>
               <p className="text-sm text-muted-foreground">
                 {steps?.find(s => s?.id === currentStep)?.label}

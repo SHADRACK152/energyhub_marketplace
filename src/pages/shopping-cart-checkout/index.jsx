@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../../components/CartContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from '../../utils/i18n.jsx';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import MobileTabBar from '../../components/ui/MobileTabBar';
 
@@ -17,6 +18,7 @@ import OrderReview from './components/OrderReview';
 const ShoppingCartCheckout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const [user] = useState({ role: 'buyer', name: 'John Doe' });
   
   // Checkout flow state
@@ -24,6 +26,9 @@ const ShoppingCartCheckout = () => {
   const { cartItems, updateQuantity, removeFromCart, clearCart } = useCart();
   const [promoCode, setPromoCode] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoFeedback, setPromoFeedback] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [appliedPromoData, setAppliedPromoData] = useState(null);
   const [shippingInfo, setShippingInfo] = useState({
     selectedAddress: null,
     deliveryOption: 'standard'
@@ -40,17 +45,21 @@ const ShoppingCartCheckout = () => {
   // If you want to support direct purchase, you can add logic here to override cartItems
 
   const steps = [
-    { id: 'cart', label: 'Cart Review', icon: 'ShoppingCart' },
-    { id: 'shipping', label: 'Shipping', icon: 'Truck' },
-    { id: 'payment', label: 'Payment', icon: 'CreditCard' },
-    { id: 'review', label: 'Review', icon: 'CheckCircle' }
+    { id: 'cart', label: t('checkout.cartReview'), icon: 'ShoppingCart' },
+    { id: 'shipping', label: t('checkout.shipping'), icon: 'Truck' },
+    { id: 'payment', label: t('checkout.payment'), icon: 'CreditCard' },
+    { id: 'review', label: t('checkout.review'), icon: 'CheckCircle' }
   ];
 
   // Calculate totals
   const subtotal = cartItems?.reduce((sum, item) => sum + (item?.price * item?.quantity), 0);
-  // Calculate shipping based on selected delivery option
+  // Calculate shipping based on selected delivery option and promo codes
   let shipping = 0;
-  if (shippingInfo?.deliveryOption === 'express') {
+  const hasFreeShipping = shippingInfo?.freeShipping || appliedPromoData?.freeShipping;
+  
+  if (hasFreeShipping) {
+    shipping = 0;
+  } else if (shippingInfo?.deliveryOption === 'express') {
     shipping = 15;
   } else if (shippingInfo?.deliveryOption === 'overnight') {
     shipping = 35;
@@ -101,28 +110,56 @@ const ShoppingCartCheckout = () => {
     removeFromCart(itemId);
   };
 
-  const [promoFeedback, setPromoFeedback] = useState('');
-  const handleApplyPromoCode = () => {
-    const code = promoCode?.trim().toLowerCase();
+  const handleApplyPromoCode = async () => {
+    const code = promoCode?.trim();
     if (!code) {
       setPromoDiscount(0);
       setPromoFeedback('Please enter a promo code.');
+      setAppliedPromoData(null);
       return;
     }
-    // Example codes
-    if (code === 'save10') {
-      setPromoDiscount(subtotal * 0.1);
-      setPromoFeedback('Promo code applied: 10% off!');
-    } else if (code === 'freeship') {
+
+    setPromoLoading(true);
+    setPromoFeedback('');
+
+    try {
+      const response = await fetch('http://localhost:5000/api/promo-codes/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: code,
+          orderValue: subtotal,
+          itemCount: cartItems.length
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.valid) {
+        setPromoDiscount(result.discount || 0);
+        setAppliedPromoData(result);
+        
+        // Handle free shipping
+        if (result.freeShipping) {
+          setShippingInfo(prev => ({ ...prev, freeShipping: true }));
+          setPromoFeedback(`${result.description} - Free shipping applied!`);
+        } else {
+          setPromoFeedback(`${result.description} - $${result.discount?.toFixed(2)} discount applied!`);
+        }
+      } else {
+        setPromoDiscount(0);
+        setAppliedPromoData(null);
+        setPromoFeedback(result.error || 'Invalid promo code.');
+      }
+    } catch (error) {
+      console.error('Error validating promo code:', error);
       setPromoDiscount(0);
-      setShippingInfo(prev => ({ ...prev, deliveryOption: 'standard' }));
-      setPromoFeedback('Promo code applied: Free shipping!');
-    } else if (code === 'save50') {
-      setPromoDiscount(50);
-      setPromoFeedback('Promo code applied: $50 off!');
-    } else {
-      setPromoDiscount(0);
-      setPromoFeedback('Invalid promo code.');
+      setAppliedPromoData(null);
+      setPromoFeedback('Error validating promo code. Please try again.');
+    } finally {
+      setPromoLoading(false);
     }
   };
 
@@ -130,19 +167,50 @@ const ShoppingCartCheckout = () => {
   const handlePlaceOrder = async () => {
     setIsProcessing(true);
     try {
-      // Build order payload
+      // Build comprehensive order payload
       const orderPayload = {
         orderNumber: 'ORD-' + Date.now(),
         productName: cartItems.map(i => i.name).join(', '),
         productImage: cartItems[0]?.image || '',
         price: total,
+        subtotal: subtotal,
+        shipping: shipping,
+        tax: tax,
+        discount: promoDiscount,
+        promoCode: appliedPromoData ? {
+          code: promoCode,
+          type: appliedPromoData.type,
+          description: appliedPromoData.description,
+          discount: appliedPromoData.discount,
+          freeShipping: appliedPromoData.freeShipping
+        } : null,
         orderDate: new Date().toISOString(),
         deliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-        items: cartItems,
-        shippingInfo,
-        paymentInfo,
+        items: cartItems.map(item => ({
+          ...item,
+          total: item.price * item.quantity
+        })),
+        shippingInfo: {
+          ...shippingInfo,
+          estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        paymentInfo: {
+          ...paymentInfo,
+          processedAt: new Date().toISOString(),
+          transactionId: `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`,
+          authCode: `AUTH${Math.floor(Math.random() * 1000000)}`,
+          status: 'completed'
+        },
+        orderSummary: {
+          itemCount: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+          totalWeight: cartItems.reduce((sum, item) => sum + (item.weight || 1) * item.quantity, 0),
+          currency: 'USD'
+        },
         userId: 'demo-user', // Replace with real user ID if available
+        userEmail: 'customer@example.com', // Replace with real user email
+        orderStatus: 'confirmed'
       };
+      
       // Send to backend
       const res = await fetch('/api/orders', {
         method: 'POST',
@@ -151,10 +219,16 @@ const ShoppingCartCheckout = () => {
       });
       if (!res.ok) throw new Error('Failed to place order');
       const savedOrder = await res.json();
-      // Navigate to order confirmation page, user can go to orders from there
+      
+      // Navigate to order confirmation page with enhanced data
       navigate('/order-confirmation', {
         state: {
-          orderData: savedOrder
+          orderData: {
+            ...savedOrder,
+            ...orderPayload, // Include all the comprehensive data
+            paymentSuccess: true,
+            confirmationSent: true
+          }
         }
       });
       clearCart();
@@ -179,6 +253,8 @@ const ShoppingCartCheckout = () => {
             onApplyPromoCode={handleApplyPromoCode}
             promoDiscount={promoDiscount}
             promoFeedback={promoFeedback}
+            promoLoading={promoLoading}
+            appliedPromoData={appliedPromoData}
           />
         );
       case 'shipping':
@@ -243,14 +319,14 @@ const ShoppingCartCheckout = () => {
         <div className="bg-muted/30 border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-foreground">Checkout</h1>
+              <h1 className="text-2xl font-bold text-foreground">{t('checkout.title')}</h1>
               <Button
                 variant="ghost"
                 onClick={() => navigate('/product-catalog-search')}
                 iconName="ArrowLeft"
                 iconPosition="left"
               >
-                Continue Shopping
+                {t('checkout.continueShopping')}
               </Button>
             </div>
           </div>
@@ -301,7 +377,7 @@ const ShoppingCartCheckout = () => {
               iconName="ArrowLeft"
               iconPosition="left"
             >
-              Previous
+              {t('checkout.previous')}
             </Button>
 
             {currentStep === 'review' ? (
@@ -314,7 +390,7 @@ const ShoppingCartCheckout = () => {
                 iconName="CreditCard"
                 iconPosition="left"
               >
-                Place Order - ${total?.toFixed(2)}
+                {t('checkout.placeOrderAmount', { amount: `$${total?.toFixed(2)}` })}
               </Button>
             ) : (
               <Button
@@ -324,7 +400,9 @@ const ShoppingCartCheckout = () => {
                 iconName="ArrowRight"
                 iconPosition="right"
               >
-                Continue to {steps?.find(s => s?.id === steps?.[steps?.findIndex(step => step?.id === currentStep) + 1]?.id)?.label}
+                {t('checkout.continueTo', { 
+                  step: steps?.find(s => s?.id === steps?.[steps?.findIndex(step => step?.id === currentStep) + 1]?.id)?.label 
+                })}
               </Button>
             )}
           </div>
@@ -335,7 +413,7 @@ const ShoppingCartCheckout = () => {
           <div className="px-4 py-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-muted-foreground">
-                {cartItems?.length} {cartItems?.length === 1 ? 'item' : 'items'} · Total:
+                {cartItems?.length} {cartItems?.length === 1 ? t('cart.item') : t('cart.items')} · {t('order.total')}:
               </span>
               <span className="text-lg font-bold text-foreground">
                 ${total?.toFixed(2)}
@@ -351,7 +429,7 @@ const ShoppingCartCheckout = () => {
                 disabled={!canProceedToNext() || isProcessing}
                 loading={isProcessing}
               >
-                Place Order
+                {t('checkout.placeOrder')}
               </Button>
             ) : (
               <Button
@@ -361,7 +439,7 @@ const ShoppingCartCheckout = () => {
                 onClick={handleNextStep}
                 disabled={!canProceedToNext()}
               >
-                Continue
+                {t('checkout.continue')}
               </Button>
             )}
           </div>

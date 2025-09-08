@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../../../utils/i18n.jsx';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
@@ -6,6 +7,7 @@ import { Checkbox } from '../../../components/ui/Checkbox';
 import { cn } from '../../../utils/cn';
 
 const PaymentSection = ({ paymentInfo, onPaymentInfoChange, shippingInfo, subtotal, shipping, tax, total, onPaymentSuccess }) => {
+  const { t } = useTranslation();
   const [sameAsShipping, setSameAsShipping] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
@@ -534,7 +536,7 @@ const PaymentSection = ({ paymentInfo, onPaymentInfoChange, shippingInfo, subtot
         {paymentStatus?.type !== 'success' && (
           <>
             <div>
-              <h2 className="text-xl font-semibold text-foreground mb-6">Payment Information</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-6">{t('payment.information')}</h2>
             </div>
 
             {/* Payment Method Selection */}
@@ -546,6 +548,11 @@ const PaymentSection = ({ paymentInfo, onPaymentInfoChange, shippingInfo, subtot
                     if (!method.disabled) {
                       setSelectedPayment(method.id);
                       setPaymentStatus(null);
+                      // Update payment info with selected method
+                      onPaymentInfoChange({
+                        ...paymentInfo,
+                        method: method.id
+                      });
                     }
                   }}
                   className={cn(

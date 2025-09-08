@@ -3,10 +3,12 @@ import { useAuth } from './AuthenticationRouter';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Icon from '../AppIcon';
 import Button from './Button';
+import { useTranslation } from '../../utils/i18n.jsx';
 
 const RoleBasedHeader = ({ user = null, onNavigate }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleNavigation = (path) => {
@@ -48,21 +50,21 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
                   ? 'text-primary' :'text-muted-foreground hover:text-foreground'
               }`}
             >
-              Browse Products
+              {t('products.browse')}
             </button>
             <Button
               type="button"
               variant="outline"
               onClick={() => handleNavigation('/authentication-login-register')}
             >
-              Sign In
+              {t('nav.signin')}
             </Button>
             <Button
               type="button"
               variant="default"
               onClick={() => handleNavigation('/authentication-login-register')}
             >
-              Sign Up
+              {t('nav.signup')}
             </Button>
           </div>
 
@@ -138,7 +140,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
                   ? 'text-primary' :'text-muted-foreground hover:text-foreground'
               }`}
             >
-              Dashboard
+              {t('nav.dashboard')}
             </button>
             <button
               onClick={() => handleNavigation('/b2b-inventory-management')}
@@ -147,16 +149,16 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
                   ? 'text-primary' :'text-muted-foreground hover:text-foreground'
               }`}
             >
-              Inventory
+              {t('nav.inventory')}
             </button>
             <button
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
               onClick={() => handleNavigation('/orders')}
             >
-              Orders
+              {t('nav.orders')}
             </button>
             <button className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth">
-              Analytics
+              {t('nav.analytics')}
             </button>
 
             {/* User Menu */}
@@ -226,6 +228,154 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
     </header>
   );
 
+// ProfileDropdown component
+function ProfileDropdown({ user, onNavigate, onLogout }) {
+  const [open, setOpen] = React.useState(false);
+  const dropdownRef = React.useRef(null);
+  const { t } = useTranslation();
+  
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+    
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open]);
+  
+  const dropdownItems = [
+    {
+      id: 'dashboard',
+      label: t('nav.dashboard'),
+      icon: 'Home',
+      action: () => {
+        onNavigate('/b2c-buyer-dashboard');
+        setOpen(false);
+      }
+    },
+    {
+      id: 'browse',
+      label: t('nav.browse'),
+      icon: 'Search',
+      action: () => {
+        onNavigate('/product-catalog-search');
+        setOpen(false);
+      }
+    },
+    {
+      id: 'orders',
+      label: t('nav.orders'),
+      icon: 'Package',
+      badge: '2',
+      action: () => {
+        onNavigate('/orders');
+        setOpen(false);
+      }
+    },
+    {
+      id: 'account',
+      label: t('nav.profile'),
+      icon: 'Settings',
+      action: () => {
+        onNavigate('/profile-settings');
+        setOpen(false);
+      }
+    },
+    {
+      id: 'logout',
+      label: t('nav.logout'),
+      icon: 'LogOut',
+      action: () => {
+        onLogout();
+        setOpen(false);
+      },
+      className: 'text-red-600 hover:text-red-700 hover:bg-red-50'
+    }
+  ];
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        className="flex items-center space-x-2 hover:bg-muted rounded-lg px-2 py-1 transition-smooth focus:outline-none focus:ring-2 focus:ring-primary/20"
+        onClick={() => setOpen(!open)}
+        aria-label="Profile menu"
+      >
+        <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+          <Icon name="User" size={16} color="white" />
+        </div>
+        <div className="hidden sm:block text-left">
+          <div className="text-sm font-medium text-foreground">
+            {user?.name || 'Shadrack Emadau'}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {user?.email || 'shadrack@energyhub.com'}
+          </div>
+        </div>
+        <Icon 
+          name={open ? "ChevronUp" : "ChevronDown"} 
+          size={16} 
+          className="text-muted-foreground transition-transform duration-200" 
+        />
+      </button>
+      
+      {open && (
+        <div className="absolute right-0 mt-2 w-64 bg-white border border-border rounded-xl shadow-lg z-50 animate-fade-in-up">
+          {/* Profile Header */}
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                <Icon name="User" size={20} color="white" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-foreground">
+                  {user?.name || 'Shadrack Emadau'}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {user?.email || 'shadrack@energyhub.com'}
+                </div>
+                <div className="text-xs text-primary font-medium">
+                  Energy Buyer
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Menu Items */}
+          <div className="py-2">
+            {dropdownItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={item.action}
+                className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted transition-smooth ${
+                  item.className || 'text-foreground hover:text-primary'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <Icon name={item.icon} size={16} />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </div>
+                {item.badge && (
+                  <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full">
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
   // B2C Buyer Header
   const BuyerHeader = () => (
   <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-100">
@@ -253,7 +403,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
                   ? 'text-primary' :'text-muted-foreground hover:text-foreground'
               }`}
             >
-              Dashboard
+              {t('nav.dashboard')}
             </button>
             <button
               onClick={() => { console.log('Browse nav clicked'); handleNavigation('/product-catalog-search'); }}
@@ -262,13 +412,13 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
                   ? 'text-primary' :'text-muted-foreground hover:text-foreground'
               }`}
             >
-              Browse
+              {t('nav.browse')}
             </button>
             <button
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
               onClick={() => { console.log('Orders nav clicked'); handleNavigation('/orders'); }}
             >
-              Orders
+              {t('nav.orders')}
             </button>
 
             {/* Cart, Notifications, and User */}
@@ -285,18 +435,108 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
                 </span>
               </Button>
               <NotificationsBell />
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                  <Icon name="User" size={16} />
-                </div>
-                <span className="text-sm font-medium">{user?.name || 'Buyer'}</span>
-                <Button variant="outline" size="sm" onClick={() => { console.log('Logout nav clicked'); logout(); navigate('/landing-page'); }}>
-                  Logout
-                </Button>
-              </div>
+              <ProfileDropdown 
+                user={user} 
+                onNavigate={handleNavigation} 
+                onLogout={() => { console.log('Logout nav clicked'); logout(); navigate('/landing-page'); }}
+              />
             </div>
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative cart-fly-target"
+              onClick={() => handleNavigation('/shopping-cart-checkout')}
+            >
+              <Icon name="ShoppingCart" size={20} />
+              <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                2
+              </span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <Icon name={isMobileMenuOpen ? "X" : "Menu"} size={24} />
+            </Button>
+          </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-border bg-card">
+            {/* Profile Section */}
+            <div className="px-4 py-3 border-b border-border">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                  <Icon name="User" size={18} color="white" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-foreground">
+                    {user?.name || 'Shadrack Emadau'}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Energy Buyer
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Navigation Links */}
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              <button
+                onClick={() => { handleNavigation('/b2c-buyer-dashboard'); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center space-x-3 px-3 py-2 text-base font-medium rounded-md transition-smooth ${
+                  isActive('/b2c-buyer-dashboard')
+                    ? 'text-primary bg-primary/10' :'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                <Icon name="Home" size={18} />
+                <span>EnergyHub Dashboard</span>
+              </button>
+              <button
+                onClick={() => { handleNavigation('/product-catalog-search'); setIsMobileMenuOpen(false); }}
+                className={`w-full flex items-center space-x-3 px-3 py-2 text-base font-medium rounded-md transition-smooth ${
+                  isActive('/product-catalog-search')
+                    ? 'text-primary bg-primary/10' :'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                <Icon name="Search" size={18} />
+                <span>Browse</span>
+              </button>
+              <button
+                onClick={() => { handleNavigation('/orders'); setIsMobileMenuOpen(false); }}
+                className="w-full flex items-center justify-between px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-smooth"
+              >
+                <div className="flex items-center space-x-3">
+                  <Icon name="Package" size={18} />
+                  <span>Orders</span>
+                </div>
+                <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full">
+                  2
+                </span>
+              </button>
+              <button
+                onClick={() => { handleNavigation('/profile-settings'); setIsMobileMenuOpen(false); }}
+                className="w-full flex items-center space-x-3 px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-smooth"
+              >
+                <Icon name="Settings" size={18} />
+                <span>Profile Settings</span>
+              </button>
+              <button
+                onClick={() => { logout(); navigate('/landing-page'); setIsMobileMenuOpen(false); }}
+                className="w-full flex items-center space-x-3 px-3 py-2 text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-smooth"
+              >
+                <Icon name="LogOut" size={18} />
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

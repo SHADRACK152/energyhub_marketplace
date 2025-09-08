@@ -14,6 +14,8 @@ import ShoppingCartCheckout from './pages/shopping-cart-checkout';
 import OrdersRouter from './components/OrdersRouter';
 import OrderConfirmation from './pages/order-confirmation';
 import OrderTracking from './pages/order-tracking';
+import AccountPage from './pages/AccountPage';
+import ProfileSettings from './pages/profile-settings';
 
 const Routes = () => {
   return (
@@ -28,10 +30,13 @@ const Routes = () => {
         <Route path="/b2b-inventory-management" element={<B2BInventoryManagement />} />
         <Route path="/product-catalog-search" element={<ProductCatalogSearch />} />
         <Route path="/b2c-buyer-dashboard" element={<B2CBuyerDashboard />} />
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/profile-settings" element={<ProfileSettings />} />
         <Route path="/b2b-seller-dashboard" element={<B2BSellerDashboard />} />
         <Route path="/product-detail-page" element={<ProductDetailPage />} />
         <Route path="/product-detail-page/:productId" element={<ProductDetailPage />} />
   <Route path="/shopping-cart-checkout" element={<ShoppingCartCheckout />} />
+  <Route path="/cart" element={<ShoppingCartCheckout />} />
   <Route path="/order-confirmation" element={<OrderConfirmation />} />
   <Route path="/orders" element={<OrdersRouter />} />
   <Route path="/order-tracking/:orderId" element={<OrderTracking />} />

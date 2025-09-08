@@ -21,81 +21,51 @@ const B2CBuyerOrders = () => {
   };
 
   useEffect(() => {
-    // Fetch buyer orders from API
-    setLoading(true);
-    
-    // Demo orders for buyer view - these would come from API based on user ID
-    const buyerOrders = [
-      {
-        id: 'ORD-1735632847832',
-        orderNumber: 'ORD-1735632847832',
-        productName: 'Solar Panel System',
-        productImage: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=400',
-        price: 1299.99,
-        orderDate: '2025-09-07',
-        deliveryDate: '2025-09-12',
-        status: 'Processing',
-        seller: {
-          name: 'SolarTech Solutions',
-          company: 'SolarTech Corp',
-          email: 'sales@solartech.com'
-        },
-        trackingNumber: 'ST123456789',
-        statusSteps: [
-          { label: 'Reviewing', completed: true },
-          { label: 'Processing', completed: true },
-          { label: 'Shipping', completed: false },
-          { label: 'Delivered', completed: false },
-        ]
-      },
-      {
-        id: 'ORD-1735632847833',
-        orderNumber: 'ORD-1735632847833',
-        productName: 'Wind Turbine Generator',
-        productImage: 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400',
-        price: 2499.99,
-        orderDate: '2025-09-06',
-        deliveryDate: '2025-09-14',
-        status: 'Shipping',
-        seller: {
-          name: 'WindPower Inc',
-          company: 'WindPower Corp',
-          email: 'orders@windpower.com'
-        },
-        trackingNumber: 'WP987654321',
-        statusSteps: [
-          { label: 'Reviewing', completed: true },
-          { label: 'Processing', completed: true },
-          { label: 'Shipping', completed: true },
-          { label: 'Delivered', completed: false },
-        ]
-      },
-      {
-        id: 'ORD-1735632847834',
-        orderNumber: 'ORD-1735632847834',
-        productName: 'Tesla Powerwall 2',
-        productImage: 'https://images.unsplash.com/photo-1593941707882-a5bac6861d75?w=400',
-        price: 8500.00,
-        orderDate: '2025-09-05',
-        deliveryDate: '2025-09-10',
-        status: 'Delivered',
-        seller: {
-          name: 'Energy Storage Co',
-          company: 'ESC Ltd',
-          email: 'support@esc.com'
-        },
-        trackingNumber: 'ES555444333',
-        statusSteps: [
-          { label: 'Reviewing', completed: true },
-          { label: 'Processing', completed: true },
-          { label: 'Shipping', completed: true },
-          { label: 'Delivered', completed: true },
-        ]
+    // Fetch buyer orders from backend API
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:5000/api/orders?userId=demo-user');
+        if (!response.ok) {
+          throw new Error('Failed to fetch orders');
+        }
+        const data = await response.json();
+        
+        // Transform backend orders to match the component format
+        const transformedOrders = data.map(order => ({
+          id: order.orderNumber || order.id,
+          orderNumber: order.orderNumber || order.id,
+          productName: order.productName,
+          productImage: order.productImage || 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=400',
+          price: order.price || order.totalAmount || 0,
+          orderDate: order.orderDate || order.createdAt,
+          deliveryDate: order.deliveryDate,
+          status: order.status,
+          seller: order.seller || {
+            name: 'EnergyHub Seller',
+            company: 'EnergyHub Corp',
+            email: 'seller@energyhub.com'
+          },
+          trackingNumber: order.trackingNumber || `TK${order.orderNumber?.slice(-6)}`,
+          statusSteps: order.statusSteps || [
+            { label: 'Reviewing', completed: true },
+            { label: 'Processing', completed: order.status !== 'Reviewing' },
+            { label: 'Shipping', completed: ['Shipping', 'Delivered'].includes(order.status) },
+            { label: 'Delivered', completed: order.status === 'Delivered' },
+          ]
+        }));
+        
+        setOrders(transformedOrders);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        // Don't show mock orders on error - show empty state
+        setOrders([]);
+      } finally {
+        setLoading(false);
       }
-    ];
+    };
 
-    setOrders(buyerOrders);
-    setLoading(false);
+    fetchOrders();
   }, []);
 
   // Filter orders based on search and filters

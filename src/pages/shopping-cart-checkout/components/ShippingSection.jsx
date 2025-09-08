@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../../../utils/i18n.jsx';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 
 const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
+  const { t } = useTranslation();
   const [showAddAddress, setShowAddAddress] = useState(false);
   const [newAddress, setNewAddress] = useState({
     fullName: '',
@@ -105,22 +107,22 @@ const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
   const deliveryOptions = [
     {
       id: 'standard',
-      name: 'Standard Delivery',
-      description: '5-7 business days',
+      name: t('shipping.standard'),
+      description: t('shipping.standardDesc'),
       price: 0,
       icon: 'Truck'
     },
     {
       id: 'express',
-      name: 'Express Delivery',
-      description: '2-3 business days',
+      name: t('shipping.express'),
+      description: t('shipping.expressDesc'),
       price: 15,
       icon: 'Zap'
     },
     {
       id: 'overnight',
-      name: 'Overnight Delivery',
-      description: 'Next business day',
+      name: t('shipping.overnight'),
+      description: t('shipping.overnightDesc'),
       price: 35,
       icon: 'Clock'
     }
@@ -165,12 +167,12 @@ const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-xl font-semibold text-foreground mb-6">Shipping Information</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-6">{t('shipping.information')}</h2>
 
         {/* Saved Addresses */}
         <div className="space-y-4 mb-6">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium text-foreground">Delivery Address</h3>
+            <h3 className="font-medium text-foreground">{t('shipping.deliveryAddress')}</h3>
             <Button
               variant="outline"
               size="sm"
@@ -178,7 +180,7 @@ const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
               iconName="Plus"
               iconPosition="left"
             >
-              Add New Address
+              {t('shipping.addNewAddress')}
             </Button>
           </div>
 
@@ -199,7 +201,7 @@ const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
                       <span className="font-medium text-foreground">{address?.fullName}</span>
                       {address?.isDefault && (
                         <span className="bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-medium">
-                          Default
+                          {t('shipping.default')}
                         </span>
                       )}
                     </div>
@@ -229,10 +231,10 @@ const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
         {/* Add New Address Form */}
         {showAddAddress && (
           <div className="bg-muted/30 border border-border rounded-lg p-6 mb-6">
-            <h4 className="font-medium text-foreground mb-4">Add New Address</h4>
+            <h4 className="font-medium text-foreground mb-4">{t('shipping.addNewAddress')}</h4>
             <div className="mb-4">
               <Button variant="secondary" onClick={handleFindLocation} disabled={geoLoading}>
-                {geoLoading ? 'Locating...' : 'Use My Current Location'}
+                {geoLoading ? t('shipping.locating') : t('shipping.useCurrentLocation')}
               </Button>
               {geoError && (
                 <div className="text-red-500 text-sm mt-2 flex items-center gap-2">
@@ -305,10 +307,10 @@ const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
             </div>
             <div className="flex space-x-2 mt-4">
               <Button variant="default" onClick={handleAddNewAddress}>
-                Save Address
+                {t('shipping.saveAddress')}
               </Button>
               <Button variant="outline" onClick={() => setShowAddAddress(false)}>
-                Cancel
+                {t('shipping.cancel')}
               </Button>
             </div>
           </div>
@@ -316,7 +318,7 @@ const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
 
         {/* Delivery Options */}
         <div>
-          <h3 className="font-medium text-foreground mb-4">Delivery Options</h3>
+          <h3 className="font-medium text-foreground mb-4">{t('shipping.deliveryOptions')}</h3>
           <div className="space-y-3">
             {deliveryOptions?.map((option) => (
               <div
@@ -350,7 +352,7 @@ const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
                   
                   <div className="text-right">
                     <span className="font-medium text-foreground">
-                      {option?.price === 0 ? 'Free' : `$${option?.price}`}
+                      {option?.price === 0 ? t('checkout.free') : `KSh ${option?.price}`}
                     </span>
                   </div>
                 </div>
@@ -365,10 +367,13 @@ const ShippingSection = ({ shippingInfo, onShippingInfoChange }) => {
             <div className="flex items-start space-x-2">
               <Icon name="MapPin" size={16} className="text-success mt-0.5" />
               <div>
-                <h4 className="font-medium text-success mb-1">Delivery Estimate</h4>
+                <h4 className="font-medium text-success mb-1">{t('shipping.deliveryEstimate')}</h4>
                 <p className="text-sm text-success/80">
-                  Your order will be delivered to {shippingInfo?.selectedAddress?.city}, {shippingInfo?.selectedAddress?.state} in{' '}
-                  {deliveryOptions?.find(o => o?.id === shippingInfo?.deliveryOption)?.description?.toLowerCase()}.
+                  {t('shipping.estimateDescription', { 
+                    city: shippingInfo?.selectedAddress?.city,
+                    state: shippingInfo?.selectedAddress?.state,
+                    timeframe: deliveryOptions?.find(o => o?.id === shippingInfo?.deliveryOption)?.description?.toLowerCase()
+                  })}
                 </p>
               </div>
             </div>

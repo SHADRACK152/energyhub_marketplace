@@ -23,27 +23,32 @@ const MobileTabBar = ({ user, onNavigate }) => {
 
   const tabs = [
     {
+      id: 'browse',
       label: 'Browse',
       path: '/product-catalog-search',
       icon: 'Search',
     },
     {
+      id: 'cart',
       label: 'Cart',
       path: '/cart',
       icon: 'ShoppingCart',
       badge: 2,
     },
     {
+      id: 'dashboard',
       label: 'Dashboard',
       path: '/b2c-buyer-dashboard',
       icon: 'Home',
     },
     {
+      id: 'orders',
       label: 'Orders',
       path: '/orders',
       icon: 'Package',
     },
     {
+      id: 'account',
       label: 'Account',
       path: '/account',
       icon: 'User',
@@ -58,7 +63,7 @@ const MobileTabBar = ({ user, onNavigate }) => {
           
           return (
             <button
-              key={tab?.path}
+              key={tab?.id}
               onClick={() => handleNavigation(tab?.path)}
               className={`flex flex-col items-center justify-center min-w-0 flex-1 px-2 py-2 rounded-md transition-smooth ${
                 active

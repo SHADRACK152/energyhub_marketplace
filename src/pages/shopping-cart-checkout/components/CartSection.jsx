@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../../../utils/i18n.jsx';
 import Icon from '../../../components/AppIcon';
 import Image from '../../../components/AppImage';
 import Button from '../../../components/ui/Button';
@@ -12,8 +13,11 @@ const CartSection = ({
   onPromoCodeChange,
   onApplyPromoCode,
   promoDiscount,
-  promoFeedback
+  promoFeedback,
+  promoLoading,
+  appliedPromoData
 }) => {
+  const { t } = useTranslation();
   const handleQuantityChange = (itemId, change) => {
     const item = cartItems?.find(i => i?.id === itemId);
     if (item) {
@@ -26,9 +30,9 @@ const CartSection = ({
     return (
       <div className="text-center py-12">
         <Icon name="ShoppingCart" size={64} className="mx-auto text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold text-foreground mb-2">Your cart is empty</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-2">{t('cart.yourCartIsEmpty')}</h3>
         <p className="text-muted-foreground mb-6">
-          Looks like you haven't added any items to your cart yet.
+          {t('cart.looksLikeEmpty')}
         </p>
         <Button
           variant="default"
@@ -36,7 +40,7 @@ const CartSection = ({
           iconName="ArrowLeft"
           iconPosition="left"
         >
-          Continue Shopping
+          {t('checkout.continueShopping')}
         </Button>
       </div>
     );
@@ -46,7 +50,7 @@ const CartSection = ({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-foreground">
-          Shopping Cart ({cartItems?.length} {cartItems?.length === 1 ? 'item' : 'items'})
+          {t('cart.shoppingCart')} ({cartItems?.length} {cartItems?.length === 1 ? t('cart.item') : t('cart.items')})
         </h2>
         <Button
           variant="ghost"
@@ -55,7 +59,7 @@ const CartSection = ({
           iconName="ArrowLeft"
           iconPosition="left"
         >
-          Continue Shopping
+          {t('checkout.continueShopping')}
         </Button>
       </div>
       {/* Cart Items */}
@@ -80,7 +84,7 @@ const CartSection = ({
                       {item?.name}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-2">
-                      Sold by {item?.seller}
+                      {t('cart.soldBy')} {item?.seller}
                     </p>
                     
                     {/* Stock Status */}
@@ -88,17 +92,17 @@ const CartSection = ({
                       {item?.inStock ? (
                         <div className="flex items-center space-x-1">
                           <div className="w-2 h-2 bg-success rounded-full"></div>
-                          <span className="text-sm text-success font-medium">In Stock</span>
+                          <span className="text-sm text-success font-medium">{t('cart.inStock')}</span>
                           {item?.stockCount <= 10 && (
                             <span className="text-sm text-warning">
-                              (Only {item?.stockCount} left)
+                              ({t('cart.onlyLeft', { count: item?.stockCount })})
                             </span>
                           )}
                         </div>
                       ) : (
                         <div className="flex items-center space-x-1">
                           <div className="w-2 h-2 bg-error rounded-full"></div>
-                          <span className="text-sm text-error font-medium">Out of Stock</span>
+                          <span className="text-sm text-error font-medium">{t('cart.outOfStock')}</span>
                         </div>
                       )}
                     </div>
@@ -119,7 +123,7 @@ const CartSection = ({
                 <div className="flex items-center justify-between mt-4">
                   {/* Quantity Controls */}
                   <div className="flex items-center space-x-3">
-                    <span className="text-sm font-medium text-muted-foreground">Qty:</span>
+                    <span className="text-sm font-medium text-muted-foreground">{t('cart.qty')}:</span>
                     <div className="flex items-center border border-input rounded-md">
                       <Button
                         variant="ghost"
@@ -160,7 +164,7 @@ const CartSection = ({
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      ${item?.price} each
+                      ${item?.price} {t('cart.each')}
                     </p>
                   </div>
                 </div>
@@ -171,12 +175,12 @@ const CartSection = ({
       </div>
       {/* Promo Code Section */}
       <div className="bg-muted/30 rounded-lg p-4">
-        <h3 className="font-medium text-foreground mb-3">Promotional Code</h3>
+        <h3 className="font-medium text-foreground mb-3">{t('promo.code')}</h3>
         <div className="flex space-x-2">
           <div className="flex-1">
             <Input
               type="text"
-              placeholder="Enter promo code"
+              placeholder={t('promo.enter')}
               value={promoCode}
               onChange={(e) => onPromoCodeChange(e?.target?.value)}
               className="w-full"
@@ -185,18 +189,24 @@ const CartSection = ({
           <Button
             variant="outline"
             onClick={onApplyPromoCode}
-            disabled={!promoCode}
+            disabled={!promoCode || promoLoading}
           >
-            Apply
+            {promoLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                {t('promo.validating')}
+              </>
+            ) : (
+              t('promo.apply')
+            )}
           </Button>
         </div>
         
         {promoFeedback && (
-          <div className={`mt-3 flex items-center space-x-2 ${promoDiscount > 0 ? 'text-success' : 'text-error'}`}>
-            <Icon name={promoDiscount > 0 ? 'CheckCircle' : 'AlertTriangle'} size={16} />
+          <div className={`mt-3 flex items-center space-x-2 ${promoDiscount > 0 || appliedPromoData?.freeShipping ? 'text-success' : 'text-error'}`}>
+            <Icon name={promoDiscount > 0 || appliedPromoData?.freeShipping ? 'CheckCircle' : 'AlertTriangle'} size={16} />
             <span className="text-sm font-medium">
               {promoFeedback}
-              {promoDiscount > 0 && ` You saved $${promoDiscount?.toFixed(2)}`}
             </span>
           </div>
         )}
@@ -207,9 +217,9 @@ const CartSection = ({
           <div className="flex items-start space-x-2">
             <Icon name="Info" size={16} className="text-primary mt-0.5" />
             <div>
-              <h4 className="font-medium text-primary mb-1">Volume Discounts Available</h4>
+              <h4 className="font-medium text-primary mb-1">{t('shipping.volumeDiscount')}</h4>
               <p className="text-sm text-primary/80">
-                You may be eligible for bulk pricing on some items. Contact our sales team for custom quotes on large orders.
+                {t('shipping.volumeDescription')}
               </p>
             </div>
           </div>

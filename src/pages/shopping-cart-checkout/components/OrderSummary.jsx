@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../../../utils/i18n.jsx';
 import Icon from '../../../components/AppIcon';
 import Image from '../../../components/AppImage';
 
@@ -12,18 +13,19 @@ const OrderSummary = ({
   promoCode,
   currentStep
 }) => {
+  const { t } = useTranslation();
   const formatCurrency = (amount) => {
     return `$${amount?.toFixed(2)}`;
   };
 
   return (
     <div className="bg-card border border-border rounded-lg p-6 space-y-6">
-      <h3 className="text-lg font-semibold text-foreground">Order Summary</h3>
+      <h3 className="text-lg font-semibold text-foreground">{t('order.summary')}</h3>
 
       {/* Items List */}
       <div className="space-y-3">
         <h4 className="font-medium text-foreground">
-          Items ({cartItems?.length})
+          {t('cart.items')} ({cartItems?.length})
         </h4>
         <div className="space-y-3 max-h-64 overflow-y-auto">
           {cartItems?.map((item) => (
@@ -49,7 +51,7 @@ const OrderSummary = ({
                 </p>
                 <div className="flex items-center justify-between mt-1">
                   <span className="text-xs text-muted-foreground">
-                    Qty: {item?.quantity}
+                    {t('cart.qty')}: {item?.quantity}
                   </span>
                   <span className="text-sm font-medium text-foreground">
                     {formatCurrency(item?.price * item?.quantity)}
@@ -64,15 +66,15 @@ const OrderSummary = ({
       {/* Price Breakdown */}
       <div className="border-t border-border pt-4 space-y-3">
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Subtotal</span>
+          <span className="text-muted-foreground">{t('order.subtotal')}</span>
           <span className="text-foreground">{formatCurrency(subtotal)}</span>
         </div>
 
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Shipping</span>
+          <span className="text-muted-foreground">{t('order.shipping')}</span>
           <span className="text-foreground">
             {shipping === 0 ? (
-              <span className="text-success">Free</span>
+              <span className="text-success">{t('order.free')}</span>
             ) : (
               formatCurrency(shipping)
             )}
@@ -80,14 +82,14 @@ const OrderSummary = ({
         </div>
 
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Tax</span>
+          <span className="text-muted-foreground">{t('order.tax')}</span>
           <span className="text-foreground">{formatCurrency(tax)}</span>
         </div>
 
         {discount > 0 && (
           <div className="flex justify-between text-sm">
             <div className="flex items-center space-x-1">
-              <span className="text-muted-foreground">Discount</span>
+              <span className="text-muted-foreground">{t('order.discount')}</span>
               {promoCode && (
                 <span className="text-xs bg-success/20 text-success px-2 py-1 rounded">
                   {promoCode}
@@ -104,7 +106,7 @@ const OrderSummary = ({
             <div className="flex items-center space-x-2">
               <Icon name="Truck" size={14} className="text-success" />
               <span className="text-xs text-success font-medium">
-                Free shipping on orders over $500
+                {t('shipping.free')}
               </span>
             </div>
           </div>
@@ -116,7 +118,7 @@ const OrderSummary = ({
             <div className="flex items-center space-x-2">
               <Icon name="Info" size={14} className="text-warning" />
               <span className="text-xs text-warning font-medium">
-                Add {formatCurrency(500 - subtotal)} more for free shipping
+                {t('shipping.addMore', { amount: formatCurrency(500 - subtotal) })}
               </span>
             </div>
           </div>
@@ -126,13 +128,13 @@ const OrderSummary = ({
       {/* Total */}
       <div className="border-t border-border pt-4">
         <div className="flex justify-between text-lg font-bold">
-          <span className="text-foreground">Total</span>
+          <span className="text-foreground">{t('order.total')}</span>
           <span className="text-foreground">{formatCurrency(total)}</span>
         </div>
         
         {tax > 0 && (
           <p className="text-xs text-muted-foreground mt-1">
-            Includes {formatCurrency(tax)} in taxes
+            {t('order.includesTax', { amount: formatCurrency(tax) })}
           </p>
         )}
       </div>
@@ -142,15 +144,15 @@ const OrderSummary = ({
         <div className="flex items-center justify-center space-x-4 text-xs text-muted-foreground">
           <div className="flex items-center space-x-1">
             <Icon name="Shield" size={12} className="text-success" />
-            <span>Secure</span>
+            <span>{t('security.secure')}</span>
           </div>
           <div className="flex items-center space-x-1">
             <Icon name="Lock" size={12} className="text-primary" />
-            <span>SSL Protected</span>
+            <span>{t('security.sslProtected')}</span>
           </div>
           <div className="flex items-center space-x-1">
             <Icon name="CheckCircle" size={12} className="text-success" />
-            <span>Verified</span>
+            <span>{t('security.verified')}</span>
           </div>
         </div>
       </div>
@@ -161,9 +163,9 @@ const OrderSummary = ({
           <div className="flex items-start space-x-2">
             <Icon name="Clock" size={14} className="text-primary mt-0.5" />
             <div>
-              <p className="text-xs text-primary font-medium">Price Protection Active</p>
+              <p className="text-xs text-primary font-medium">{t('security.priceProtection')}</p>
               <p className="text-xs text-primary/80">
-                Prices are locked for the next 15 minutes
+                {t('security.pricesLocked')}
               </p>
             </div>
           </div>
@@ -174,7 +176,7 @@ const OrderSummary = ({
       <div className="text-center">
         <div className="flex items-center justify-center space-x-1 text-xs text-muted-foreground">
           <Icon name="RefreshCw" size={12} />
-          <span>30-day money-back guarantee</span>
+          <span>{t('security.moneyBack')}</span>
         </div>
       </div>
     </div>
