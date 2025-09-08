@@ -45,15 +45,12 @@ const ProductCatalogSearch = () => {
     availability: []
   });
 
-  // Enhanced categories for energy marketplace
+  // Mock data
   const categories = [
-    { id: 'all', name: 'All Products', icon: 'Grid', count: 546 },
-    { id: 'solar-panels', name: 'Solar Panels', icon: 'Sun', count: 156, energyType: 'solar' },
-    { id: 'batteries', name: 'Energy Storage', icon: 'Battery', count: 89, energyType: 'storage' },
-    { id: 'inverters', name: 'Inverters', icon: 'Zap', count: 67, energyType: 'conversion' },
-    { id: 'complete-systems', name: 'Complete Systems', icon: 'Home', count: 34, energyType: 'systems' },
-    { id: 'smart-devices', name: 'Smart Devices', icon: 'Smartphone', count: 78, energyType: 'smart' },
-    { id: 'accessories', name: 'Accessories', icon: 'Settings', count: 234, energyType: 'accessories' }
+    { id: 'solar-panels', name: 'Solar Panels', icon: 'Sun', count: 156 },
+    { id: 'batteries', name: 'Batteries', icon: 'Battery', count: 89 },
+    { id: 'inverters', name: 'Inverters', icon: 'Zap', count: 67 },
+    { id: 'accessories', name: 'Accessories', icon: 'Settings', count: 234 }
   ];
 
   const mockProducts = [
@@ -126,93 +123,54 @@ const ProductCatalogSearch = () => {
       badge: "Popular",
       inStock: true,
       category: 'batteries'
-    },
-    // Enhanced Energy Marketplace Products
-    {
-      id: 7,
-      name: "Complete Solar Home System - 10kW",
-      seller: "SunPower Corporation",
-      price: 28999,
-      originalPrice: 32999,
-      rating: 4.9,
-      reviewCount: 156,
-      image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400",
-      badge: "Complete System",
-      inStock: true,
-      category: 'complete-systems',
-      energySavings: { monthly: 320, annual: 3840 },
-      specifications: {
-        power: '10kW',
-        panels: '25 x 400W panels',
-        inverter: 'String inverter included',
-        warranty: '25 years'
-      },
-      incentives: ['30% Federal Tax Credit', 'State Rebates Available'],
-      installationTime: '2-3 days'
-    },
-    {
-      id: 8,
-      name: "Smart Energy Management System",
-      seller: "Schneider Electric",
-      price: 1899,
-      rating: 4.6,
-      reviewCount: 89,
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      badge: "Smart",
-      inStock: true,
-      category: 'smart-devices',
-      specifications: {
-        monitoring: 'Real-time energy tracking',
-        control: 'Smart load management',
-        connectivity: 'WiFi, Bluetooth',
-        compatibility: 'Works with all solar systems'
-      }
-    },
-    {
-      id: 9,
-      name: "Residential Wind Turbine 5kW",
-      seller: "Bergey Windpower",
-      price: 15999,
-      rating: 4.3,
-      reviewCount: 67,
-      image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400",
-      badge: "Alternative Energy",
-      inStock: true,
-      category: 'complete-systems',
-      energySavings: { monthly: 180, annual: 2160 },
-      specifications: {
-        power: '5kW rated',
-        height: '35 ft tower',
-        warranty: '5 years',
-        windSpeed: '7-45 mph operating'
-      }
-    },
-    {
-      id: 10,
-      name: "EV Charging Station - Level 2",
-      seller: "ChargePoint",
-      price: 699,
-      rating: 4.7,
-      reviewCount: 234,
-      image: "https://images.unsplash.com/photo-1593941707882-a5bac6861d75?w=400",
-      badge: "EV Ready",
-      inStock: true,
-      category: 'smart-devices',
-      specifications: {
-        power: '7.2kW output',
-        connector: 'J1772',
-        connectivity: 'WiFi enabled',
-        installation: 'Professional required'
-      }
     }
   ];
 
-  const [filteredProducts, setFilteredProducts] = useState(mockProducts);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('http://localhost:5000/api/products');
+        if (response.ok) {
+          const products = await response.json();
+          // Transform API products to match UI expectations
+          const transformedProducts = products.map(product => ({
+            ...product,
+            inStock: product.stock > 0,
+            stockCount: product.stock,
+            reviewCount: Math.floor(Math.random() * 200) + 10,
+            rating: (Math.random() * 1.5 + 3.5).toFixed(1),
+            originalPrice: product.price * 1.2, // Mock original price
+            badge: product.featured ? 'Featured' : null,
+            seller: product.seller || 'EnergyHub Seller',
+            image: product.image || '/public/assets/images/no_image.png'
+          }));
+          setAllProducts(transformedProducts);
+        } else {
+          console.error('Failed to fetch products');
+          // Fallback to mock data
+          setAllProducts(mockProducts);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        // Fallback to mock data
+        setAllProducts(mockProducts);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Filter products based on active filters
   // Fix: Remove mockProducts from useCallback dependencies to prevent infinite loop
   const filterProducts = useCallback(() => {
-    let filtered = [...mockProducts];
+    let filtered = [...allProducts];
 
     // Category filter
     if (activeCategory !== 'all') {
@@ -290,7 +248,7 @@ const ProductCatalogSearch = () => {
       }
     });
     setFilteredProducts(filtered);
-  }, [activeCategory, searchQuery, filters, sortBy]);
+  }, [activeCategory, searchQuery, filters, sortBy, allProducts]);
 
   useEffect(() => {
     filterProducts();
@@ -417,7 +375,7 @@ const ProductCatalogSearch = () => {
     }
   };
 
-  const comparisonProducts = mockProducts?.filter(product => 
+  const comparisonProducts = allProducts?.filter(product => 
     comparisonItems?.includes(product?.id)
   );
 

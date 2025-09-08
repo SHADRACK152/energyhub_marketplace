@@ -13,7 +13,6 @@ import RecommendedProducts from './components/RecommendedProducts';
 import WishlistPreview from './components/WishlistPreview';
 import QuickActionsPanel from './components/QuickActionsPanel';
 import PromotionalBanner from './components/PromotionalBanner';
-import Button from '../../components/ui/Button';
 
 const B2CBuyerDashboard = () => {
   const navigate = useNavigate();
@@ -24,19 +23,11 @@ const B2CBuyerDashboard = () => {
   // Get authenticated user from context
   const { user } = useAuth();
 
-  // Enhanced state for Energy Marketplace
-  const [energyProducts, setEnergyProducts] = useState([]);
-  const [energySavings, setEnergySavings] = useState(null);
-  const [installationQuotes, setInstallationQuotes] = useState([]);
-  const [financingOptions, setFinancingOptions] = useState([]);
-
-  // Enhanced order summary stats for energy products
+  // Mock order summary stats
   const orderStats = {
     totalOrders: 24,
     inTransit: 3,
     delivered: 21,
-    energyProductsOrdered: 8,
-    estimatedAnnualSavings: 2400,
     totalSpent: 15420
   };
 
@@ -82,7 +73,7 @@ const B2CBuyerDashboard = () => {
   useEffect(() => {
     setProductsLoading(true);
     setProductsError(null);
-    fetch('/api/products')
+    fetch('http://localhost:5000/api/products')
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch products');
         return res.json();
@@ -95,129 +86,7 @@ const B2CBuyerDashboard = () => {
         setProductsError(err.message);
         setProductsLoading(false);
       });
-
-    // Initialize Energy Marketplace B2C Data
-    initializeEnergyMarketplace();
   }, []);
-
-  // Initialize Energy Marketplace for B2C
-  const initializeEnergyMarketplace = () => {
-    // Set featured energy products for B2C
-    setEnergyProducts([
-      {
-        id: 1,
-        name: 'Tesla Powerwall',
-        category: 'Energy Storage',
-        retailPrice: 14500,
-        consumerPrice: 12500, // Special B2C pricing
-        image: '/api/placeholder/300/200',
-        rating: 4.8,
-        reviews: 1247,
-        description: 'Store solar energy and power your home during outages',
-        keyFeatures: ['13.5 kWh capacity', 'AC coupled', '10-year warranty', 'Mobile app control'],
-        energySavings: { monthly: 180, annual: 2160 },
-        eligibleIncentives: ['Federal Tax Credit', 'State Rebates'],
-        installationTime: '1 day',
-        warranty: '10 years',
-        inStock: true,
-        fastShipping: true
-      },
-      {
-        id: 2,
-        name: 'LG Solar Panel System',
-        category: 'Solar Panels',
-        retailPrice: 18500,
-        consumerPrice: 16200,
-        image: '/api/placeholder/300/200',
-        rating: 4.7,
-        reviews: 892,
-        description: 'Complete home solar solution with premium LG panels',
-        keyFeatures: ['400W panels', '25-year warranty', 'High efficiency', 'Weather resistant'],
-        energySavings: { monthly: 220, annual: 2640 },
-        eligibleIncentives: ['30% Federal Tax Credit', 'Net Metering'],
-        installationTime: '1-2 days',
-        warranty: '25 years',
-        inStock: true,
-        fastShipping: false
-      },
-      {
-        id: 3,
-        name: 'Enphase Home Energy System',
-        category: 'Complete Systems',
-        retailPrice: 24000,
-        consumerPrice: 21500,
-        image: '/api/placeholder/300/200',
-        rating: 4.9,
-        reviews: 654,
-        description: 'All-in-one solar and battery solution',
-        keyFeatures: ['Solar panels + battery', 'Smart monitoring', 'Expandable', 'App control'],
-        energySavings: { monthly: 350, annual: 4200 },
-        eligibleIncentives: ['Federal Tax Credit', 'Utility Rebates'],
-        installationTime: '2-3 days',
-        warranty: '25 years',
-        inStock: true,
-        fastShipping: false
-      }
-    ]);
-
-    // Set energy savings calculation
-    setEnergySavings({
-      currentMonthlyBill: 180,
-      projectedSavings: 85,
-      roiPeriod: '7-9 years',
-      lifetimeSavings: 42000,
-      co2Reduction: '12 tons annually'
-    });
-
-    // Set installation quotes
-    setInstallationQuotes([
-      {
-        id: 1,
-        company: 'SolarTech Pros',
-        rating: 4.8,
-        price: 3200,
-        timeframe: '2-3 weeks',
-        warranty: '10 years',
-        certified: true
-      },
-      {
-        id: 2,
-        company: 'Green Energy Installers',
-        rating: 4.6,
-        price: 2800,
-        timeframe: '3-4 weeks',
-        warranty: '8 years',
-        certified: true
-      }
-    ]);
-
-    // Set financing options
-    setFinancingOptions([
-      {
-        id: 1,
-        type: 'Solar Loan',
-        apr: 4.99,
-        term: '12 years',
-        monthlyPayment: 142,
-        provider: 'GreenSky'
-      },
-      {
-        id: 2,
-        type: 'Lease',
-        monthlyPayment: 89,
-        term: '20 years',
-        provider: 'Sunrun'
-      },
-      {
-        id: 3,
-        type: 'Power Purchase Agreement',
-        rate: 0.11,
-        unit: 'per kWh',
-        term: '25 years',
-        provider: 'SolarCity'
-      }
-    ]);
-  };
 
   // Use products for all product displays
   const recentlyViewed = products.slice(0, 4);
@@ -289,45 +158,8 @@ const B2CBuyerDashboard = () => {
 
   // Navigation handlers
   const handleNavigation = (path) => {
-    console.log('Navigating to:', path);
-    navigate(path);
-  };
-
-  // Enhanced B2C Energy Marketplace Functions
-  const handleEnergyCalculator = () => {
-    navigate('/energy-calculator');
-  };
-
-  const handleInstallationQuote = (companyId) => {
-    console.log('Requesting quote from:', companyId);
-    showToast('Installation quote requested successfully!', 'success');
-  };
-
-  const handleFinancingApplication = (optionId) => {
-    console.log('Applying for financing:', optionId);
-    navigate('/financing-application');
-  };
-
-  const handleEnergyProductDetails = (productId) => {
-    navigate(`/product/${productId}?source=energy-marketplace`);
-  };
-
-  const handleAddEnergyProductToCart = (product) => {
-    addToCart({
-      ...product,
-      price: product.consumerPrice,
-      category: 'energy',
-      installationRequired: true
-    });
-    showToast(`${product.name} added to cart!`, 'success');
-  };
-
-  const handleScheduleConsultation = () => {
-    navigate('/energy-consultation');
-  };
-
-  const handleIncentiveCalculator = () => {
-    navigate('/incentive-calculator');
+  console.log('Navigating to:', path);
+  navigate(path);
   };
 
   const handleTrackOrder = (orderId) => {
@@ -454,106 +286,6 @@ const B2CBuyerDashboard = () => {
               onBannerClick={handleBannerClick}
               onDismiss={handleBannerDismiss}
             />
-          </div>
-
-          {/* Energy Marketplace Section */}
-          <div className="mb-8 animate-fade-in-up delay-300">
-            <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 border border-green-200">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">🔋 Energy Marketplace</h2>
-                  <p className="text-gray-600">Discover renewable energy solutions for your home</p>
-                </div>
-                <Button onClick={handleEnergyCalculator} variant="outline">
-                  Calculate Savings
-                </Button>
-              </div>
-              
-              {/* Energy Savings Display */}
-              {energySavings && (
-                <div className="bg-white rounded-lg p-4 mb-4">
-                  <h3 className="text-lg font-semibold mb-2">Your Potential Energy Savings</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">${energySavings.projectedSavings}</div>
-                      <div className="text-sm text-gray-600">Monthly Savings</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{energySavings.roiPeriod}</div>
-                      <div className="text-sm text-gray-600">Payback Period</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">${(energySavings.lifetimeSavings / 1000).toFixed(0)}K</div>
-                      <div className="text-sm text-gray-600">Lifetime Savings</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-emerald-600">{energySavings.co2Reduction}</div>
-                      <div className="text-sm text-gray-600">CO₂ Reduction</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Featured Energy Products */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {energyProducts.map(product => (
-                  <div key={product.id} className="bg-white rounded-lg p-4 border hover:shadow-md transition-shadow">
-                    <img src={product.image} alt={product.name} className="w-full h-32 object-cover rounded-lg mb-3" />
-                    <h4 className="font-semibold text-gray-900 mb-1">{product.name}</h4>
-                    <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-lg font-bold text-green-600">${product.consumerPrice.toLocaleString()}</div>
-                      <div className="text-sm text-gray-500 line-through">${product.retailPrice.toLocaleString()}</div>
-                    </div>
-                    <div className="text-sm text-blue-600 mb-3">Save ${product.energySavings.monthly}/month</div>
-                    <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        className="flex-1"
-                        onClick={() => handleEnergyProductDetails(product.id)}
-                      >
-                        View Details
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleAddEnergyProductToCart(product)}
-                      >
-                        Add to Cart
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Energy Services */}
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-lg p-4 border text-center">
-                  <div className="text-3xl mb-2">🔧</div>
-                  <h4 className="font-semibold mb-2">Professional Installation</h4>
-                  <p className="text-sm text-gray-600 mb-3">Certified installers in your area</p>
-                  <Button size="sm" onClick={() => handleInstallationQuote(1)}>
-                    Get Quote
-                  </Button>
-                </div>
-                <div className="bg-white rounded-lg p-4 border text-center">
-                  <div className="text-3xl mb-2">💰</div>
-                  <h4 className="font-semibold mb-2">Flexible Financing</h4>
-                  <p className="text-sm text-gray-600 mb-3">From 4.99% APR solar loans</p>
-                  <Button size="sm" onClick={() => handleFinancingApplication(1)}>
-                    Apply Now
-                  </Button>
-                </div>
-                <div className="bg-white rounded-lg p-4 border text-center">
-                  <div className="text-3xl mb-2">🎯</div>
-                  <h4 className="font-semibold mb-2">Free Consultation</h4>
-                  <p className="text-sm text-gray-600 mb-3">Energy efficiency assessment</p>
-                  <Button size="sm" onClick={handleScheduleConsultation}>
-                    Schedule
-                  </Button>
-                </div>
-              </div>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

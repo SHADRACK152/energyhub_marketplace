@@ -95,7 +95,7 @@ const RecentOrdersTable = ({ orders, onViewOrder, onFulfillOrder, onContactBuyer
                       variant="ghost"
                       size="sm"
                       iconName="MessageCircle"
-                      onClick={() => onContactBuyer(order?.buyer?.id)}
+                      onClick={() => onContactBuyer(order?.buyerId)}
                     >
                       Contact
                     </Button>

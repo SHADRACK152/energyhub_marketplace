@@ -67,7 +67,7 @@ const MobileOrderCard = ({ order, onViewOrder, onFulfillOrder, onContactBuyer })
           variant="ghost"
           size="sm"
           iconName="MessageCircle"
-          onClick={() => onContactBuyer(order?.buyer?.id)}
+          onClick={() => onContactBuyer(order?.buyerId)}
         >
           <Icon name="MessageCircle" size={16} />
         </Button>

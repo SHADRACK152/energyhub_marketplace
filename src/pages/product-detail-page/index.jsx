@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useCart } from '../../components/CartContext';
+import { useToast } from '../../components/ui/Toast';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import MobileTabBar from '../../components/ui/MobileTabBar';
 import Button from '../../components/ui/Button';
@@ -17,13 +19,92 @@ import SellerInfo from './components/SellerInfo';
 const ProductDetailPage = () => {
   const navigate = useNavigate();
   const { productId } = useParams();
+  const { addToCart } = useCart();
+  const { showToast } = useToast();
   const [user] = useState({ role: 'buyer', name: 'John Doe' });
   const [quantity, setQuantity] = useState(1);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [selectedSpecs, setSelectedSpecs] = useState({});
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock product data
-  const product = {
+  // Fetch product data from API
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/products');
+        if (response.ok) {
+          const products = await response.json();
+          const foundProduct = products.find(p => p.id === parseInt(productId));
+          if (foundProduct) {
+            // Transform API product to match UI expectations
+            const transformedProduct = {
+              ...foundProduct,
+              seller: {
+                name: foundProduct.seller || 'EnergyHub Seller',
+                rating: 4.8,
+                responseTime: 'Within 2 hours',
+                verified: true,
+                profileImage: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=50'
+              },
+              originalPrice: foundProduct.price * 1.2,
+              discount: 14,
+              rating: (Math.random() * 1.5 + 3.5).toFixed(1),
+              reviewCount: Math.floor(Math.random() * 200) + 10,
+              inStock: foundProduct.stock > 0,
+              stockCount: foundProduct.stock,
+              images: foundProduct.image ? [foundProduct.image] : ['/public/assets/images/no_image.png'],
+              specifications: {
+                power: '400W',
+                voltage: '24V',
+                efficiency: '22.1%',
+                warranty: '25 years',
+                dimensions: '2000x1000x40mm',
+                weight: '22kg'
+              },
+              keyFeatures: [
+                'High-efficiency monocrystalline cells',
+                'Anti-reflective tempered glass',
+                'Corrosion-resistant aluminum frame',
+                'MC4 connectors for easy installation'
+              ],
+              warranty: {
+                product: '12 years',
+                performance: '25 years',
+                coverage: 'Manufacturer defects and power output degradation'
+              },
+              shipping: {
+                freeShipping: true,
+                estimatedDelivery: '3-5 business days',
+                shippingOptions: ['Standard', 'Express', 'White Glove']
+              }
+            };
+            setProduct(transformedProduct);
+          } else {
+            setError('Product not found');
+          }
+        } else {
+          throw new Error('Failed to fetch product');
+        }
+      } catch (err) {
+        console.error('Error fetching product:', err);
+        setError(err.message);
+        // Fallback to mock data
+        setProduct(mockProduct);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (productId) {
+      fetchProduct();
+    }
+  }, [productId]);
+
+  // Mock product data as fallback
+  const mockProduct = {
     id: 1,
     name: "Tesla Solar Panel 400W Monocrystalline High Efficiency Premium Series",
     seller: {
@@ -114,9 +195,20 @@ const ProductDetailPage = () => {
   ];
 
   const handleAddToCart = () => {
-    // Handle add to cart logic
-    console.log('Adding to cart:', { productId: product?.id, quantity });
-    // Show success message
+    // Add to cart with proper product data
+    const cartProduct = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images?.[0] || '/public/assets/images/no_image.png',
+      seller: product.seller?.name || 'Unknown Seller',
+      inStock: product.inStock,
+      stockCount: product.stock || 100
+    };
+    
+    addToCart(cartProduct, quantity);
+    showToast(`${product.name} added to cart!`, { type: 'success' });
+    console.log('Added to cart:', { productId: product?.id, quantity });
   };
 
   const handleBuyNow = () => {
