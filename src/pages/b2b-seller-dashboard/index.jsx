@@ -3,6 +3,7 @@ import { useAuth } from '../../components/ui/AuthenticationRouter';
 import { useNavigate } from 'react-router-dom';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import NavigationBreadcrumbs from '../../components/ui/NavigationBreadcrumbs';
+import Button from '../../components/ui/Button';
 import MetricsCard from './components/MetricsCard';
 import RecentOrdersTable from './components/RecentOrdersTable';
 import QuickActionsPanel from './components/QuickActionsPanel';
@@ -61,18 +62,102 @@ const B2BSellerDashboard = () => {
   useEffect(() => {
     setOrdersLoading(true);
     setOrdersError(null);
-    fetch('/api/orders')
+    fetch('http://localhost:5000/api/orders')
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch orders');
         return res.json();
       })
       .then(data => {
-        setRecentOrders(Array.isArray(data) ? data : []);
+        // Transform orders data to match the seller dashboard requirements
+        const transformedOrders = Array.isArray(data) ? data.map(order => ({
+          id: order.id,
+          orderNumber: order.orderNumber,
+          buyer: {
+            name: order.buyerName || 'Unknown Buyer',
+            company: order.buyerEmail?.split('@')[1]?.split('.')[0] || 'Company',
+            email: order.buyerEmail
+          },
+          products: [
+            {
+              name: order.productName,
+              image: order.productImage
+            }
+          ],
+          value: order.price || 0,
+          status: order.status || 'Pending',
+          orderDate: order.orderDate,
+          deliveryDate: order.deliveryDate,
+          buyerId: order.buyerId
+        })) : [];
+        
+        setRecentOrders(transformedOrders);
         setOrdersLoading(false);
       })
       .catch(err => {
         setOrdersError(err.message);
         setOrdersLoading(false);
+        
+        // Fallback to mock data if API fails
+        const mockOrders = [
+          {
+            id: 1,
+            orderNumber: 'ORD-001',
+            buyer: {
+              name: 'Tesla Solar Corp',
+              company: 'Tesla Energy',
+              email: 'orders@tesla.com'
+            },
+            products: [
+              {
+                name: 'Solar Panel System 5kW',
+                image: '/uploads/solar-panel.jpg'
+              }
+            ],
+            value: 12500,
+            status: 'Processing',
+            orderDate: new Date().toISOString(),
+            buyerId: 'buyer-001'
+          },
+          {
+            id: 2,
+            orderNumber: 'ORD-002',
+            buyer: {
+              name: 'GreenTech Industries',
+              company: 'GreenTech',
+              email: 'procurement@greentech.com'
+            },
+            products: [
+              {
+                name: 'Tesla Powerwall 2',
+                image: '/uploads/powerwall.jpg'
+              }
+            ],
+            value: 8900,
+            status: 'Shipping',
+            orderDate: new Date(Date.now() - 86400000).toISOString(),
+            buyerId: 'buyer-002'
+          },
+          {
+            id: 3,
+            orderNumber: 'ORD-003',
+            buyer: {
+              name: 'EcoEnergy Solutions',
+              company: 'EcoEnergy',
+              email: 'orders@ecoenergy.com'
+            },
+            products: [
+              {
+                name: 'SolarEdge Inverter 7.6kW',
+                image: '/uploads/inverter.jpg'
+              }
+            ],
+            value: 1850,
+            status: 'Delivered',
+            orderDate: new Date(Date.now() - 172800000).toISOString(),
+            buyerId: 'buyer-003'
+          }
+        ];
+        setRecentOrders(mockOrders);
       });
   }, []);
 
@@ -144,40 +229,58 @@ const B2BSellerDashboard = () => {
   const handleViewOrder = (orderId) => {
     console.log('Viewing order:', orderId);
     // Navigate to order details page
+    navigate(`/orders/${orderId}`);
   };
 
   const handleFulfillOrder = (orderId) => {
     console.log('Fulfilling order:', orderId);
-    // Open fulfill order modal
+    // Update order status to shipping
+    setRecentOrders(prev => prev.map(order => 
+      order.id === orderId 
+        ? { ...order, status: 'Shipping' }
+        : order
+    ));
+    // In real app, this would call API to update order status
   };
 
   const handleContactBuyer = (buyerId) => {
     console.log('Contacting buyer:', buyerId);
-    // Open contact modal
+    // Find buyer info
+    const order = recentOrders.find(o => o.buyerId === buyerId);
+    if (order?.buyer?.email) {
+      // Open email client or internal messaging system
+      window.location.href = `mailto:${order.buyer.email}?subject=Regarding Order&body=Hello ${order.buyer.name},%0D%0A%0D%0A`;
+    }
   };
 
   const handleAddProduct = () => {
     console.log('Adding new product');
-    // Navigate to add product page
+    navigate('/b2b-inventory-management');
   };
 
   const handleBulkUpload = () => {
     console.log('Bulk upload products');
-    // Open bulk upload modal
+    // In real app, this would open bulk upload modal
+    alert('Bulk upload feature - Coming soon! For now, please add products individually through the inventory page.');
   };
 
   const handleUpdatePricing = () => {
     console.log('Update pricing');
-    // Navigate to pricing management
+    navigate('/b2b-inventory-management');
   };
 
   const handleRestockItem = (itemId) => {
     console.log('Restocking item:', itemId);
-    // Open restock modal
+    // In real app, this would open restock modal
+    alert('Restock feature - Coming soon! Please manage inventory through the inventory page.');
   };
 
   const handleViewInventory = () => {
     navigate('/b2b-inventory-management');
+  };
+
+  const handleViewAllOrders = () => {
+    navigate('/orders');
   };
 
   return (
@@ -190,16 +293,21 @@ const B2BSellerDashboard = () => {
           {/* Header Section */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+              <h1 className="text-3xl font-bold text-foreground">Seller Dashboard</h1>
               <p className="text-muted-foreground mt-1">
-                Welcome back, {user?.name} ({user?.email}). Here's your business overview.
+                Welcome back, {user?.name || 'Seller'} ({user?.email}). Manage your business and connect with buyers.
               </p>
             </div>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              {isLoading && (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              )}
-              <span>Last updated: {lastUpdated?.toLocaleTimeString()}</span>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                {isLoading && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                )}
+                <span>Last updated: {lastUpdated?.toLocaleTimeString()}</span>
+              </div>
+              <Button variant="outline" onClick={handleViewInventory}>
+                Manage Inventory
+              </Button>
             </div>
           </div>
 
@@ -225,13 +333,25 @@ const B2BSellerDashboard = () => {
               {ordersLoading ? (
                 <div className="p-8 text-center text-muted-foreground">Loading orders...</div>
               ) : ordersError ? (
-                <div className="p-8 text-center text-error">{ordersError}</div>
+                <div className="bg-card rounded-lg border border-border shadow-card p-8">
+                  <div className="text-center">
+                    <p className="text-muted-foreground mb-4">Using demo data (API unavailable)</p>
+                    <RecentOrdersTable
+                      orders={recentOrders}
+                      onViewOrder={handleViewOrder}
+                      onFulfillOrder={handleFulfillOrder}
+                      onContactBuyer={handleContactBuyer}
+                      onViewAllOrders={handleViewAllOrders}
+                    />
+                  </div>
+                </div>
               ) : (
                 <RecentOrdersTable
                   orders={recentOrders}
                   onViewOrder={handleViewOrder}
                   onFulfillOrder={handleFulfillOrder}
                   onContactBuyer={handleContactBuyer}
+                  onViewAllOrders={handleViewAllOrders}
                 />
               )}
             </div>
@@ -241,11 +361,27 @@ const B2BSellerDashboard = () => {
               <div className="bg-card rounded-lg border border-border shadow-card p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold text-foreground">Recent Orders</h3>
+                  <Button variant="outline" size="sm" onClick={handleViewAllOrders}>
+                    View All Orders
+                  </Button>
                 </div>
                 {ordersLoading ? (
                   <div className="p-8 text-center text-muted-foreground">Loading orders...</div>
                 ) : ordersError ? (
-                  <div className="p-8 text-center text-error">{ordersError}</div>
+                  <div className="text-center">
+                    <p className="text-muted-foreground mb-4">Using demo data (API unavailable)</p>
+                    <div className="space-y-4">
+                      {recentOrders?.slice(0, 3)?.map((order) => (
+                        <MobileOrderCard
+                          key={order?.id}
+                          order={order}
+                          onViewOrder={handleViewOrder}
+                          onFulfillOrder={handleFulfillOrder}
+                          onContactBuyer={handleContactBuyer}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {recentOrders?.slice(0, 3)?.map((order) => (

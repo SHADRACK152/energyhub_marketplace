@@ -2,7 +2,7 @@ import React from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
-const RecentOrdersTable = ({ orders, onViewOrder, onFulfillOrder, onContactBuyer }) => {
+const RecentOrdersTable = ({ orders, onViewOrder, onFulfillOrder, onContactBuyer, onViewAllOrders }) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'pending':
@@ -23,7 +23,7 @@ const RecentOrdersTable = ({ orders, onViewOrder, onFulfillOrder, onContactBuyer
       <div className="p-6 border-b border-border">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-foreground">Recent Orders</h3>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={onViewAllOrders}>
             View All Orders
           </Button>
         </div>

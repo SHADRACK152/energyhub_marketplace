@@ -8,11 +8,10 @@ import LandingPage from './pages/landing-page';
 import B2BInventoryManagement from './pages/b2b-inventory-management';
 import ProductCatalogSearch from './pages/product-catalog-search';
 import B2CBuyerDashboard from './pages/b2c-buyer-dashboard';
-
 import B2BSellerDashboard from './pages/b2b-seller-dashboard';
 import ProductDetailPage from './pages/product-detail-page';
 import ShoppingCartCheckout from './pages/shopping-cart-checkout';
-import OrdersPage from './pages/orders';
+import OrdersRouter from './components/OrdersRouter';
 import OrderConfirmation from './pages/order-confirmation';
 import OrderTracking from './pages/order-tracking';
 
@@ -34,7 +33,7 @@ const Routes = () => {
         <Route path="/product-detail-page/:productId" element={<ProductDetailPage />} />
   <Route path="/shopping-cart-checkout" element={<ShoppingCartCheckout />} />
   <Route path="/order-confirmation" element={<OrderConfirmation />} />
-  <Route path="/orders" element={<OrdersPage />} />
+  <Route path="/orders" element={<OrdersRouter />} />
   <Route path="/order-tracking/:orderId" element={<OrderTracking />} />
         <Route path="*" element={<NotFound />} />
       </RouterRoutes>
