@@ -4,6 +4,78 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 // Translation definitions
 const translations = {
   en: {
+    // Landing Page Hero Section
+    'hero.title': 'The World\'s Leading Energy Marketplace',
+    'hero.tagline1': 'Empowering Clean Energy Futures.',
+    'hero.tagline2': 'Connecting Buyers & Sellers Globally.',
+    'hero.tagline3': 'Your Marketplace for Solar, Storage & More.',
+    'hero.description': 'Connect with trusted energy product suppliers and discover cutting-edge solar panels, batteries, and inverters. Join thousands of businesses and homeowners building a sustainable future.',
+    'hero.signupSeller': 'Sign Up as Seller',
+    'hero.signupBuyer': 'Sign Up as Buyer',
+    'hero.browseProducts': 'Browse products without signing up →',
+    'hero.featuredIn': 'Featured In',
+
+    // Footer Section
+    'footer.newsletter.title': 'Stay Updated',
+    'footer.newsletter.subtitle': 'Subscribe to our newsletter for the latest energy products and industry insights.',
+    'footer.newsletter.placeholder': 'Enter your email address',
+    'footer.newsletter.subscribe': 'Subscribe',
+    'footer.newsletter.subscribing': 'Subscribing...',
+    'footer.newsletter.success': 'Successfully subscribed to newsletter!',
+    'footer.newsletter.error': 'Failed to subscribe. Please try again.',
+    'footer.newsletter.invalidEmail': 'Please enter a valid email address',
+    'footer.newsletter.enterEmail': 'Please enter your email address',
+
+    // Footer Links
+    'footer.marketplace': 'Marketplace',
+    'footer.browseProducts': 'Browse Products',
+    'footer.solarPanels': 'Solar Panels',
+    'footer.batteries': 'Batteries',
+    'footer.inverters': 'Inverters',
+    
+    'footer.sellers': 'For Sellers',
+    'footer.becomeSeller': 'Become a Seller',
+    'footer.sellerDashboard': 'Seller Dashboard',
+    'footer.inventoryManagement': 'Inventory Management',
+    'footer.sellerResources': 'Seller Resources',
+    
+    'footer.buyers': 'For Buyers',
+    'footer.buyerDashboard': 'Buyer Dashboard',
+    'footer.howToBuy': 'How to Buy',
+    'footer.bulkOrders': 'Bulk Orders',
+    'footer.installationServices': 'Installation Services',
+    
+    'footer.support': 'Support',
+    'footer.helpCenter': 'Help Center',
+    'footer.contactUs': 'Contact Us',
+    'footer.liveChat': 'Live Chat',
+    'footer.documentation': 'Documentation',
+    
+    'footer.company': 'Company',
+    'footer.aboutUs': 'About Us',
+    'footer.careers': 'Careers',
+    'footer.press': 'Press',
+    'footer.blog': 'Blog',
+    
+    'footer.legal': 'Legal',
+    'footer.privacyPolicy': 'Privacy Policy',
+    'footer.termsOfService': 'Terms of Service',
+    'footer.cookiePolicy': 'Cookie Policy',
+    'footer.compliance': 'Compliance',
+
+    // Footer Contact & Social
+    'footer.contact.email': 'contact@energyhub.com',
+    'footer.contact.phone': '+1 (555) 123-4567',
+    'footer.contact.address': 'San Francisco, CA',
+    'footer.description': 'The world\'s leading marketplace for energy products. Connecting verified sellers with global buyers for solar panels, batteries, inverters, and more.',
+    'footer.copyright': '© 2025 EnergyHub Marketplace. All rights reserved.',
+    
+    // Trust Badges
+    'footer.trust.sslSecured': 'SSL Secured',
+    'footer.trust.isoCertified': 'ISO Certified',
+    'footer.trust.support247': '24/7 Support',
+    'footer.trust.verifiedSellers': 'Verified Sellers',
+
     // Navigation & Header
     'nav.dashboard': 'Dashboard',
     'nav.browse': 'Browse',
@@ -245,8 +317,228 @@ const translations = {
     'security.priceProtection': 'Price Protection Active',
     'security.pricesLocked': 'Prices are locked for the next 15 minutes',
   },
+
+  es: {
+    // Landing Page Hero Section (Spanish)
+    'hero.title': 'El Marketplace Líder Mundial de Energía',
+    'hero.tagline1': 'Impulsando Futuros de Energía Limpia.',
+    'hero.tagline2': 'Conectando Compradores y Vendedores Globalmente.',
+    'hero.tagline3': 'Tu Marketplace para Solar, Almacenamiento y Más.',
+    'hero.description': 'Conecta con proveedores de productos energéticos de confianza y descubre paneles solares, baterías e inversores de última tecnología. Únete a miles de empresas y propietarios construyendo un futuro sostenible.',
+    'hero.signupSeller': 'Registrarse como Vendedor',
+    'hero.signupBuyer': 'Registrarse como Comprador',
+    'hero.browseProducts': 'Navegar productos sin registrarse →',
+    'hero.featuredIn': 'Destacado En',
+
+    // Footer Section (Spanish)
+    'footer.newsletter.title': 'Mantente Actualizado',
+    'footer.newsletter.subtitle': 'Suscríbete a nuestro boletín para los últimos productos energéticos y conocimientos de la industria.',
+    'footer.newsletter.placeholder': 'Ingresa tu dirección de correo electrónico',
+    'footer.newsletter.subscribe': 'Suscribirse',
+    'footer.newsletter.subscribing': 'Suscribiendo...',
+    'footer.newsletter.success': '¡Suscripción exitosa al boletín!',
+    'footer.newsletter.error': 'Error al suscribirse. Inténtalo de nuevo.',
+    'footer.newsletter.invalidEmail': 'Por favor ingresa un correo electrónico válido',
+    'footer.newsletter.enterEmail': 'Por favor ingresa tu dirección de correo electrónico',
+
+    // Footer Links (Spanish)
+    'footer.marketplace': 'Marketplace',
+    'footer.browseProducts': 'Navegar Productos',
+    'footer.solarPanels': 'Paneles Solares',
+    'footer.batteries': 'Baterías',
+    'footer.inverters': 'Inversores',
+    
+    'footer.sellers': 'Para Vendedores',
+    'footer.becomeSeller': 'Convertirse en Vendedor',
+    'footer.sellerDashboard': 'Panel del Vendedor',
+    'footer.inventoryManagement': 'Gestión de Inventario',
+    'footer.sellerResources': 'Recursos para Vendedores',
+    
+    'footer.buyers': 'Para Compradores',
+    'footer.buyerDashboard': 'Panel del Comprador',
+    'footer.howToBuy': 'Cómo Comprar',
+    'footer.bulkOrders': 'Pedidos al Por Mayor',
+    'footer.installationServices': 'Servicios de Instalación',
+    
+    'footer.support': 'Soporte',
+    'footer.helpCenter': 'Centro de Ayuda',
+    'footer.contactUs': 'Contáctanos',
+    'footer.liveChat': 'Chat en Vivo',
+    'footer.documentation': 'Documentación',
+    
+    'footer.company': 'Empresa',
+    'footer.aboutUs': 'Acerca de Nosotros',
+    'footer.careers': 'Carreras',
+    'footer.press': 'Prensa',
+    'footer.blog': 'Blog',
+    
+    'footer.legal': 'Legal',
+    'footer.privacyPolicy': 'Política de Privacidad',
+    'footer.termsOfService': 'Términos de Servicio',
+    'footer.cookiePolicy': 'Política de Cookies',
+    'footer.compliance': 'Cumplimiento',
+
+    // Footer Contact & Social (Spanish)
+    'footer.contact.email': 'contacto@energyhub.com',
+    'footer.contact.phone': '+1 (555) 123-4567',
+    'footer.contact.address': 'San Francisco, CA',
+    'footer.description': 'El marketplace líder mundial para productos energéticos. Conectando vendedores verificados con compradores globales para paneles solares, baterías, inversores y más.',
+    'footer.copyright': '© 2025 EnergyHub Marketplace. Todos los derechos reservados.',
+    
+    // Trust Badges (Spanish)
+    'footer.trust.sslSecured': 'SSL Seguro',
+    'footer.trust.isoCertified': 'Certificado ISO',
+    'footer.trust.support247': 'Soporte 24/7',
+    'footer.trust.verifiedSellers': 'Vendedores Verificados',
+  },
+
+  fr: {
+    // Landing Page Hero Section (French)
+    'hero.title': 'La Marketplace Énergétique Leader Mondial',
+    'hero.tagline1': 'Autonomiser les Futurs d\'Énergie Propre.',
+    'hero.tagline2': 'Connecter Acheteurs et Vendeurs Mondialement.',
+    'hero.tagline3': 'Votre Marketplace pour le Solaire, le Stockage et Plus.',
+    'hero.description': 'Connectez-vous avec des fournisseurs de produits énergétiques de confiance et découvrez des panneaux solaires, batteries et onduleurs de pointe. Rejoignez des milliers d\'entreprises et propriétaires construisant un avenir durable.',
+    'hero.signupSeller': 'S\'inscrire comme Vendeur',
+    'hero.signupBuyer': 'S\'inscrire comme Acheteur',
+    'hero.browseProducts': 'Parcourir les produits sans s\'inscrire →',
+    'hero.featuredIn': 'En Vedette Dans',
+
+    // Footer Section (French)
+    'footer.newsletter.title': 'Restez Informé',
+    'footer.newsletter.subtitle': 'Abonnez-vous à notre newsletter pour les derniers produits énergétiques et insights de l\'industrie.',
+    'footer.newsletter.placeholder': 'Entrez votre adresse email',
+    'footer.newsletter.subscribe': 'S\'abonner',
+    'footer.newsletter.subscribing': 'Abonnement...',
+    'footer.newsletter.success': 'Abonnement à la newsletter réussi!',
+    'footer.newsletter.error': 'Échec de l\'abonnement. Veuillez réessayer.',
+    'footer.newsletter.invalidEmail': 'Veuillez entrer un email valide',
+    'footer.newsletter.enterEmail': 'Veuillez entrer votre adresse email',
+
+    // Footer Links (French)
+    'footer.marketplace': 'Marketplace',
+    'footer.browseProducts': 'Parcourir les Produits',
+    'footer.solarPanels': 'Panneaux Solaires',
+    'footer.batteries': 'Batteries',
+    'footer.inverters': 'Onduleurs',
+    
+    'footer.sellers': 'Pour les Vendeurs',
+    'footer.becomeSeller': 'Devenir Vendeur',
+    'footer.sellerDashboard': 'Tableau de Bord Vendeur',
+    'footer.inventoryManagement': 'Gestion d\'Inventaire',
+    'footer.sellerResources': 'Ressources Vendeur',
+    
+    'footer.buyers': 'Pour les Acheteurs',
+    'footer.buyerDashboard': 'Tableau de Bord Acheteur',
+    'footer.howToBuy': 'Comment Acheter',
+    'footer.bulkOrders': 'Commandes en Gros',
+    'footer.installationServices': 'Services d\'Installation',
+    
+    'footer.support': 'Support',
+    'footer.helpCenter': 'Centre d\'Aide',
+    'footer.contactUs': 'Nous Contacter',
+    'footer.liveChat': 'Chat en Direct',
+    'footer.documentation': 'Documentation',
+    
+    'footer.company': 'Entreprise',
+    'footer.aboutUs': 'À Propos',
+    'footer.careers': 'Carrières',
+    'footer.press': 'Presse',
+    'footer.blog': 'Blog',
+    
+    'footer.legal': 'Légal',
+    'footer.privacyPolicy': 'Politique de Confidentialité',
+    'footer.termsOfService': 'Conditions d\'Utilisation',
+    'footer.cookiePolicy': 'Politique des Cookies',
+    'footer.compliance': 'Conformité',
+
+    // Footer Contact & Social (French)
+    'footer.contact.email': 'contact@energyhub.com',
+    'footer.contact.phone': '+1 (555) 123-4567',
+    'footer.contact.address': 'San Francisco, CA',
+    'footer.description': 'La marketplace leader mondiale pour les produits énergétiques. Connectant vendeurs vérifiés avec acheteurs globaux pour panneaux solaires, batteries, onduleurs et plus.',
+    'footer.copyright': '© 2025 EnergyHub Marketplace. Tous droits réservés.',
+    
+    // Trust Badges (French)
+    'footer.trust.sslSecured': 'SSL Sécurisé',
+    'footer.trust.isoCertified': 'Certifié ISO',
+    'footer.trust.support247': 'Support 24/7',
+    'footer.trust.verifiedSellers': 'Vendeurs Vérifiés',
+  },
   
   sw: {
+    // Landing Page Hero Section (Swahili)
+    'hero.title': 'Soko Kuu la Nishati Duniani',
+    'hero.tagline1': 'Kuwezesha Maisha ya Nishati Safi.',
+    'hero.tagline2': 'Kuunganisha Wanunuzi na Wauuzaji Ulimwenguni.',
+    'hero.tagline3': 'Soko Lako la Jua, Uhifadhi na Zaidi.',
+    'hero.description': 'Unganisha na wazalishaji wa bidhaa za nishati wanaoaminika na ugundua paneli za jua, betri, na inverter za hali ya juu. Jiunge na maelfu ya biashara na wamiliki wa nyumba wanajenga mustakabali endelevu.',
+    'hero.signupSeller': 'Jisajili kama Muuzaji',
+    'hero.signupBuyer': 'Jisajili kama Mnunuzi',
+    'hero.browseProducts': 'Tazama bidhaa bila kujisajili →',
+    'hero.featuredIn': 'Imeonyeshwa Katika',
+
+    // Footer Section (Swahili)
+    'footer.newsletter.title': 'Baki Umejua',
+    'footer.newsletter.subtitle': 'Jiandikishe kupokea jarida letu la bidhaa za nishati na maarifa ya sekta.',
+    'footer.newsletter.placeholder': 'Ingiza anwani yako ya barua pepe',
+    'footer.newsletter.subscribe': 'Jiandikishe',
+    'footer.newsletter.subscribing': 'Inaandikisha...',
+    'footer.newsletter.success': 'Umeandikishwa kwa jarida kwa mafanikio!',
+    'footer.newsletter.error': 'Kushindwa kuandikisha. Jaribu tena.',
+    'footer.newsletter.invalidEmail': 'Tafadhali ingiza barua pepe sahihi',
+    'footer.newsletter.enterEmail': 'Tafadhali ingiza anwani yako ya barua pepe',
+
+    // Footer Links (Swahili)
+    'footer.marketplace': 'Soko',
+    'footer.browseProducts': 'Tazama Bidhaa',
+    'footer.solarPanels': 'Paneli za Jua',
+    'footer.batteries': 'Betri',
+    'footer.inverters': 'Inverter',
+    
+    'footer.sellers': 'Kwa Wauuzaji',
+    'footer.becomeSeller': 'Kuwa Muuzaji',
+    'footer.sellerDashboard': 'Dashibodi ya Muuzaji',
+    'footer.inventoryManagement': 'Udhibiti wa Hesabu',
+    'footer.sellerResources': 'Rasilimali za Wauuzaji',
+    
+    'footer.buyers': 'Kwa Wanunuzi',
+    'footer.buyerDashboard': 'Dashibodi ya Mnunuzi',
+    'footer.howToBuy': 'Jinsi ya Kununua',
+    'footer.bulkOrders': 'Maagizo ya Wingi',
+    'footer.installationServices': 'Huduma za Usakinishaji',
+    
+    'footer.support': 'Msaada',
+    'footer.helpCenter': 'Kituo cha Msaada',
+    'footer.contactUs': 'Wasiliana Nasi',
+    'footer.liveChat': 'Mazungumzo ya Moja kwa Moja',
+    'footer.documentation': 'Nyaraka',
+    
+    'footer.company': 'Kampuni',
+    'footer.aboutUs': 'Kutuhusu',
+    'footer.careers': 'Kazi',
+    'footer.press': 'Waandishi wa Habari',
+    'footer.blog': 'Blogu',
+    
+    'footer.legal': 'Kisheria',
+    'footer.privacyPolicy': 'Sera ya Faragha',
+    'footer.termsOfService': 'Masharti ya Huduma',
+    'footer.cookiePolicy': 'Sera ya Kuki',
+    'footer.compliance': 'Utii',
+
+    // Footer Contact & Social (Swahili)
+    'footer.contact.email': 'mawasiliano@energyhub.com',
+    'footer.contact.phone': '+1 (555) 123-4567',
+    'footer.contact.address': 'San Francisco, CA',
+    'footer.description': 'Soko kuu la bidhaa za nishati duniani. Kuunganisha wauuzaji waliohalalishwa na wanunuzi wa kimataifa kwa paneli za jua, betri, inverter na zaidi.',
+    'footer.copyright': '© 2025 EnergyHub Marketplace. Haki zote zimehifadhiwa.',
+    
+    // Trust Badges (Swahili)
+    'footer.trust.sslSecured': 'SSL Imehifadhiwa',
+    'footer.trust.isoCertified': 'ISO Imethibitishwa',
+    'footer.trust.support247': 'Msaada 24/7',
+    'footer.trust.verifiedSellers': 'Wauuzaji Waliohalalishwa',
+
     // Navigation & Header (Swahili)
     'nav.dashboard': 'Dashibodi',
     'nav.browse': 'Tafuta',

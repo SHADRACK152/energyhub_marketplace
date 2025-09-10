@@ -1,59 +1,161 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../../../components/AppIcon';
+import { useToast } from '../../../components/ui/Toast';
+import { useAuth } from '../../../components/ui/AuthenticationRouter';
 
 const FooterSection = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  const { isAuthenticated, user } = useAuth();
   const currentYear = new Date()?.getFullYear();
+  const [email, setEmail] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   const handleNavigation = (path) => {
+    if (path === '#') {
+      showToast('Feature coming soon!');
+      return;
+    }
+
+    // Dashboard routes that require authentication
+    const protectedRoutes = [
+      '/b2b-seller-dashboard',
+      '/b2c-buyer-dashboard', 
+      '/b2b-inventory-management',
+      '/account',
+      '/profile-settings',
+      '/orders',
+      '/b2b-seller-orders',
+      '/b2c-buyer-orders'
+    ];
+
+    // Check if the route requires authentication
+    const requiresAuth = protectedRoutes.includes(path);
+
+    if (requiresAuth && !isAuthenticated) {
+      // Redirect to login/signup with return path
+      showToast('Please login or sign up to access this feature');
+      navigate('/authentication-login-register', { 
+        state: { from: path, message: 'Please login to access your dashboard' } 
+      });
+      return;
+    }
+
+    // For authenticated users going to dashboard, redirect based on role
+    if (isAuthenticated && (path === '/b2b-seller-dashboard' || path === '/b2c-buyer-dashboard')) {
+      const userRole = user?.role;
+      if (userRole === 'seller' || userRole === 'b2b') {
+        navigate('/b2b-seller-dashboard');
+      } else if (userRole === 'buyer' || userRole === 'b2c') {
+        navigate('/b2c-buyer-dashboard');
+      } else {
+        // Default dashboard based on path
+        navigate(path);
+      }
+      return;
+    }
+
     navigate(path);
+  };
+
+  const handleEmailSubscription = async (e) => {
+    e.preventDefault();
+    
+    if (!email) {
+      showToast('Please enter your email address');
+      return;
+    }
+
+    if (!email.includes('@') || !email.includes('.')) {
+      showToast('Please enter a valid email address');
+      return;
+    }
+
+    setIsSubscribing(true);
+
+    try {
+      // In a real app, this would make an API call to subscribe the user
+      // For now, we'll simulate the subscription
+      setTimeout(() => {
+        showToast('Successfully subscribed to newsletter!');
+        setEmail('');
+        setIsSubscribing(false);
+      }, 1000);
+    } catch (error) {
+      showToast('Failed to subscribe. Please try again.');
+      setIsSubscribing(false);
+    }
+  };
+
+  const handleContactClick = (type, value) => {
+    switch (type) {
+      case 'email':
+        window.location.href = `mailto:${value}`;
+        break;
+      case 'phone':
+        window.location.href = `tel:${value}`;
+        break;
+      case 'address':
+        window.open(`https://maps.google.com/?q=${encodeURIComponent(value)}`, '_blank');
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleSocialClick = (platform, url) => {
+    if (url === '#') {
+      showToastMessage(`${platform} page coming soon!`, 'info');
+    } else {
+      window.open(url, '_blank');
+    }
   };
 
   const footerLinks = {
     marketplace: [
       { label: 'Browse Products', path: '/product-catalog-search' },
-      { label: 'Solar Panels', path: '/product-catalog-search' },
-      { label: 'Batteries', path: '/product-catalog-search' },
-      { label: 'Inverters', path: '/product-catalog-search' }
+      { label: 'Solar Panels', path: '/product-catalog-search?category=solar-panels' },
+      { label: 'Batteries', path: '/product-catalog-search?category=batteries' },
+      { label: 'Inverters', path: '/product-catalog-search?category=inverters' }
     ],
     sellers: [
-      { label: 'Become a Seller', path: '/authentication-login-register' },
+      { label: 'Become a Seller', path: '/become-seller' },
       { label: 'Seller Dashboard', path: '/b2b-seller-dashboard' },
       { label: 'Inventory Management', path: '/b2b-inventory-management' },
-      { label: 'Seller Resources', path: '#' }
+      { label: 'Seller Resources', path: '/seller-resources' }
     ],
     buyers: [
       { label: 'Buyer Dashboard', path: '/b2c-buyer-dashboard' },
-      { label: 'How to Buy', path: '#' },
-      { label: 'Bulk Orders', path: '#' },
-      { label: 'Installation Services', path: '#' }
+      { label: 'How to Buy', path: '/how-to-buy' },
+      { label: 'Bulk Orders', path: '/bulk-orders' },
+      { label: 'Installation Services', path: '/installation-services' }
     ],
     support: [
-      { label: 'Help Center', path: '#' },
-      { label: 'Contact Us', path: '#' },
-      { label: 'Live Chat', path: '#' },
-      { label: 'Documentation', path: '#' }
+      { label: 'Help Center', path: '/help-center' },
+      { label: 'Contact Us', path: '/contact-us' },
+      { label: 'Live Chat', path: '#', action: () => showToastMessage('Live chat will open soon!', 'info') },
+      { label: 'Documentation', path: '/documentation' }
     ],
     company: [
-      { label: 'About Us', path: '#' },
-      { label: 'Careers', path: '#' },
-      { label: 'Press', path: '#' },
-      { label: 'Blog', path: '#' }
+      { label: 'About Us', path: '/about-us' },
+      { label: 'Careers', path: '/careers' },
+      { label: 'Press', path: '/press' },
+      { label: 'Blog', path: '/blog' }
     ],
     legal: [
-      { label: 'Privacy Policy', path: '#' },
-      { label: 'Terms of Service', path: '#' },
-      { label: 'Cookie Policy', path: '#' },
-      { label: 'Compliance', path: '#' }
+      { label: 'Privacy Policy', path: '/privacy-policy' },
+      { label: 'Terms of Service', path: '/terms-of-service' },
+      { label: 'Cookie Policy', path: '/cookie-policy' },
+      { label: 'Compliance', path: '/compliance' }
     ]
   };
 
   const socialLinks = [
-    { name: 'Twitter', icon: 'Twitter', url: '#' },
-    { name: 'LinkedIn', icon: 'Linkedin', url: '#' },
-    { name: 'Facebook', icon: 'Facebook', url: '#' },
-    { name: 'Instagram', icon: 'Instagram', url: '#' }
+    { name: 'Twitter', icon: 'Twitter', url: 'https://twitter.com/energyhub' },
+    { name: 'LinkedIn', icon: 'Linkedin', url: 'https://linkedin.com/company/energyhub' },
+    { name: 'Facebook', icon: 'Facebook', url: 'https://facebook.com/energyhub' },
+    { name: 'Instagram', icon: 'Instagram', url: 'https://instagram.com/energyhub' }
   ];
 
   const trustBadges = [
@@ -84,31 +186,41 @@ const FooterSection = () => {
             
             {/* Contact Info */}
             <div className="space-y-3 mb-6">
-              <div className="flex items-center space-x-3">
+              <button 
+                className="flex items-center space-x-3 hover:text-primary-foreground transition-colors text-left w-full"
+                onClick={() => handleContactClick('email', 'support@energyhub.com')}
+              >
                 <Icon name="Mail" size={16} className="text-primary-foreground/60" />
                 <span className="text-sm">support@energyhub.com</span>
-              </div>
-              <div className="flex items-center space-x-3">
+              </button>
+              <button 
+                className="flex items-center space-x-3 hover:text-primary-foreground transition-colors text-left w-full"
+                onClick={() => handleContactClick('phone', '+1-555-123-4567')}
+              >
                 <Icon name="Phone" size={16} className="text-primary-foreground/60" />
                 <span className="text-sm">+1 (555) 123-4567</span>
-              </div>
-              <div className="flex items-center space-x-3">
+              </button>
+              <button 
+                className="flex items-center space-x-3 hover:text-primary-foreground transition-colors text-left w-full"
+                onClick={() => handleContactClick('address', 'San Francisco, CA')}
+              >
                 <Icon name="MapPin" size={16} className="text-primary-foreground/60" />
                 <span className="text-sm">San Francisco, CA</span>
-              </div>
+              </button>
             </div>
 
             {/* Social Links */}
             <div className="flex space-x-4">
               {socialLinks?.map((social) => (
-                <a
+                <button
                   key={social?.name}
-                  href={social?.url}
+                  onClick={() => handleSocialClick(social?.name, social?.url)}
                   className="w-10 h-10 bg-primary-foreground/10 hover:bg-primary-foreground/20 rounded-lg flex items-center justify-center transition-colors duration-300"
                   aria-label={social?.name}
+                  title={`Follow us on ${social?.name}`}
                 >
                   <Icon name={social?.icon} size={18} />
-                </a>
+                </button>
               ))}
             </div>
           </div>
@@ -122,8 +234,8 @@ const FooterSection = () => {
                 {footerLinks?.marketplace?.map((link, index) => (
                   <li key={index}>
                     <button
-                      onClick={() => handleNavigation(link?.path)}
-                      className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300 text-sm"
+                      onClick={() => link?.action ? link.action() : handleNavigation(link?.path)}
+                      className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300 text-sm text-left"
                     >
                       {link?.label}
                     </button>
@@ -139,8 +251,8 @@ const FooterSection = () => {
                 {footerLinks?.sellers?.map((link, index) => (
                   <li key={index}>
                     <button
-                      onClick={() => handleNavigation(link?.path)}
-                      className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300 text-sm"
+                      onClick={() => link?.action ? link.action() : handleNavigation(link?.path)}
+                      className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300 text-sm text-left"
                     >
                       {link?.label}
                     </button>
@@ -156,8 +268,8 @@ const FooterSection = () => {
                 {footerLinks?.buyers?.map((link, index) => (
                   <li key={index}>
                     <button
-                      onClick={() => handleNavigation(link?.path)}
-                      className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300 text-sm"
+                      onClick={() => link?.action ? link.action() : handleNavigation(link?.path)}
+                      className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300 text-sm text-left"
                     >
                       {link?.label}
                     </button>
@@ -189,16 +301,27 @@ const FooterSection = () => {
             <p className="text-primary-foreground/80 mb-6">
               Get the latest energy industry news, product updates, and exclusive offers.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <form onSubmit={handleEmailSubscription} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 className="flex-1 px-4 py-3 bg-primary-foreground text-primary rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-primary-foreground/20"
+                disabled={isSubscribing}
               />
-              <button className="px-6 py-3 bg-secondary text-secondary-foreground rounded-lg font-semibold hover:bg-secondary/90 transition-colors duration-300">
-                Subscribe
+              <button 
+                type="submit"
+                disabled={isSubscribing}
+                className="px-6 py-3 bg-secondary text-secondary-foreground rounded-lg font-semibold hover:bg-secondary/90 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
+              >
+                {isSubscribing ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-secondary-foreground/30 border-t-secondary-foreground"></div>
+                ) : (
+                  'Subscribe'
+                )}
               </button>
-            </div>
+            </form>
           </div>
         </div>
       </div>
@@ -216,7 +339,7 @@ const FooterSection = () => {
               {footerLinks?.legal?.map((link, index) => (
                 <button
                   key={index}
-                  onClick={() => handleNavigation(link?.path)}
+                  onClick={() => link?.action ? link.action() : handleNavigation(link?.path)}
                   className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300 text-sm"
                 >
                   {link?.label}
