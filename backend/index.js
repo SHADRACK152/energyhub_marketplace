@@ -2,8 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
+const { db, dbHelpers } = require('./database');
 
 const app = express();
 app.use(express.json());
@@ -20,12 +20,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 app.use(cors());
-
-// Supabase client setup
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_API_KEY
-);
 
 // In-memory storage for created products (fallback when Supabase fails)
 let createdProducts = [];
@@ -151,11 +145,7 @@ function saveProductsToFile() {
 }
 
 
-// Inject supabase client into req for routes that need it
-app.use((req, res, next) => {
-  req.supabase = supabase;
-  next();
-});
+// SQLite database is now available through dbHelpers in routes
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -170,12 +160,13 @@ app.use('/api/qna', qnaRouter);
 const ordersRouter = require('./routes/orders');
 app.use('/api/orders', ordersRouter);
 
-// Example: Get all products
+// Get all products from SQLite
 app.get('/api/products', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('products').select('*');
+    // Get all products from SQLite database
+    const products = await dbHelpers.query('SELECT * FROM products ORDER BY createdAt DESC');
     
-    // Mock products for fallback
+    // Mock products for demo purposes
     const mockProducts = [
       {
         id: 1,
@@ -195,19 +186,23 @@ app.get('/api/products', async (req, res) => {
       }
     ];
     
-    if (error) {
-      console.log('Supabase error, returning mock data + created products:', error.message);
-      // Combine mock products with created products when Supabase fails
-      const allProducts = [...mockProducts, ...createdProducts];
-      return res.json(allProducts);
-    } else {
-      // ALWAYS combine Supabase data with created products
-      const allProducts = [...mockProducts, ...(data || []), ...createdProducts];
-      console.log(`Returning ${allProducts.length} total products (${data?.length || 0} from DB, ${createdProducts.length} from memory)`);
-      return res.json(allProducts);
-    }
+    // Process SQLite products to match expected format
+    const processedProducts = products.map(product => ({
+      ...product,
+      specifications: product.specifications ? JSON.parse(product.specifications) : null,
+      tags: product.tags ? JSON.parse(product.tags) : [],
+      images: product.image ? [product.image] : [],
+      inStock: product.stockCount > 0
+    }));
+    
+    // Combine mock products with database products
+    const allProducts = [...mockProducts, ...processedProducts];
+    
+    console.log(`✅ Returning ${allProducts.length} total products (${products.length} from SQLite, ${mockProducts.length} mock)`);
+    res.json(allProducts);
+    
   } catch (err) {
-    console.error('Error fetching products:', err);
+    console.error('❌ Error fetching products from SQLite:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -270,43 +265,41 @@ app.post('/api/products', upload.array('images', 10), async (req, res) => {
 
     console.log('Insert object:', insertObj);
 
-    const { data, error } = await supabase.from('products').insert([insertObj]).select();
-    
-    if (error) {
-      console.error('Supabase error:', error);
-      console.error('Supabase product creation failed, returning mock response:', error.message);
-      
-      // Create mock product for immediate use
-      const mockProduct = {
-        id: Date.now(),
-        ...insertObj,
-        seller: 'EnergyHub Seller',
-        inStock: true,
-        stockCount: insertObj.stock || 0
-      };
-      
-      // Store in memory for retrieval by GET endpoint
-      createdProducts.push(mockProduct);
-      saveProductsToFile(); // Persist to file
-      
-      console.log('Mock product created and stored:', mockProduct);
-      return res.status(201).json(mockProduct);
-    }
+    // Insert into SQLite database
+    const result = await dbHelpers.run(`
+      INSERT INTO products (
+        name, description, price, originalPrice, image, category,
+        sellerId, sellerName, stockCount, specifications, tags
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      insertObj.name,
+      insertObj.description,
+      insertObj.price,
+      parsedPricing?.originalPrice || null,
+      insertObj.image,
+      insertObj.category,
+      'demo-seller-' + Date.now(),
+      insertObj.brand || 'Demo Seller',
+      insertObj.stock || 0,
+      JSON.stringify(parsedSpecifications || {}),
+      JSON.stringify([insertObj.category, insertObj.brand].filter(Boolean))
+    ]);
 
-    console.log('Product created successfully:', data[0]);
+    // Get the created product from database
+    const createdProduct = await dbHelpers.get('SELECT * FROM products WHERE id = ?', [result.id]);
     
-    // ALSO store successful Supabase products in memory as backup
-    const successfulProduct = {
-      ...data[0],
-      seller: 'EnergyHub Seller',
-      inStock: true,
-      stockCount: data[0].stock || 0
+    // Format response to match frontend expectations
+    const responseProduct = {
+      ...createdProduct,
+      specifications: createdProduct.specifications ? JSON.parse(createdProduct.specifications) : {},
+      tags: createdProduct.tags ? JSON.parse(createdProduct.tags) : [],
+      images: createdProduct.image ? [createdProduct.image] : [],
+      inStock: createdProduct.stockCount > 0,
+      seller: createdProduct.sellerName
     };
-    createdProducts.push(successfulProduct);
-    saveProductsToFile(); // Persist to file
-    console.log(`Product stored in both Supabase and memory. Total in memory: ${createdProducts.length}`);
-    
-    res.status(201).json(data[0]);
+
+    console.log('✅ Product created successfully in SQLite:', responseProduct);
+    res.status(201).json(responseProduct);
   } catch (err) {
     console.error('Server error:', err);
     res.status(500).json({ error: err.message });
@@ -320,29 +313,22 @@ app.get('/api/promo-codes', async (req, res) => {
   try {
     const { sellerId } = req.query;
     
-    // Try Supabase first
-    try {
-      let query = supabase.from('promo_codes').select('*');
-      if (sellerId) {
-        query = query.eq('seller_id', sellerId);
-      }
-      const { data, error } = await query.order('created_at', { ascending: false });
-      
-      if (!error && data) {
-        return res.json(data);
-      }
-    } catch (supabaseError) {
-      console.log('Supabase promo codes fetch failed, using fallback');
+    let query = 'SELECT * FROM promo_codes';
+    let params = [];
+    
+    if (sellerId) {
+      query += ' WHERE sellerId = ?';
+      params.push(sellerId);
     }
     
-    // Fallback to in-memory storage
-    let filteredCodes = promoCodes;
-    if (sellerId) {
-      filteredCodes = promoCodes.filter(code => code.sellerId === sellerId);
-    }
-    res.json(filteredCodes);
+    query += ' ORDER BY createdAt DESC';
+    
+    const promoCodes = await dbHelpers.query(query, params);
+    console.log(`✅ Retrieved ${promoCodes.length} promo codes from SQLite`);
+    res.json(promoCodes);
+    
   } catch (error) {
-    console.error('Error fetching promo codes:', error);
+    console.error('❌ Error fetching promo codes from SQLite:', error);
     res.status(500).json({ error: 'Failed to fetch promo codes' });
   }
 });
@@ -352,29 +338,20 @@ app.get('/api/promo-codes/:code', async (req, res) => {
   try {
     const { code } = req.params;
     
-    // Try Supabase first
-    try {
-      const { data, error } = await supabase
-        .from('promo_codes')
-        .select('*')
-        .eq('code', code.toUpperCase())
-        .single();
-      
-      if (!error && data) {
-        return res.json(data);
-      }
-    } catch (supabaseError) {
-      console.log('Supabase promo code fetch failed, using fallback');
-    }
+    const promoCode = await dbHelpers.get(
+      'SELECT * FROM promo_codes WHERE UPPER(code) = UPPER(?)', 
+      [code]
+    );
     
-    // Fallback to in-memory storage
-    const promoCode = promoCodes.find(p => p.code.toLowerCase() === code.toLowerCase());
     if (!promoCode) {
       return res.status(404).json({ error: 'Promo code not found' });
     }
+    
+    console.log(`✅ Retrieved promo code ${code} from SQLite`);
     res.json(promoCode);
+    
   } catch (error) {
-    console.error('Error fetching promo code:', error);
+    console.error('❌ Error fetching promo code from SQLite:', error);
     res.status(500).json({ error: 'Failed to fetch promo code' });
   }
 });
@@ -422,37 +399,44 @@ app.post('/api/promo-codes', async (req, res) => {
       createdAt: new Date()
     };
     
-    // Try Supabase first
+    // Insert into SQLite database
     try {
-      const { data, error } = await supabase
-        .from('promo_codes')
-        .insert([{
-          code: newPromoCode.code,
-          type: newPromoCode.type,
-          value: newPromoCode.value,
-          description: newPromoCode.description,
-          seller_id: newPromoCode.sellerId,
-          seller_name: newPromoCode.sellerName,
-          minimum_order: newPromoCode.minimumOrder,
-          max_uses: newPromoCode.maxUses,
-          current_uses: newPromoCode.currentUses,
-          start_date: newPromoCode.startDate,
-          end_date: newPromoCode.endDate,
-          is_active: newPromoCode.isActive
-        }])
-        .select()
-        .single();
+      const result = await dbHelpers.run(`
+        INSERT INTO promo_codes (
+          code, type, value, description, sellerId, sellerName,
+          minimumOrder, maxUses, currentUses, startDate, endDate, isActive
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        newPromoCode.code,
+        newPromoCode.type,
+        newPromoCode.value,
+        newPromoCode.description,
+        newPromoCode.sellerId,
+        newPromoCode.sellerName,
+        newPromoCode.minimumOrder,
+        newPromoCode.maxUses,
+        newPromoCode.currentUses,
+        newPromoCode.startDate.toISOString(),
+        newPromoCode.endDate.toISOString(),
+        newPromoCode.isActive
+      ]);
       
-      if (!error && data) {
-        return res.status(201).json(data);
-      }
-    } catch (supabaseError) {
-      console.log('Supabase promo code creation failed, using fallback');
+      // Get the created promo code from database
+      const createdPromoCode = await dbHelpers.get('SELECT * FROM promo_codes WHERE id = ?', [result.id]);
+      
+      console.log('✅ Promo code created successfully in SQLite:', createdPromoCode);
+      res.status(201).json({
+        ...createdPromoCode,
+        startDate: new Date(createdPromoCode.startDate),
+        endDate: new Date(createdPromoCode.endDate)
+      });
+    } catch (sqliteError) {
+      console.log('SQLite promo code creation failed, using fallback:', sqliteError.message);
+      
+      // Fallback to in-memory storage
+      promoCodes.push(newPromoCode);
+      res.status(201).json(newPromoCode);
     }
-    
-    // Fallback to in-memory storage
-    promoCodes.push(newPromoCode);
-    res.status(201).json(newPromoCode);
   } catch (error) {
     console.error('Error creating promo code:', error);
     res.status(500).json({ error: 'Failed to create promo code' });
@@ -643,38 +627,80 @@ const jwt = require('jsonwebtoken');
 
 // Register user
 app.post('/api/users/register', async (req, res) => {
-  const { email, password, name, role } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-  const password_hash = await bcrypt.hash(password, 10);
-  const { data, error } = await supabase.from('users').insert([
-    { email, password_hash, name, role: role || 'buyer' }
-  ]).select();
-  if (error) return res.status(500).json({ error: error.message });
-  const user = data[0];
-  // Generate JWT (same as login)
-  const token = jwt.sign(
-    { id: user.id, email: user.email, name: user.name, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-  res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+  try {
+    const { email, password, name, role } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+    
+    // Check if user already exists
+    const existingUser = await dbHelpers.get('SELECT * FROM users WHERE email = ?', [email]);
+    if (existingUser) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+    
+    const password_hash = await bcrypt.hash(password, 10);
+    
+    // Insert new user into SQLite
+    const result = await dbHelpers.run(`
+      INSERT INTO users (email, name, role, profileData) 
+      VALUES (?, ?, ?, ?)
+    `, [email, name || '', role || 'buyer', JSON.stringify({ password_hash })]);
+    
+    // Get the created user
+    const user = await dbHelpers.get('SELECT * FROM users WHERE id = ?', [result.id]);
+    
+    // Generate JWT
+    const token = jwt.sign(
+      { id: user.id, email: user.email, name: user.name, role: user.role },
+      process.env.JWT_SECRET || 'fallback-secret',
+      { expiresIn: '7d' }
+    );
+    
+    console.log('✅ User registered successfully:', user.email);
+    res.status(201).json({ 
+      token, 
+      user: { id: user.id, email: user.email, name: user.name, role: user.role } 
+    });
+  } catch (error) {
+    console.error('❌ Error registering user:', error);
+    res.status(500).json({ error: 'Failed to register user' });
+  }
 });
 
 // Login user (returns JWT)
 app.post('/api/users/login', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-  const { data, error } = await supabase.from('users').select('*').eq('email', email).single();
-  if (error || !data) return res.status(401).json({ error: 'Invalid credentials' });
-  const valid = await bcrypt.compare(password, data.password_hash);
-  if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
-  // Generate JWT
-  const token = jwt.sign(
-    { id: data.id, email: data.email, name: data.name, role: data.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-  res.json({ token, user: { id: data.id, email: data.email, name: data.name, role: data.role } });
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+    
+    // Get user from SQLite
+    const user = await dbHelpers.get('SELECT * FROM users WHERE email = ?', [email]);
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    
+    // Get password hash from profileData
+    const profileData = user.profileData ? JSON.parse(user.profileData) : {};
+    const storedPasswordHash = profileData.password_hash;
+    
+    if (!storedPasswordHash) return res.status(401).json({ error: 'Invalid credentials' });
+    
+    const valid = await bcrypt.compare(password, storedPasswordHash);
+    if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+    
+    // Generate JWT
+    const token = jwt.sign(
+      { id: user.id, email: user.email, name: user.name, role: user.role },
+      process.env.JWT_SECRET || 'fallback-secret',
+      { expiresIn: '7d' }
+    );
+    
+    console.log('✅ User logged in successfully:', user.email);
+    res.json({ 
+      token, 
+      user: { id: user.id, email: user.email, name: user.name, role: user.role } 
+    });
+  } catch (error) {
+    console.error('❌ Error logging in user:', error);
+    res.status(500).json({ error: 'Failed to login' });
+  }
 });
 
 // JWT auth middleware

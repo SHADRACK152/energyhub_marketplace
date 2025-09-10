@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const { dbHelpers } = require('../database');
 
 // File-based persistence for orders
 const ordersFilePath = path.join(__dirname, '..', 'saved-orders.json');
@@ -34,7 +35,6 @@ const saveOrdersToFile = () => {
 // POST /api/orders - Create a new order (from payment completion)
 router.post('/', async (req, res) => {
   try {
-    const supabase = req.supabase;
     const { 
       productName, 
       productImage, 
@@ -48,80 +48,86 @@ router.post('/', async (req, res) => {
     const orderId = Date.now();
     const orderNumber = `ORD-${orderId}`;
     
-    // Create new order object for Supabase
+    // Create new order object for SQLite
     const orderData = {
-      id: orderId,
       orderNumber,
       productName,
       productImage: productImage || '/uploads/solar.jpg',
       price: parseFloat(price),
-      quantity,
-      totalAmount: parseFloat(price) * quantity,
-      paymentMethod,
-      orderDate: new Date().toISOString(),
-      deliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
-      status: 'Reviewing',
-      statusSteps: JSON.stringify([
-        { label: 'Reviewing', completed: true },
-        { label: 'Processing', completed: false },
-        { label: 'Shipping', completed: false },
-        { label: 'Delivered', completed: false },
-      ]),
+      subtotal: parseFloat(price) * quantity,
+      shipping: 0,
+      tax: 0,
+      discount: 0,
+      promoCode: null,
+      shippingInfo: JSON.stringify({}),
+      paymentInfo: JSON.stringify({ method: paymentMethod }),
+      items: JSON.stringify([{ name: productName, price, quantity }]),
       userId,
-      buyerId: 'buyer-new-' + Date.now(),
-      buyerName: 'New Customer',
-      buyerEmail: 'customer@example.com'
-      // Note: createdAt removed as it may not exist in Supabase table
+      userEmail: 'customer@example.com',
+      orderStatus: 'Reviewing'
     };
 
     try {
-      // Save to Supabase database - use flexible approach for existing schema
-      const supabaseOrderData = {
-        id: orderId,
-        orderNumber,
-        productName,
-        price: parseFloat(price),
-        status: 'Reviewing',
-        statusSteps: JSON.stringify([
+      // Save to SQLite database
+      const result = await dbHelpers.run(`
+        INSERT INTO orders (
+          orderNumber, productName, productImage, price, subtotal, shipping, tax, discount,
+          promoCode, shippingInfo, paymentInfo, items, userId, userEmail, orderStatus
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        orderData.orderNumber,
+        orderData.productName,
+        orderData.productImage,
+        orderData.price,
+        orderData.subtotal,
+        orderData.shipping,
+        orderData.tax,
+        orderData.discount,
+        orderData.promoCode,
+        orderData.shippingInfo,
+        orderData.paymentInfo,
+        orderData.items,
+        orderData.userId,
+        orderData.userEmail,
+        orderData.orderStatus
+      ]);
+      
+      console.log('✅ Order saved to SQLite database:', result.id);
+      
+      // Get the saved order from database
+      const savedOrder = await dbHelpers.get('SELECT * FROM orders WHERE id = ?', [result.id]);
+      
+      // Transform for frontend format
+      const responseOrder = {
+        id: savedOrder.id,
+        orderNumber: savedOrder.orderNumber,
+        productName: savedOrder.productName,
+        productImage: savedOrder.productImage,
+        price: savedOrder.price,
+        quantity: quantity,
+        totalAmount: savedOrder.subtotal,
+        paymentMethod: paymentMethod,
+        orderDate: savedOrder.createdAt,
+        deliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        status: savedOrder.orderStatus,
+        statusSteps: [
           { label: 'Reviewing', completed: true },
           { label: 'Processing', completed: false },
           { label: 'Shipping', completed: false },
           { label: 'Delivered', completed: false },
-        ])
-        // Only include basic fields that are most likely to exist
-      };
-
-      const { data, error } = await supabase.from('orders').insert([supabaseOrderData]).select();
-      if (error) throw error;
-      
-      console.log('Order saved to Supabase database:', data[0]);
-      
-      // Transform database response back to frontend format
-      const savedOrder = {
-        id: data[0].id,
-        orderNumber: data[0].orderNumber || data[0].order_number || data[0].id,
-        productName: data[0].productName || data[0].product_name || productName,
-        productImage: productImage || '/uploads/solar.jpg',
-        price: data[0].price || parseFloat(price),
-        quantity: quantity,
-        totalAmount: parseFloat(price) * quantity,
-        paymentMethod: paymentMethod,
-        orderDate: data[0].orderDate || data[0].order_date || data[0].created_at || new Date().toISOString(),
-        deliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-        status: data[0].status,
-        statusSteps: JSON.parse(data[0].statusSteps || data[0].status_steps || '[]'),
-        userId: userId,
+        ],
+        userId: savedOrder.userId,
         buyerId: 'buyer-new-' + Date.now(),
         buyerName: 'New Customer',
-        buyerEmail: 'customer@example.com',
+        buyerEmail: savedOrder.userEmail,
         paymentStatus: 'Paid',
-        createdAt: data[0].created_at || data[0].createdAt || new Date().toISOString()
+        createdAt: savedOrder.createdAt
       };
       
       res.status(201).json({
         success: true,
-        order: savedOrder,
-        message: 'Order created and saved to database successfully'
+        order: responseOrder,
+        message: 'Order created and saved to SQLite database successfully'
       });
     } catch (supabaseError) {
       console.log('Supabase order creation failed, using memory storage:', supabaseError.message);
@@ -160,194 +166,98 @@ router.post('/', async (req, res) => {
 // GET /api/orders - Get all orders for a user
 router.get('/', async (req, res) => {
   try {
-    console.log(`API Request: GET /api/orders with userId=${req.query.userId}`);
-    console.log(`Current memory orders count: ${memoryOrders.length}`);
+    const { userId } = req.query;
+    console.log(`API Request: GET /api/orders with userId=${userId}`);
     
-    const supabase = req.supabase;
+    let query = 'SELECT * FROM orders';
+    let params = [];
     
-    try {
-      // Try to fetch orders from Supabase - use flexible column ordering
-      let orders = [];
-      let fetchError = null;
-      
-      // Strategy 1: Try ordering by created_at (most common)
-      try {
-        const { data, error } = await supabase
-          .from('orders')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (!error) {
-          orders = data;
-          console.log('✅ Fetched from Supabase using created_at:', data.length, 'orders');
-        } else {
-          throw error;
-        }
-      } catch (err) {
-        console.log('⚠️ created_at ordering failed:', err.message);
-        
-        // Strategy 2: Try ordering by order_date
-        try {
-          const { data, error } = await supabase
-            .from('orders')
-            .select('*')
-            .order('order_date', { ascending: false });
-          
-          if (!error) {
-            orders = data;
-            console.log('✅ Fetched from Supabase using order_date:', data.length, 'orders');
-          } else {
-            throw error;
-          }
-        } catch (err2) {
-          console.log('⚠️ order_date ordering failed:', err2.message);
-          
-          // Strategy 3: Try simple select without ordering
-          try {
-            const { data, error } = await supabase
-              .from('orders')
-              .select('*');
-            
-            if (!error) {
-              orders = data;
-              console.log('✅ Fetched from Supabase without ordering:', data.length, 'orders');
-            } else {
-              throw error;
-            }
-          } catch (err3) {
-            console.log('❌ All Supabase fetch strategies failed:', err3.message);
-            fetchError = err3;
-          }
-        }
-      }
-      
-      if (fetchError) {
-        throw fetchError;
-      }
-        
-      // Transform Supabase data to match frontend expectations
-      const supabaseOrders = orders.map(order => ({
-          id: order.id,
-          orderNumber: order.order_number || order.orderNumber || order.id,
-          productName: order.product_name || order.productName || 'Product',
-          productImage: order.product_image || order.productImage,
-          price: order.price || 0,
-          quantity: order.quantity || 1,
-          totalAmount: order.total_amount || order.totalAmount || order.price || 0,
-          paymentMethod: order.payment_method || order.paymentMethod,
-          orderDate: order.order_date || order.orderDate || order.created_at,
-          deliveryDate: order.delivery_date || order.deliveryDate,
-          status: order.status || 'Reviewing',
-          statusSteps: JSON.parse(order.status_steps || order.statusSteps || '[]'),
-          userId: order.user_id || order.userId || 'demo-user',
-          buyerId: order.buyer_id || order.buyerId,
-          buyerName: order.buyer_name || order.buyerName || 'Customer',
-          buyerEmail: order.buyer_email || order.buyerEmail || 'customer@example.com',
-          buyerPhone: order.buyer_phone || order.buyerPhone,
-          buyerAddress: order.buyer_address || order.buyerAddress,
-          sellerId: order.seller_id || order.sellerId,
-          sellerName: order.seller_name || order.sellerName,
-          trackingNumber: order.tracking_number || order.trackingNumber,
-          carrier: order.carrier,
-          paymentStatus: order.payment_status || order.paymentStatus || 'Paid',
-          notes: order.notes,
-          deliveredAt: order.delivered_at || order.deliveredAt,
-          createdAt: order.created_at || order.createdAt,
-          updatedAt: order.updated_at || order.updatedAt
-        }));
-        
-        // Combine Supabase orders with memory orders
-        const allOrders = [...supabaseOrders, ...memoryOrders];
-        
-        // Filter by userId if provided
-        let filteredOrders = allOrders;
-        if (req.query.userId) {
-          filteredOrders = allOrders.filter(order => 
-            order.userId === req.query.userId
-          );
-        }
-        
-        // Sort by order date (newest first)
-        filteredOrders.sort((a, b) => {
-          const dateA = new Date(a.orderDate || a.createdAt);
-          const dateB = new Date(b.orderDate || b.createdAt);
-          return dateB - dateA;
-        });
-        
-        console.log(`Returning ${filteredOrders.length} orders (${supabaseOrders.length} from DB, ${memoryOrders.length} from memory)`);
-          res.json(filteredOrders);
-          
-// Removed misplaced closing brace here
-    } catch (orderError) {
-        // If ordering by created_at fails, try ordering by id
-        console.log('Failed to order by created_at, trying id:', orderError.message);
-        const { data, error } = await query.order('id', { ascending: false });
-        if (error) throw error;
-        
-        console.log('Successfully fetched from Supabase using id:', data.length, 'orders');
-        
-        // Transform with minimal fields that definitely exist
-        const supabaseOrders = data.map(order => ({
-          id: order.id,
-          orderNumber: order.orderNumber || order.id,
-          productName: order.productName || 'Product',
-          productImage: order.productImage,
-          price: order.price || 0,
-          quantity: order.quantity || 1,
-          totalAmount: order.totalAmount || order.price || 0,
-          paymentMethod: order.paymentMethod,
-          orderDate: order.orderDate || new Date(order.id).toISOString(),
-          deliveryDate: order.deliveryDate,
-          status: order.status || 'Reviewing',
-          statusSteps: JSON.parse(order.statusSteps || '[]'),
-          userId: order.userId || 'demo-user',
-          buyerId: order.buyerId,
-          buyerName: order.buyerName || 'Customer',
-          buyerEmail: order.buyerEmail || 'customer@example.com',
-          createdAt: order.createdAt || new Date(order.id).toISOString()
-        }));
-        
-        const allOrders = [...supabaseOrders, ...memoryOrders];
-        let filteredOrders = allOrders;
-        if (req.query.userId) {
-          filteredOrders = allOrders.filter(order => order.userId === req.query.userId);
-        }
-        
-        filteredOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        
-        console.log(`Returning ${filteredOrders.length} orders (${supabaseOrders.length} from DB, ${memoryOrders.length} from memory)`);
-        res.json(filteredOrders);
-      }
-      
-    } catch (supabaseError) {
-      console.log('Supabase orders fetch failed, returning memory orders only:', supabaseError.message);
-      
-      // Return only real orders from memory (no mock orders)
-      let filteredOrders = memoryOrders;
-      if (req.query.userId) {
-        filteredOrders = memoryOrders.filter(order => order.userId === req.query.userId);
-      }
-      
-      // Sort by creation date (newest first)
-      filteredOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      
-      console.log(`Returning ${filteredOrders.length} orders from memory only`);
-      res.json(filteredOrders);
+    if (userId) {
+      query += ' WHERE userId = ?';
+      params.push(userId);
     }
+    
+    query += ' ORDER BY createdAt DESC';
+    
+    const orders = await dbHelpers.query(query, params);
+    
+    // Transform orders to match frontend expectations
+    const transformedOrders = orders.map(order => ({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      productName: order.productName,
+      productImage: order.productImage,
+      price: order.price,
+      quantity: 1,
+      totalAmount: order.subtotal,
+      paymentMethod: order.paymentInfo ? JSON.parse(order.paymentInfo).method : 'Unknown',
+      orderDate: order.createdAt,
+      deliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+      status: order.orderStatus,
+      statusSteps: [
+        { label: 'Reviewing', completed: true },
+        { label: 'Processing', completed: false },
+        { label: 'Shipping', completed: false },
+        { label: 'Delivered', completed: false },
+      ],
+      userId: order.userId,
+      buyerId: 'buyer-' + order.id,
+      buyerName: 'Customer',
+      buyerEmail: order.userEmail,
+      paymentStatus: 'Paid',
+      createdAt: order.createdAt
+    }));
+    
+    console.log(`✅ Retrieved ${orders.length} orders from SQLite`);
+    res.json(transformedOrders);
+    
+  } catch (error) {
+    console.error('❌ Error fetching orders from SQLite:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
 });
+        
 
 // Get a single order by ID
 router.get('/:id', async (req, res) => {
   try {
-    const supabase = req.supabase;
+    const orderId = req.params.id;
     
-    try {
-      const { data, error } = await supabase.from('orders').select('*').eq('id', req.params.id).single();
-      if (error || !data) throw new Error('Order not found');
-      data.statusSteps = JSON.parse(data.statusSteps || '[]');
-      res.json(data);
-    } catch (supabaseError) {
-      console.log('Supabase single order fetch failed, returning mock order:', supabaseError.message);
+    // Try to get from SQLite first
+    const order = await dbHelpers.get('SELECT * FROM orders WHERE id = ? OR orderNumber = ?', [orderId, orderId]);
+    
+    if (order) {
+      // Transform for frontend
+      const transformedOrder = {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        productName: order.productName,
+        productImage: order.productImage,
+        price: order.price,
+        quantity: 1,
+        totalAmount: order.subtotal,
+        paymentMethod: order.paymentInfo ? JSON.parse(order.paymentInfo).method : 'Unknown',
+        orderDate: order.createdAt,
+        deliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        status: order.orderStatus,
+        statusSteps: [
+          { label: 'Reviewing', completed: true },
+          { label: 'Processing', completed: order.orderStatus !== 'Reviewing' },
+          { label: 'Shipping', completed: ['Shipped', 'Delivered'].includes(order.orderStatus) },
+          { label: 'Delivered', completed: order.orderStatus === 'Delivered' },
+        ],
+        userId: order.userId,
+        buyerId: 'buyer-' + order.id,
+        buyerName: 'Customer',
+        buyerEmail: order.userEmail,
+        paymentStatus: 'Paid',
+        createdAt: order.createdAt
+      };
+      
+      console.log(`✅ Retrieved order ${orderId} from SQLite`);
+      res.json(transformedOrder);
+    } else {
+      console.log('Order not found in SQLite, returning mock order:');
       // Return mock order for development
       const mockOrder = {
         id: parseInt(req.params.id),
