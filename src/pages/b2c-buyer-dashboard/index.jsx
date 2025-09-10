@@ -5,6 +5,9 @@ import { useAuth } from '../../components/ui/AuthenticationRouter';
 import { useNavigate } from 'react-router-dom';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import MobileTabBar from '../../components/ui/MobileTabBar';
+import Button from '../../components/ui/Button';
+import Icon from '../../components/AppIcon';
+import Image from '../../components/AppImage';
 import WelcomeHeader from './components/WelcomeHeader';
 import OrderSummaryStats from './components/OrderSummaryStats';
 import OrderStatusCard from './components/OrderStatusCard';
@@ -17,6 +20,28 @@ import PromotionalBanner from './components/PromotionalBanner';
 const B2CBuyerDashboard = () => {
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      type: 'order',
+      title: 'Order Shipped',
+      message: 'Your Tesla Powerwall order is on the way!',
+      time: '2 hours ago',
+      icon: 'Package',
+      color: 'blue'
+    },
+    {
+      id: 2,
+      type: 'reward',
+      title: 'Reward Points Earned',
+      message: 'You earned 250 points from your recent purchase!',
+      time: '1 day ago',
+      icon: 'Gift',
+      color: 'green'
+    }
+  ]);
+  const [showNotifications, setShowNotifications] = useState(false);
   const { addToCart } = useCart();
   const { showToast } = useToast();
 
@@ -260,8 +285,55 @@ const B2CBuyerDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10">
       <RoleBasedHeader user={user} onNavigate={handleNavigation} />
-  <main className="pt-20 pb-24 md:pb-12">
+      
+      {/* Simple Notification Bar */}
+      {notifications.length > 0 && (
+        <div className="bg-blue-50 border-b border-blue-200 pt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon name="Bell" size={16} className="text-blue-600" />
+                <span className="text-sm text-blue-800">You have {notifications.length} new notifications</span>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="text-blue-600 hover:text-blue-800"
+              >
+                {showNotifications ? 'Hide' : 'View'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <main className="pt-20 pb-24 md:pb-12">
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
+          {/* Notifications Dropdown */}
+          {showNotifications && (
+            <div className="mb-6 bg-white rounded-lg shadow-lg border border-gray-200 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-foreground">Notifications</h3>
+                <Button variant="ghost" size="sm" onClick={() => setShowNotifications(false)}>
+                  <Icon name="X" size={16} />
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {notifications.map(notification => (
+                  <div key={notification.id} className={`flex items-start gap-3 p-3 bg-${notification.color}-50 rounded-lg`}>
+                    <Icon name={notification.icon} size={16} className={`text-${notification.color}-600 mt-0.5`} />
+                    <div className="flex-1">
+                      <p className={`text-sm font-medium text-${notification.color}-900`}>{notification.title}</p>
+                      <p className={`text-xs text-${notification.color}-700`}>{notification.message}</p>
+                      <p className={`text-xs text-${notification.color}-600 mt-1`}>{notification.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Pull to refresh indicator */}
           {isRefreshing && (
             <div className="flex justify-center mb-4">

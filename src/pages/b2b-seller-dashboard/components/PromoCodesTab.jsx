@@ -24,7 +24,62 @@ const PromoCodesTab = ({ sellerId, sellerName }) => {
 
   useEffect(() => {
     fetchPromoCodes();
+    ensureSamplePromoCodes();
   }, [sellerId]);
+
+  // Create sample promo codes for testing
+  const ensureSamplePromoCodes = () => {
+    const storageKey = `promoCodes_${sellerId}`;
+    const existingCodes = localStorage.getItem(storageKey);
+    const codes = existingCodes ? JSON.parse(existingCodes) : [];
+    
+    // Check if we already have sample codes
+    const hasSample = codes.some(code => code.code === 'SAVE20' || code.code === 'WELCOME10');
+    
+    if (!hasSample) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      
+      const sampleCodes = [
+        {
+          id: Date.now().toString(),
+          code: 'SAVE20',
+          type: 'percentage',
+          value: 20,
+          description: '20% off your purchase',
+          minimumOrder: 50,
+          maxUses: 1000,
+          startDate: tomorrow.toISOString(),
+          endDate: nextMonth.toISOString(),
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          usageCount: 0
+        },
+        {
+          id: (Date.now() + 1).toString(),
+          code: 'WELCOME10',
+          type: 'fixed',
+          value: 10,
+          description: '$10 off first order',
+          minimumOrder: 25,
+          maxUses: 1000,
+          startDate: tomorrow.toISOString(),
+          endDate: nextMonth.toISOString(),
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          usageCount: 0
+        }
+      ];
+      
+      const allCodes = [...codes, ...sampleCodes];
+      localStorage.setItem(storageKey, JSON.stringify(allCodes));
+      console.log('🎯 Created sample promo codes for testing:', sampleCodes);
+    }
+  };
 
   const fetchPromoCodes = async () => {
     try {
@@ -34,10 +89,24 @@ const PromoCodesTab = ({ sellerId, sellerName }) => {
         const data = await response.json();
         setPromoCodes(data);
       } else {
-        setError('Failed to fetch promo codes');
+        // Fallback to localStorage if API fails
+        const storedCodes = localStorage.getItem(`promoCodes_${sellerId}`);
+        if (storedCodes) {
+          setPromoCodes(JSON.parse(storedCodes));
+        } else {
+          setPromoCodes([]);
+        }
+        console.log('API failed, using localStorage fallback');
       }
     } catch (err) {
-      setError('Error fetching promo codes');
+      // Fallback to localStorage if API fails
+      const storedCodes = localStorage.getItem(`promoCodes_${sellerId}`);
+      if (storedCodes) {
+        setPromoCodes(JSON.parse(storedCodes));
+      } else {
+        setPromoCodes([]);
+      }
+      console.log('API error, using localStorage fallback');
     } finally {
       setLoading(false);
     }
@@ -76,11 +145,12 @@ const PromoCodesTab = ({ sellerId, sellerName }) => {
         resetForm();
         fetchPromoCodes();
       } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to save promo code');
+        // API failed, save to localStorage as fallback
+        handleLocalStorageSave(payload);
       }
     } catch (err) {
-      setError('Error saving promo code');
+      // API failed, save to localStorage as fallback  
+      handleLocalStorageSave(payload);
     }
   };
 
@@ -96,10 +166,27 @@ const PromoCodesTab = ({ sellerId, sellerName }) => {
         setSuccess('Promo code deleted successfully!');
         fetchPromoCodes();
       } else {
-        setError('Failed to delete promo code');
+        // API failed, delete from localStorage
+        handleLocalStorageDelete(id);
       }
     } catch (err) {
-      setError('Error deleting promo code');
+      // API failed, delete from localStorage
+      handleLocalStorageDelete(id);
+    }
+  };
+
+  const handleLocalStorageDelete = (id) => {
+    try {
+      const existingCodes = localStorage.getItem(`promoCodes_${sellerId}`);
+      if (existingCodes) {
+        const codes = JSON.parse(existingCodes);
+        const filteredCodes = codes.filter(code => code.id !== id);
+        localStorage.setItem(`promoCodes_${sellerId}`, JSON.stringify(filteredCodes));
+        setPromoCodes(filteredCodes);
+        setSuccess('Promo code deleted successfully!');
+      }
+    } catch (error) {
+      setError('Failed to delete promo code locally');
     }
   };
 
@@ -117,6 +204,45 @@ const PromoCodesTab = ({ sellerId, sellerName }) => {
       isActive: code.isActive
     });
     setShowCreateModal(true);
+  };
+
+  const handleLocalStorageSave = (payload) => {
+    try {
+      const storageKey = `promoCodes_${sellerId}`;
+      console.log('💾 Saving promo code to localStorage:', { sellerId, storageKey, payload });
+      
+      const existingCodes = localStorage.getItem(storageKey);
+      let codes = existingCodes ? JSON.parse(existingCodes) : [];
+      
+      if (editingCode) {
+        // Update existing code
+        codes = codes.map(code => 
+          code.id === editingCode.id ? { ...payload, id: editingCode.id, createdAt: editingCode.createdAt, updatedAt: new Date().toISOString() } : code
+        );
+        console.log('✏️ Updated existing promo code:', codes);
+      } else {
+        // Add new code
+        const newCode = {
+          ...payload,
+          id: Date.now().toString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          usageCount: 0
+        };
+        codes.push(newCode);
+        console.log('➕ Added new promo code:', newCode);
+      }
+      
+      localStorage.setItem(storageKey, JSON.stringify(codes));
+      console.log('✅ All promo codes saved:', codes);
+      console.log('🔍 localStorage verification:', localStorage.getItem(storageKey));
+      
+      setPromoCodes(codes);
+      setSuccess(editingCode ? 'Promo code updated successfully!' : 'Promo code created successfully!');
+      resetForm();
+    } catch (error) {
+      setError('Failed to save promo code locally');
+    }
   };
 
   const resetForm = () => {

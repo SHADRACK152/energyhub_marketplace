@@ -1,0 +1,149 @@
+[
+  {
+    "id": 1757506143104,
+    "orderNumber": "ORD-1757506143104",
+    "productName": "Solar Panel System",
+    "productImage": "/uploads/solar.jpg",
+    "price": 3486.68,
+    "quantity": 1,
+    "totalAmount": 3486.68,
+    "paymentMethod": "M-Pesa",
+    "orderDate": "2025-09-10T12:09:03.104Z",
+    "deliveryDate": "2025-09-15T12:09:03.104Z",
+    "status": "Shipped",
+    "statusSteps": [
+      {
+        "label": "Reviewing",
+        "completed": true
+      },
+      {
+        "label": "Processing",
+        "completed": true
+      },
+      {
+        "label": "Shipping",
+        "completed": true
+      },
+      {
+        "label": "Delivered",
+        "completed": false
+      }
+    ],
+    "userId": "demo-user",
+    "buyerId": "buyer-new-1757506143160",
+    "buyerName": "New Customer",
+    "buyerEmail": "customer@example.com",
+    "paymentStatus": "Confirmed",
+    "notes": "Shipped via DHL Express - Tracking: TK1757509960048",
+    "updatedAt": "2025-09-10T13:12:40.056Z",
+    "trackingNumber": "TK1757509960048",
+    "carrier": "DHL Express"
+  },
+  {
+    "id": 1757506344058,
+    "orderNumber": "ORD-1757506344058",
+    "productName": "SolarEdge HD-Wave 5000 String Inverter, Tesla Solar Panel 400W Monocrystalline High Efficiency",
+    "productImage": "https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=400",
+    "price": 3486.68,
+    "quantity": 1,
+    "totalAmount": 3486.68,
+    "orderDate": "2025-09-10T12:12:24.058Z",
+    "deliveryDate": "2025-09-15T12:12:24.058Z",
+    "status": "Delivered",
+    "statusSteps": [
+      {
+        "label": "Reviewing",
+        "completed": true
+      },
+      {
+        "label": "Processing",
+        "completed": true
+      },
+      {
+        "label": "Shipping",
+        "completed": true
+      },
+      {
+        "label": "Delivered",
+        "completed": true
+      }
+    ],
+    "userId": "demo-user",
+    "buyerId": "buyer-new-1757506344058",
+    "buyerName": "New Customer",
+    "buyerEmail": "customer@example.com",
+    "paymentStatus": "Confirmed",
+    "notes": "Order delivered successfully",
+    "updatedAt": "2025-09-10T13:12:19.413Z",
+    "deliveredAt": "2025-09-10T13:12:19.405Z"
+  },
+  {
+    "id": 1757516002662,
+    "orderNumber": "ORD-1757516002662",
+    "productName": "Solar Panel System",
+    "productImage": "/uploads/solar.jpg",
+    "price": 5300.8233,
+    "quantity": 1,
+    "totalAmount": 5300.8233,
+    "paymentMethod": "M-Pesa",
+    "orderDate": "2025-09-10T14:53:22.662Z",
+    "deliveryDate": "2025-09-15T14:53:22.662Z",
+    "status": "Reviewing",
+    "statusSteps": [
+      {
+        "label": "Reviewing",
+        "completed": true
+      },
+      {
+        "label": "Processing",
+        "completed": false
+      },
+      {
+        "label": "Shipping",
+        "completed": false
+      },
+      {
+        "label": "Delivered",
+        "completed": false
+      }
+    ],
+    "userId": "demo-user",
+    "buyerId": "buyer-new-1757516002662",
+    "buyerName": "New Customer",
+    "buyerEmail": "customer@example.com"
+  },
+  {
+    "id": 1757516024411,
+    "orderNumber": "ORD-1757516024411",
+    "productName": "Solar Panel 400W",
+    "productImage": "http://localhost:5000/public/assets/images/solar.jpg",
+    "price": 5300.8233,
+    "quantity": 1,
+    "totalAmount": 5300.8233,
+    "orderDate": "2025-09-10T14:53:44.411Z",
+    "deliveryDate": "2025-09-15T14:53:44.411Z",
+    "status": "Reviewing",
+    "statusSteps": [
+      {
+        "label": "Reviewing",
+        "completed": true
+      },
+      {
+        "label": "Processing",
+        "completed": false
+      },
+      {
+        "label": "Shipping",
+        "completed": false
+      },
+      {
+        "label": "Delivered",
+        "completed": false
+      }
+    ],
+    "userId": "demo-user",
+    "buyerId": "buyer-new-1757516024411",
+    "buyerName": "New Customer",
+    "buyerEmail": "customer@example.com"
+  }
+]

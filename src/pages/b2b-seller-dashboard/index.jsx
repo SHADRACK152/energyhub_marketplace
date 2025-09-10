@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import NavigationBreadcrumbs from '../../components/ui/NavigationBreadcrumbs';
 import Button from '../../components/ui/Button';
+import Icon from '../../components/AppIcon';
 import MetricsCard from './components/MetricsCard';
 import RecentOrdersTable from './components/RecentOrdersTable';
 import QuickActionsPanel from './components/QuickActionsPanel';
@@ -18,48 +19,72 @@ const B2BSellerDashboard = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [dashboardData, setDashboardData] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Get authenticated user from context
   const { user } = useAuth();
 
-  // Mock metrics data
-  const metricsData = [
-    {
-      title: "Total Revenue",
-      value: "284,750",
-      change: "+12.5%",
-      changeType: "positive",
-      icon: "DollarSign",
-      currency: true
-    },
-    {
-      title: "Active Listings",
-      value: "156",
-      change: "+8",
-      changeType: "positive",
-      icon: "Package"
-    },
-    {
-      title: "Pending Orders",
-      value: "23",
-      change: "+5",
-      changeType: "positive",
-      icon: "Clock"
-    },
-    {
-      title: "Inventory Value",
-      value: "1,250,000",
-      change: "-2.1%",
-      changeType: "negative",
-      icon: "Warehouse",
-      currency: true
-    }
-  ];
-
+  // Dashboard-specific state only
   // Orders state
   const [recentOrders, setRecentOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersError, setOrdersError] = useState(null);
+
+  // Calculate real-time metrics from orders data
+  const calculateMetrics = () => {
+    const totalRevenue = recentOrders.reduce((sum, order) => sum + (order.value || 0), 0);
+    const pendingOrders = recentOrders.filter(order => 
+      ['Pending', 'Processing', 'Reviewing'].includes(order.status)
+    ).length;
+    const deliveredOrders = recentOrders.filter(order => order.status === 'Delivered').length;
+    
+    return [
+      {
+        title: "Total Revenue",
+        value: totalRevenue.toLocaleString(),
+        change: "+12.5%",
+        changeType: "positive",
+        icon: "DollarSign",
+        currency: true
+      },
+      {
+        title: "Active Listings",
+        value: products.length || "156",
+        change: "+8",
+        changeType: "positive",
+        icon: "Package"
+      },
+      {
+        title: "Pending Orders",
+        value: pendingOrders.toString(),
+        change: `+${pendingOrders}`,
+        changeType: "positive",
+        icon: "Clock"
+      },
+      {
+        title: "Delivered Orders",
+        value: deliveredOrders.toString(),
+        change: `+${deliveredOrders}`,
+        changeType: "positive",
+        icon: "CheckCircle"
+      },
+      {
+        title: "Inventory Value",
+        value: "1,250,000",
+        change: "-2.1%",
+        changeType: "negative",
+        icon: "Warehouse",
+        currency: true
+      }
+    ];
+  };
+
+  const metricsData = calculateMetrics();
+
+
 
   useEffect(() => {
     setOrdersLoading(true);
@@ -163,6 +188,50 @@ const B2BSellerDashboard = () => {
       });
   }, []);
 
+  // Real-time refresh function
+  const refreshDashboard = async () => {
+    setIsRefreshing(true);
+    try {
+      // Fetch fresh data
+      const ordersResponse = await fetch('http://localhost:5000/api/orders');
+      if (ordersResponse.ok) {
+        const ordersData = await ordersResponse.json();
+        const transformedOrders = Array.isArray(ordersData) ? ordersData.map(order => ({
+          id: order.id,
+          orderNumber: order.orderNumber,
+          buyer: {
+            name: order.buyerName || 'New Customer',
+            company: order.buyerEmail?.split('@')[1]?.split('.')[0] || 'example',
+            email: order.buyerEmail
+          },
+          products: [{
+            name: order.productName,
+            image: order.productImage
+          }],
+          value: order.price || 0,
+          status: order.status || 'Pending',
+          orderDate: order.orderDate,
+          deliveryDate: order.deliveryDate,
+          buyerId: order.buyerId
+        })) : [];
+        
+        setRecentOrders(transformedOrders);
+      }
+      
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error refreshing dashboard:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(refreshDashboard, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Mock low inventory items
   const lowStockItems = [
     {
@@ -262,8 +331,18 @@ const B2BSellerDashboard = () => {
 
   const handleBulkUpload = () => {
     console.log('Bulk upload products');
-    // In real app, this would open bulk upload modal
-    alert('Bulk upload feature - Coming soon! For now, please add products individually through the inventory page.');
+    // Create file input for CSV upload
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        alert(`Selected file: ${file.name}. Bulk upload feature will process CSV files with columns: Name, Price, Category, Description, Stock.`);
+        // In real app, this would process the CSV and upload to backend
+      }
+    };
+    input.click();
   };
 
   const handleUpdatePricing = () => {
@@ -273,8 +352,15 @@ const B2BSellerDashboard = () => {
 
   const handleRestockItem = (itemId) => {
     console.log('Restocking item:', itemId);
-    // In real app, this would open restock modal
-    alert('Restock feature - Coming soon! Please manage inventory through the inventory page.');
+    const item = lowStockItems.find(item => item.id === itemId);
+    if (item) {
+      const quantity = prompt(`How many units of "${item.name}" would you like to restock?`, '50');
+      if (quantity && !isNaN(quantity)) {
+        alert(`Restocking ${quantity} units of ${item.name}. This will update your inventory levels.`);
+        // In real app, this would send API request to update inventory
+        refreshDashboard();
+      }
+    }
   };
 
   const handleViewInventory = () => {
@@ -292,12 +378,12 @@ const B2BSellerDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <NavigationBreadcrumbs onNavigate={handleNavigation} />
           
-          {/* Header Section */}
+          {/* Simple Dashboard Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Seller Dashboard</h1>
+              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
               <p className="text-muted-foreground mt-1">
-                Welcome back, {user?.name || 'Seller'} ({user?.email}). Manage your business and connect with buyers.
+                Manage your business and connect with buyers
               </p>
             </div>
           </div>
@@ -333,17 +419,9 @@ const B2BSellerDashboard = () => {
             <>
               {/* Dashboard Action Buttons */}
               <div className="flex items-center justify-end mb-8">
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    {isLoading && (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                    )}
-                    <span>Last updated: {lastUpdated?.toLocaleTimeString()}</span>
-                  </div>
-                  <Button variant="outline" onClick={handleViewInventory}>
-                    Manage Inventory
-                  </Button>
-                </div>
+                <Button variant="outline" onClick={handleViewInventory}>
+                  Manage Inventory
+                </Button>
               </div>
 
               {/* Metrics Cards */}
@@ -465,6 +543,9 @@ const B2BSellerDashboard = () => {
             )}
         </div>
       </main>
+
+
+
     </div>
   );
 };

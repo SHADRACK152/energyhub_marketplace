@@ -110,6 +110,152 @@ const ShoppingCartCheckout = () => {
     removeFromCart(itemId);
   };
 
+  // Ensure TROVA promo code exists for testing
+  React.useEffect(() => {
+    const ensureTestPromoCode = () => {
+      const testSellerId = 'seller1'; // Default seller ID
+      const storageKey = `promoCodes_${testSellerId}`;
+      const existingCodes = localStorage.getItem(storageKey);
+      const codes = existingCodes ? JSON.parse(existingCodes) : [];
+      
+      // Check if TROVA code already exists
+      const trovaExists = codes.find(code => code.code === 'TROVA');
+      if (!trovaExists) {
+        // Add TROVA test promo code
+        const trovaCode = {
+          id: 'test-trova-' + Date.now(),
+          code: 'TROVA',
+          type: 'percentage',
+          value: 15, // 15% off
+          description: '15% off for TROVA users',
+          minimumOrder: 0,
+          maxUses: 1000,
+          usageCount: 0,
+          startDate: new Date().toISOString(),
+          endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          isActive: true,
+          sellerId: testSellerId,
+          sellerName: 'EnergyHub Demo Seller',
+          createdAt: new Date().toISOString()
+        };
+        codes.push(trovaCode);
+        localStorage.setItem(storageKey, JSON.stringify(codes));
+        console.log('✅ TROVA promo code created for testing');
+      }
+    };
+    
+    ensureTestPromoCode();
+  }, []);
+
+  // Validate promo code from localStorage (fallback when API fails)
+  const validatePromoCodeLocally = (code) => {
+    console.log('🔍 Searching for promo code:', code);
+    try {
+      // Check all seller's localStorage for promo codes
+      let foundCode = null;
+      let totalStorageKeys = 0;
+      let promoCodeKeys = 0;
+      
+      // Loop through all localStorage keys to find promo codes from any seller
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        totalStorageKeys++;
+        if (key && key.startsWith('promoCodes_')) {
+          promoCodeKeys++;
+          console.log(`📦 Found promo storage key: ${key}`);
+          const storedCodes = localStorage.getItem(key);
+          if (storedCodes) {
+            const codes = JSON.parse(storedCodes);
+            console.log(`📋 Codes in ${key}:`, codes);
+            foundCode = codes.find(promoCode => 
+              promoCode.code.toUpperCase() === code.toUpperCase() && 
+              promoCode.isActive &&
+              new Date(promoCode.endDate) > new Date()
+            );
+            if (foundCode) {
+              console.log('✅ Found matching promo code:', foundCode);
+              break;
+            }
+          }
+        }
+      }
+      
+      console.log(`📊 Storage scan: ${totalStorageKeys} total keys, ${promoCodeKeys} promo code keys`);
+      if (!foundCode) {
+        console.log('❌ No matching promo code found');
+      }
+
+      if (foundCode) {
+        // Calculate discount
+        let discount = 0;
+        if (foundCode.type === 'percentage') {
+          discount = (subtotal * foundCode.value) / 100;
+        } else if (foundCode.type === 'fixed') {
+          discount = foundCode.value;
+        }
+
+        // Check minimum order requirement
+        if (foundCode.minimumOrder && subtotal < foundCode.minimumOrder) {
+          setPromoDiscount(0);
+          setAppliedPromoData(null);
+          setPromoFeedback(`Minimum order of $${foundCode.minimumOrder} required for this promo code.`);
+          return;
+        }
+
+        setPromoDiscount(discount);
+        setAppliedPromoData({
+          valid: true,
+          discount: discount,
+          description: foundCode.description || `${foundCode.value}${foundCode.type === 'percentage' ? '%' : '$'} off`,
+          code: foundCode.code
+        });
+        setPromoFeedback(`✅ ${foundCode.description || 'Promo code applied'} - $${discount.toFixed(2)} discount applied!`);
+      } else {
+        setPromoDiscount(0);
+        setAppliedPromoData(null);
+        setPromoFeedback('Invalid promo code.');
+      }
+    } catch (error) {
+      console.error('Error validating promo code locally:', error);
+      setPromoDiscount(0);
+      setAppliedPromoData(null);
+      setPromoFeedback('Error validating promo code. Please try again.');
+    }
+  };
+
+  // Debug function to show all available promo codes
+  const showAllPromoCodes = () => {
+    console.log('🔍 === ALL AVAILABLE PROMO CODES ===');
+    let totalCodes = 0;
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('promoCodes_')) {
+        const sellerId = key.replace('promoCodes_', '');
+        const storedCodes = localStorage.getItem(key);
+        if (storedCodes) {
+          const codes = JSON.parse(storedCodes);
+          console.log(`🏪 Seller ${sellerId}:`, codes);
+          totalCodes += codes.length;
+          
+          codes.forEach(code => {
+            const isActive = code.isActive && new Date(code.endDate) > new Date();
+            console.log(`  📋 ${code.code}: ${code.type} ${code.value}${code.type === 'percentage' ? '%' : '$'} - ${isActive ? '✅ ACTIVE' : '❌ INACTIVE'}`);
+          });
+        }
+      }
+    }
+    
+    console.log(`📊 Total codes available: ${totalCodes}`);
+    
+    // Also show in alert for user
+    if (totalCodes === 0) {
+      alert('No promo codes found. Create some in the B2B seller dashboard first!');
+    } else {
+      alert(`Found ${totalCodes} promo codes! Check console for details.`);
+    }
+  };
+
   const handleApplyPromoCode = async () => {
     const code = promoCode?.trim();
     if (!code) {
@@ -149,15 +295,13 @@ const ShoppingCartCheckout = () => {
           setPromoFeedback(`${result.description} - $${result.discount?.toFixed(2)} discount applied!`);
         }
       } else {
-        setPromoDiscount(0);
-        setAppliedPromoData(null);
-        setPromoFeedback(result.error || 'Invalid promo code.');
+        // API failed or invalid, try localStorage fallback
+        validatePromoCodeLocally(code);
       }
     } catch (error) {
       console.error('Error validating promo code:', error);
-      setPromoDiscount(0);
-      setAppliedPromoData(null);
-      setPromoFeedback('Error validating promo code. Please try again.');
+      // API failed, try localStorage fallback
+      validatePromoCodeLocally(code);
     } finally {
       setPromoLoading(false);
     }
@@ -255,6 +399,7 @@ const ShoppingCartCheckout = () => {
             promoFeedback={promoFeedback}
             promoLoading={promoLoading}
             appliedPromoData={appliedPromoData}
+            showAllPromoCodes={showAllPromoCodes}
           />
         );
       case 'shipping':

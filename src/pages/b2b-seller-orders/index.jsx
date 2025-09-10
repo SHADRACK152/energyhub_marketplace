@@ -26,6 +26,8 @@ const B2BSellerOrders = () => {
   const [showTrackingModal, setShowTrackingModal] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
+  const [showCancelApprovalModal, setShowCancelApprovalModal] = useState(false);
+  const [cancelDecision, setCancelDecision] = useState('');
   const [trackingData, setTrackingData] = useState({
     trackingNumber: '',
     carrier: '',
@@ -389,6 +391,75 @@ const B2BSellerOrders = () => {
     }
   };
 
+  // Handle cancellation request approval
+  const handleApproveCancellation = async (orderId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel-approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          approvedBy: user?.email || 'seller@energyhub.com',
+          refundAmount: selectedOrder?.totalAmount || selectedOrder?.price,
+          notes: 'Cancellation approved by seller'
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setOrders(prev => prev.map(order => 
+          order.id === orderId 
+            ? { ...order, status: 'Cancelled', cancelRequest: { ...order.cancelRequest, status: 'approved' } }
+            : order
+        ));
+        
+        setShowCancelApprovalModal(false);
+        setSelectedOrder(null);
+        showToast('Cancellation approved successfully', 'success');
+      } else {
+        throw new Error('Failed to approve cancellation');
+      }
+    } catch (error) {
+      console.error('Error approving cancellation:', error);
+      showToast('Failed to approve cancellation', 'error');
+    }
+  };
+
+  // Handle cancellation request rejection
+  const handleRejectCancellation = async (orderId, reason) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel-reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          rejectedBy: user?.email || 'seller@energyhub.com',
+          reason: reason || 'Cancellation not approved'
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setOrders(prev => prev.map(order => 
+          order.id === orderId 
+            ? { ...order, status: 'Processing', cancelRequest: { ...order.cancelRequest, status: 'rejected' } }
+            : order
+        ));
+        
+        setShowCancelApprovalModal(false);
+        setSelectedOrder(null);
+        showToast('Cancellation request rejected', 'info');
+      } else {
+        throw new Error('Failed to reject cancellation');
+      }
+    } catch (error) {
+      console.error('Error rejecting cancellation:', error);
+      showToast('Failed to reject cancellation', 'error');
+    }
+  };
+
   const handleShipOrder = async (orderId, trackingInfo) => {
     try {
       const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
@@ -718,6 +789,16 @@ ${user?.email || 'seller@energyhub.com'}`);
                   </Button>
                 </>
               )}
+              {selectedOrder.status === 'Cancel Requested' && selectedOrder.cancelRequest?.status === 'pending' && (
+                <>
+                  <Button variant="default" onClick={() => handleApproveCancellation(selectedOrder.id)} className="bg-green-600 hover:bg-green-700">
+                    Approve Cancellation
+                  </Button>
+                  <Button variant="outline" onClick={() => handleRejectCancellation(selectedOrder.id, 'Seller declined cancellation')} className="text-red-600 border-red-300 hover:bg-red-50">
+                    Reject Cancellation
+                  </Button>
+                </>
+              )}
               {(selectedOrder.status === 'Approved' || selectedOrder.status === 'Processing') && (
                 <Button variant="outline" onClick={() => handleTrackingUpdate(selectedOrder)}>
                   Update Tracking
@@ -992,6 +1073,7 @@ ${user?.email || 'seller@energyhub.com'}`);
                   <option value="Processing">Processing</option>
                   <option value="Shipped">Shipped</option>
                   <option value="Delivered">Delivered</option>
+                  <option value="Cancel Requested">Cancel Requested</option>
                   <option value="Dispute">Dispute</option>
                   <option value="Cancelled">Cancelled</option>
                   <option value="Refunded">Refunded</option>

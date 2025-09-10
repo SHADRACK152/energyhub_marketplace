@@ -16,6 +16,9 @@ function OrdersPage() {
   const [view, setView] = useState('card');
   const [modalOrder, setModalOrder] = useState(null);
   const [trackingOrder, setTrackingOrder] = useState(null);
+  const [cancelOrder, setCancelOrder] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const statusTabs = ['All', 'Reviewing', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
   const statusStyles = {
     Reviewing: 'bg-gray-100 text-gray-800',
@@ -45,6 +48,58 @@ function OrdersPage() {
         setOrders([]);
       });
   }, [location.pathname]);
+
+  // Cancel order handler
+  const handleCancelOrder = async () => {
+    if (!cancelOrder || !cancelReason.trim()) {
+      alert('Please provide a reason for cancellation');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/orders/${cancelOrder.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          status: 'Cancelled',
+          cancelReason: cancelReason.trim(),
+          cancelledAt: new Date().toISOString()
+        }),
+      });
+
+      if (response.ok) {
+        // Update local state
+        setOrders(prevOrders => 
+          prevOrders.map(order => 
+            order.id === cancelOrder.id 
+              ? { ...order, status: 'Cancelled' }
+              : order
+          )
+        );
+        
+        // Close modals
+        setShowCancelModal(false);
+        setModalOrder(null);
+        setCancelOrder(null);
+        setCancelReason('');
+        
+        alert('Order cancelled successfully');
+      } else {
+        throw new Error('Failed to cancel order');
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      alert('Failed to cancel order. Please try again.');
+    }
+  };
+
+  const handleDownloadInvoice = (orderId) => {
+    console.log('Downloading invoice for order:', orderId);
+    // Implement download logic here
+    alert('Invoice download started');
+  };
 
   // Ensure statusSteps is always an array
   const normalizeOrder = (order) => ({
@@ -208,13 +263,28 @@ function OrdersPage() {
               <div>Expected Delivery: {new Date(normalizedModalOrder.deliveryDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
               <div>Price: <span className="font-bold text-primary">KSh {normalizedModalOrder.price.toLocaleString()}</span></div>
             </div>
-            <div className="flex gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-4">
               <Button variant="outline" size="sm" iconName="Download" iconPosition="left" onClick={() => handleDownloadInvoice(normalizedModalOrder.id)}>Download Invoice</Button>
-              {normalizedModalOrder.status !== 'Delivered' && (
+              {normalizedModalOrder.status !== 'Delivered' && normalizedModalOrder.status !== 'Cancelled' && (
                 <Button variant="outline" size="sm" iconName="Truck" iconPosition="left" onClick={() => setTrackingOrder(normalizedModalOrder)}>Track</Button>
               )}
               {normalizedModalOrder.status === 'Delivered' && (
                 <Button variant="outline" size="sm" iconName="Repeat" iconPosition="left">Buy Again</Button>
+              )}
+              {(normalizedModalOrder.status === 'Reviewing' || normalizedModalOrder.status === 'Pending' || normalizedModalOrder.status === 'Processing') && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  iconName="X" 
+                  iconPosition="left"
+                  onClick={() => {
+                    setCancelOrder(normalizedModalOrder);
+                    setShowCancelModal(true);
+                  }}
+                  className="text-red-600 border-red-300 hover:bg-red-50"
+                >
+                  Cancel Order
+                </Button>
               )}
               <Button variant="outline" size="sm" iconName="HelpCircle" iconPosition="left">Get Support</Button>
             </div>
@@ -256,6 +326,96 @@ function OrdersPage() {
                   </React.Fragment>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Order Modal */}
+      {showCancelModal && cancelOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">Cancel Order</h3>
+              <button 
+                onClick={() => {
+                  setShowCancelModal(false);
+                  setCancelOrder(null);
+                  setCancelReason('');
+                }}
+                className="text-muted-foreground hover:text-primary"
+              >
+                <Icon name="X" size={20} />
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <Image 
+                  src={cancelOrder.productImage} 
+                  alt={cancelOrder.productName} 
+                  className="w-12 h-12 rounded-lg object-cover" 
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-foreground">{cancelOrder.productName}</p>
+                  <p className="text-sm text-muted-foreground">Order #{cancelOrder.orderNumber}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Reason for cancellation <span className="text-red-500">*</span>
+              </label>
+              <select 
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                required
+              >
+                <option value="">Select a reason...</option>
+                <option value="Changed my mind">Changed my mind</option>
+                <option value="Found a better price">Found a better price</option>
+                <option value="Ordered by mistake">Ordered by mistake</option>
+                <option value="Delivery too slow">Delivery too slow</option>
+                <option value="Product no longer needed">Product no longer needed</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+              <div className="flex items-start gap-2">
+                <Icon name="AlertTriangle" size={16} className="text-yellow-600 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium text-yellow-800">Cancellation Policy</p>
+                  <p className="text-yellow-700 mt-1">
+                    Orders can be cancelled free of charge before shipping. Once shipped, 
+                    you may need to return the item according to our return policy.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowCancelModal(false);
+                  setCancelOrder(null);
+                  setCancelReason('');
+                }}
+                className="flex-1"
+              >
+                Keep Order
+              </Button>
+              <Button 
+                variant="default"
+                onClick={handleCancelOrder}
+                disabled={!cancelReason.trim()}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              >
+                Cancel Order
+              </Button>
             </div>
           </div>
         </div>

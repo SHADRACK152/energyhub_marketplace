@@ -15,7 +15,8 @@ const CartSection = ({
   promoDiscount,
   promoFeedback,
   promoLoading,
-  appliedPromoData
+  appliedPromoData,
+  showAllPromoCodes // Added debug function
 }) => {
   const { t } = useTranslation();
   const handleQuantityChange = (itemId, change) => {
@@ -175,7 +176,21 @@ const CartSection = ({
       </div>
       {/* Promo Code Section */}
       <div className="bg-muted/30 rounded-lg p-4">
-        <h3 className="font-medium text-foreground mb-3">{t('promo.code')}</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-medium text-foreground">{t('promo.code')}</h3>
+          {showAllPromoCodes && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={showAllPromoCodes}
+              iconName="Search"
+              iconPosition="left"
+              className="text-xs"
+            >
+              Debug: Show All Codes
+            </Button>
+          )}
+        </div>
         <div className="flex space-x-2">
           <div className="flex-1">
             <Input

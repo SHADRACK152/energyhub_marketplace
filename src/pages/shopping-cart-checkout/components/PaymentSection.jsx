@@ -653,7 +653,15 @@ const PaymentSection = ({ paymentInfo, onPaymentInfoChange, shippingInfo, subtot
                   <Input
                     label="Mobile Number"
                     value={mobileNumber}
-                    onChange={e => setMobileNumber(e.target.value)}
+                    onChange={e => {
+                      setMobileNumber(e.target.value);
+                      // Update payment info with mobile number
+                      onPaymentInfoChange({
+                        ...paymentInfo,
+                        method: selectedPayment,
+                        mobileNumber: e.target.value
+                      });
+                    }}
                     placeholder="e.g. +254712345678"
                     required
                     maxLength={15}

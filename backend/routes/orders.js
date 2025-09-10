@@ -123,7 +123,6 @@ router.post('/', async (req, res) => {
         order: savedOrder,
         message: 'Order created and saved to database successfully'
       });
-      
     } catch (supabaseError) {
       console.log('Supabase order creation failed, using memory storage:', supabaseError.message);
       
@@ -276,9 +275,10 @@ router.get('/', async (req, res) => {
         });
         
         console.log(`Returning ${filteredOrders.length} orders (${supabaseOrders.length} from DB, ${memoryOrders.length} from memory)`);
-        res.json(filteredOrders);
-        
-      } catch (orderError) {
+          res.json(filteredOrders);
+          
+// Removed misplaced closing brace here
+    } catch (orderError) {
         // If ordering by created_at fails, try ordering by id
         console.log('Failed to order by created_at, trying id:', orderError.message);
         const { data, error } = await query.order('id', { ascending: false });
@@ -334,10 +334,6 @@ router.get('/', async (req, res) => {
       console.log(`Returning ${filteredOrders.length} orders from memory only`);
       res.json(filteredOrders);
     }
-  } catch (err) {
-    console.error('Orders fetch error:', err);
-    res.status(500).json({ error: err.message });
-  }
 });
 
 // Get a single order by ID
@@ -503,6 +499,162 @@ router.patch('/:id', async (req, res) => {
     }
   } catch (err) {
     console.error('Order update error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/orders/:id/cancel-request - Buyer requests order cancellation
+router.post('/:id/cancel-request', async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { reason, requestedAt, requestedBy } = req.body;
+    
+    console.log('Cancel request received for order:', orderId, 'Reason:', reason);
+    
+    // Find the order in memory
+    const orderIndex = memoryOrders.findIndex(order => order.id == orderId);
+    
+    if (orderIndex === -1) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const order = memoryOrders[orderIndex];
+    
+    // Check if order can be cancelled
+    const cancellableStatuses = ['Reviewing', 'Pending', 'Processing'];
+    if (!cancellableStatuses.includes(order.status)) {
+      return res.status(400).json({ 
+        error: 'Order cannot be cancelled at this stage',
+        currentStatus: order.status 
+      });
+    }
+
+    // Add cancellation request to order
+    memoryOrders[orderIndex] = {
+      ...order,
+      status: 'Cancel Requested',
+      cancelRequest: {
+        reason,
+        requestedAt,
+        requestedBy,
+        status: 'pending'
+      }
+    };
+
+    // Save to file
+    saveOrdersToFile();
+    
+    console.log('Cancellation request added to order:', orderId);
+    
+    res.json({ 
+      message: 'Cancellation request submitted successfully',
+      order: memoryOrders[orderIndex]
+    });
+  } catch (err) {
+    console.error('Cancel request error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/orders/:id/cancel-approve - Seller approves cancellation request
+router.post('/:id/cancel-approve', async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { approvedBy, refundAmount, notes } = req.body;
+    
+    console.log('Cancel approval received for order:', orderId);
+    
+    // Find the order in memory
+    const orderIndex = memoryOrders.findIndex(order => order.id == orderId);
+    
+    if (orderIndex === -1) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const order = memoryOrders[orderIndex];
+    
+    // Check if there's a pending cancel request
+    if (!order.cancelRequest || order.cancelRequest.status !== 'pending') {
+      return res.status(400).json({ error: 'No pending cancellation request found' });
+    }
+
+    // Approve cancellation
+    memoryOrders[orderIndex] = {
+      ...order,
+      status: 'Cancelled',
+      cancelRequest: {
+        ...order.cancelRequest,
+        status: 'approved',
+        approvedAt: new Date().toISOString(),
+        approvedBy,
+        refundAmount: refundAmount || order.totalAmount,
+        notes
+      }
+    };
+
+    // Save to file
+    saveOrdersToFile();
+    
+    console.log('Cancellation approved for order:', orderId);
+    
+    res.json({ 
+      message: 'Cancellation approved successfully',
+      order: memoryOrders[orderIndex]
+    });
+  } catch (err) {
+    console.error('Cancel approval error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/orders/:id/cancel-reject - Seller rejects cancellation request
+router.post('/:id/cancel-reject', async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { rejectedBy, reason } = req.body;
+    
+    console.log('Cancel rejection received for order:', orderId);
+    
+    // Find the order in memory
+    const orderIndex = memoryOrders.findIndex(order => order.id == orderId);
+    
+    if (orderIndex === -1) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const order = memoryOrders[orderIndex];
+    
+    // Check if there's a pending cancel request
+    if (!order.cancelRequest || order.cancelRequest.status !== 'pending') {
+      return res.status(400).json({ error: 'No pending cancellation request found' });
+    }
+
+    // Reject cancellation - restore original status
+    const originalStatus = order.cancelRequest.originalStatus || 'Processing';
+    
+    memoryOrders[orderIndex] = {
+      ...order,
+      status: originalStatus,
+      cancelRequest: {
+        ...order.cancelRequest,
+        status: 'rejected',
+        rejectedAt: new Date().toISOString(),
+        rejectedBy,
+        rejectionReason: reason
+      }
+    };
+
+    // Save to file
+    saveOrdersToFile();
+    
+    console.log('Cancellation rejected for order:', orderId);
+    
+    res.json({ 
+      message: 'Cancellation request rejected',
+      order: memoryOrders[orderIndex]
+    });
+  } catch (err) {
+    console.error('Cancel rejection error:', err);
     res.status(500).json({ error: err.message });
   }
 });

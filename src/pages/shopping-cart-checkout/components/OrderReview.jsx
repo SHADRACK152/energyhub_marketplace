@@ -33,9 +33,21 @@ const OrderReview = ({
       },
       'paypal': { name: 'PayPal', details: 'PayPal account' },
       'apple-pay': { name: 'Apple Pay', details: 'Apple Pay wallet' },
-      'google-pay': { name: 'Google Pay', details: 'Google Pay wallet' }
+      'google-pay': { name: 'Google Pay', details: 'Google Pay wallet' },
+      'mpesa': { 
+        name: 'M-Pesa', 
+        details: paymentInfo?.mobileNumber ? 
+          `Mobile: ${paymentInfo.mobileNumber}` : 
+          'Mobile money payment'
+      },
+      'airtel-money': { 
+        name: 'Airtel Money', 
+        details: paymentInfo?.mobileNumber ? 
+          `Mobile: ${paymentInfo.mobileNumber}` : 
+          'Mobile money payment'
+      }
     };
-    return methods?.[paymentInfo?.method] || methods?.['credit-card'];
+    return methods?.[paymentInfo?.method] || { name: 'Unknown Payment Method', details: 'Payment method not recognized' };
   };
 
   return (
