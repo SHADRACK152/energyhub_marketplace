@@ -21,6 +21,8 @@
 
 EnergyHub Marketplace is a cutting-edge platform designed to revolutionize the energy trading industry. Built with modern web technologies, it provides a seamless experience for both B2B and B2C transactions in the renewable energy sector.
 
+**🆕 Latest Update:** Now powered by SQLite for enhanced reliability and local development experience!
+
 ## ✨ Key Features
 
 ### 🏠 **Landing Experience**
@@ -30,10 +32,11 @@ EnergyHub Marketplace is a cutting-edge platform designed to revolutionize the e
 - 🔍 Product category showcases
 
 ### 🔐 **Authentication & Security**
-- 🛡️ Secure login/register system
+- 🛡️ Secure JWT-based authentication
+- 🔒 bcrypt password encryption
 - 💪 Password strength validation
-- 🔑 Forgot password recovery
-- 👤 Role-based access control
+- � Role-based access control (Buyer/Seller)
+- �️ Local SQLite user management
 
 ### 📊 **Smart Dashboards**
 - **👥 Buyer Dashboard**
@@ -58,8 +61,9 @@ EnergyHub Marketplace is a cutting-edge platform designed to revolutionize the e
 ### 💳 **Checkout & Payments**
 - 🛒 Global cart state management
 - 📝 Multi-step checkout process
-- 🎫 Promo code support
+- 🎫 B2B/B2C cross-platform promo codes
 - 💰 Comprehensive order summaries
+- 📊 Real-time order tracking
 
 ### 📱 **Mobile Experience**
 - 📲 Touch-friendly interface
@@ -70,11 +74,11 @@ EnergyHub Marketplace is a cutting-edge platform designed to revolutionize the e
 
 <div align="center">
 
-| Frontend | Backend | Database | Tools |
-|----------|---------|----------|-------|
-| ![React](https://img.shields.io/badge/-React-61DAFB?style=flat-square&logo=react&logoColor=black) | ![Node.js](https://img.shields.io/badge/-Node.js-339933?style=flat-square&logo=node.js&logoColor=white) | ![Supabase](https://img.shields.io/badge/-Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white) | ![Vite](https://img.shields.io/badge/-Vite-646CFF?style=flat-square&logo=vite&logoColor=white) |
-| ![Tailwind](https://img.shields.io/badge/-Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white) | ![Express](https://img.shields.io/badge/-Express-000000?style=flat-square&logo=express&logoColor=white) | ![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white) | ![ESLint](https://img.shields.io/badge/-ESLint-4B32C3?style=flat-square&logo=eslint&logoColor=white) |
-| ![React Router](https://img.shields.io/badge/-React_Router-CA4245?style=flat-square&logo=react-router&logoColor=white) | ![Multer](https://img.shields.io/badge/-Multer-FF6600?style=flat-square) | | ![PostCSS](https://img.shields.io/badge/-PostCSS-DD3A0A?style=flat-square&logo=postcss&logoColor=white) |
+| Frontend | Backend | Database | Security |
+|----------|---------|----------|----------|
+| ![React](https://img.shields.io/badge/-React-61DAFB?style=flat-square&logo=react&logoColor=black) | ![Node.js](https://img.shields.io/badge/-Node.js-339933?style=flat-square&logo=node.js&logoColor=white) | ![SQLite](https://img.shields.io/badge/-SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white) | ![JWT](https://img.shields.io/badge/-JWT-000000?style=flat-square&logo=json-web-tokens&logoColor=white) |
+| ![Tailwind](https://img.shields.io/badge/-Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white) | ![Express](https://img.shields.io/badge/-Express-000000?style=flat-square&logo=express&logoColor=white) | ![Local DB](https://img.shields.io/badge/-Local_Database-4CAF50?style=flat-square) | ![bcrypt](https://img.shields.io/badge/-bcrypt-FF6B35?style=flat-square) |
+| ![React Router](https://img.shields.io/badge/-React_Router-CA4245?style=flat-square&logo=react-router&logoColor=white) | ![Multer](https://img.shields.io/badge/-Multer-FF6600?style=flat-square) | | ![Vite](https://img.shields.io/badge/-Vite-646CFF?style=flat-square&logo=vite&logoColor=white) |
 
 </div>
 
@@ -83,7 +87,7 @@ EnergyHub Marketplace is a cutting-edge platform designed to revolutionize the e
 ### Prerequisites
 - 📦 Node.js (v18 or higher)
 - 📦 npm or yarn
-- 🗄️ Supabase account (for database)
+- � Local development environment (no external database required!)
 
 ### Installation
 
@@ -100,9 +104,10 @@ EnergyHub Marketplace is a cutting-edge platform designed to revolutionize the e
    cd backend && npm install && cd ..
    ```
 
-3. **🔧 Environment Setup**
+3. **🔧 Environment Setup (Optional)**
    ```bash
-   # Create environment file
+   # Environment file is optional - SQLite works out of the box!
+   # Create only if you need custom JWT secrets
    cp .env.example .env
    ```
 
@@ -138,7 +143,9 @@ energyhub_marketplace/
 │   └── 🛠️ utils/           # Helper functions
 ├── 🖥️ backend/            # Express.js API
 │   ├── 🛣️ routes/         # API routes
-│   └── 📁 uploads/        # File storage
+│   ├── 📁 uploads/        # File storage
+│   ├── 🗄️ database.js     # SQLite configuration
+│   └── 💾 energyhub.db    # Local SQLite database
 └── 🌐 public/            # Static assets
 ```
 
@@ -154,25 +161,63 @@ Our custom-built component library includes:
 - **🧭 Navigation** - Breadcrumbs and headers
 - **📱 Mobile** - Touch-friendly components
 
-## 🌟 Features Showcase
+## � What's New - SQLite Migration
+
+### 🗄️ **Local Database Advantages**
+- ✅ **Zero Configuration** - Works out of the box
+- ⚡ **Lightning Fast** - No network latency
+- 🛡️ **Enhanced Reliability** - No external dependencies
+- 💻 **Perfect for Development** - Complete local environment
+- 🔄 **Easy Backup** - Single file database
+
+### 📊 **Complete Feature Set**
+- 🛍️ **Products Management** - Full CRUD operations
+- 🎫 **Promo Codes System** - B2B/B2C cross-platform support
+- 📦 **Order Management** - Real-time order tracking
+- 👥 **User Authentication** - Secure JWT + bcrypt
+- ❓ **Q&A System** - Product questions and answers
+
+## �🌟 Features Showcase
 
 ### 🛡️ Security Features
-- 🔐 JWT-based authentication
-- 🔒 Password encryption
-- 🛡️ Role-based permissions
+- 🔐 JWT-based authentication with bcrypt encryption
+- 🔒 Secure password hashing and validation
+- 🛡️ Role-based permissions (Buyer/Seller)
 - 🔍 Input validation and sanitization
+- 🗄️ Local SQLite database security
 
 ### 📈 Performance Optimizations
 - ⚡ Vite for lightning-fast builds
 - 🎯 Code splitting and lazy loading
 - 🖼️ Image optimization
 - 📱 Progressive Web App features
+- 🗄️ SQLite for ultra-fast local queries
+- 💾 Efficient file-based persistence
 
 ### 🎯 User Experience
 - 🎨 Modern, intuitive interface
 - 📱 Mobile-first design
 - ♿ Accessibility compliant
 - 🌐 Cross-browser compatibility
+
+## 🗄️ Database Schema
+
+The SQLite database includes the following tables:
+
+```sql
+📦 products         # Product catalog with specifications
+🎫 promo_codes     # B2B/B2C promotional codes
+📋 orders          # Order management and tracking
+👥 users           # User authentication and profiles
+❓ product_qna     # Product questions and answers
+```
+
+### 🔄 Latest Updates (September 2025)
+- ✅ **Complete SQLite Migration** - Enhanced reliability and performance
+- 🔐 **Improved Authentication** - JWT + bcrypt security
+- 🎫 **Cross-Platform Promo Codes** - B2B/B2C integration
+- 📱 **Enhanced Mobile Experience** - Touch-friendly interfaces
+- 🛡️ **Local Database Security** - No external dependencies
 
 ## 🤝 Contributing
 
