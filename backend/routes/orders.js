@@ -288,7 +288,6 @@ router.get('/:id', async (req, res) => {
 // Update order status and details
 router.patch('/:id', async (req, res) => {
   try {
-    const supabase = req.supabase;
     const { 
       status, 
       paymentStatus, 
@@ -299,9 +298,75 @@ router.patch('/:id', async (req, res) => {
     } = req.body;
     
     const orderId = req.params.id;
+    console.log(`📝 Updating order ${orderId} with:`, req.body);
     
     try {
-      // First check memory orders
+      // First try to update in SQLite database
+      const existingOrder = await dbHelpers.get('SELECT * FROM orders WHERE id = ? OR orderNumber = ?', [orderId, orderId]);
+      
+      if (existingOrder) {
+        // Build update query dynamically
+        const updateFields = [];
+        const updateParams = [];
+        
+        if (status) {
+          updateFields.push('orderStatus = ?');
+          updateParams.push(status);
+        }
+        
+        // Always update the timestamp
+        updateFields.push('updatedAt = CURRENT_TIMESTAMP');
+        
+        if (updateFields.length > 0) {
+          // Add the WHERE clause parameter at the end
+          updateParams.push(existingOrder.id);
+          const updateQuery = `UPDATE orders SET ${updateFields.join(', ')} WHERE id = ?`;
+          console.log(`🔄 Executing update: ${updateQuery}`, updateParams);
+          await dbHelpers.run(updateQuery, updateParams);
+        }
+        
+        // Get updated order
+        const updatedOrder = await dbHelpers.get('SELECT * FROM orders WHERE id = ?', [existingOrder.id]);
+        
+        // Transform for frontend format with status steps
+        const statusSteps = [
+          { label: 'Reviewing', completed: true },
+          { label: 'Processing', completed: ['Processing', 'Shipped', 'Delivered'].includes(updatedOrder.orderStatus) },
+          { label: 'Shipping', completed: ['Shipped', 'Delivered'].includes(updatedOrder.orderStatus) },
+          { label: 'Delivered', completed: updatedOrder.orderStatus === 'Delivered' },
+        ];
+        
+        const responseOrder = {
+          id: updatedOrder.id,
+          orderNumber: updatedOrder.orderNumber,
+          productName: updatedOrder.productName,
+          productImage: updatedOrder.productImage,
+          price: updatedOrder.price,
+          quantity: 1,
+          totalAmount: updatedOrder.subtotal,
+          paymentMethod: updatedOrder.paymentInfo ? JSON.parse(updatedOrder.paymentInfo).method : 'Unknown',
+          orderDate: updatedOrder.createdAt,
+          deliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+          status: updatedOrder.orderStatus,
+          statusSteps: statusSteps,
+          userId: updatedOrder.userId,
+          buyerId: 'buyer-' + updatedOrder.id,
+          buyerName: 'Customer',
+          buyerEmail: updatedOrder.userEmail,
+          paymentStatus: paymentStatus || 'Paid',
+          trackingNumber: trackingNumber || null,
+          carrier: carrier || null,
+          notes: notes || null,
+          deliveredAt: deliveredAt || null,
+          createdAt: updatedOrder.createdAt,
+          updatedAt: updatedOrder.updatedAt
+        };
+        
+        console.log('✅ Order updated in SQLite:', responseOrder);
+        return res.json(responseOrder);
+      }
+      
+      // Fallback: Check memory orders
       const memoryOrderIndex = memoryOrders.findIndex(order => order.id == orderId || order.orderNumber === orderId);
       
       if (memoryOrderIndex !== -1) {
@@ -330,81 +395,16 @@ router.patch('/:id', async (req, res) => {
           updatedAt: new Date().toISOString()
         };
         
-        console.log('Updated memory order:', memoryOrders[memoryOrderIndex]);
+        saveOrdersToFile(); // Persist changes
+        console.log('✅ Updated memory order:', memoryOrders[memoryOrderIndex]);
         return res.json(memoryOrders[memoryOrderIndex]);
       }
       
-      // Try Supabase update with proper column names
-      const { data: order, error: fetchError } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .single();
-        
-      if (fetchError || !order) {
-        return res.status(404).json({ error: 'Order not found' });
-      }
+      // Order not found
+      return res.status(404).json({ error: 'Order not found' });
       
-      let statusSteps = JSON.parse(order.status_steps || '[]');
-      const updateData = {};
-      
-      if (status) {
-        updateData.status = status;
-        statusSteps = [
-          { label: 'Reviewing', completed: true },
-          { label: 'Processing', completed: ['Processing', 'Shipped', 'Delivered'].includes(status) },
-          { label: 'Shipping', completed: ['Shipped', 'Delivered'].includes(status) },
-          { label: 'Delivered', completed: status === 'Delivered' },
-        ];
-        updateData.status_steps = JSON.stringify(statusSteps);
-      }
-      
-      if (paymentStatus) updateData.payment_status = paymentStatus;
-      if (trackingNumber) updateData.tracking_number = trackingNumber;
-      if (carrier) updateData.carrier = carrier;
-      if (notes) updateData.notes = notes;
-      if (deliveredAt) updateData.delivered_at = deliveredAt;
-      
-      const { data: updated, error: updateError } = await supabase
-        .from('orders')
-        .update(updateData)
-        .eq('id', orderId)
-        .select();
-        
-      if (updateError) throw updateError;
-      
-      // Transform database response back to frontend format
-      const updatedOrder = {
-        id: updated[0].id,
-        orderNumber: updated[0].order_number,
-        productName: updated[0].product_name,
-        productImage: updated[0].product_image,
-        price: updated[0].price,
-        quantity: updated[0].quantity,
-        totalAmount: updated[0].total_amount,
-        paymentMethod: updated[0].payment_method,
-        orderDate: updated[0].order_date,
-        deliveryDate: updated[0].delivery_date,
-        status: updated[0].status,
-        statusSteps: statusSteps,
-        userId: updated[0].user_id,
-        buyerId: updated[0].buyer_id,
-        buyerName: updated[0].buyer_name,
-        buyerEmail: updated[0].buyer_email,
-        paymentStatus: updated[0].payment_status,
-        trackingNumber: updated[0].tracking_number,
-        carrier: updated[0].carrier,
-        notes: updated[0].notes,
-        deliveredAt: updated[0].delivered_at,
-        createdAt: updated[0].created_at,
-        updatedAt: updated[0].updated_at
-      };
-      
-      console.log('Updated Supabase order:', updatedOrder);
-      res.json(updatedOrder);
-      
-    } catch (supabaseError) {
-      console.log('Supabase order update failed:', supabaseError.message);
+    } catch (dbError) {
+      console.log('❌ SQLite order update failed:', dbError.message);
       res.status(500).json({ error: 'Failed to update order' });
     }
   } catch (err) {
