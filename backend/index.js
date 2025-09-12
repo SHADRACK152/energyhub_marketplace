@@ -210,7 +210,16 @@ app.get('/api/products', async (req, res) => {
 // Ena chat endpoint - simple canned response and analytics logging
 app.post('/api/ena-chat', async (req, res) => {
   try {
-    const { message, userId } = req.body || {};
+    const body = req.body || {};
+
+    // If request contains an 'event' field, treat as analytics event
+    if (body.event) {
+      console.log('Ena analytics event received:', body.event, body);
+      // TODO: persist analytics to DB or analytics provider
+      return res.json({ ok: true });
+    }
+
+    const { message, userId } = body;
 
     console.log('Ena chat request from', userId || 'anonymous', 'message:', message);
 
@@ -228,7 +237,7 @@ app.post('/api/ena-chat', async (req, res) => {
       reply = 'Looking to buy? Use the Product Catalog to find items or contact sellers directly from an order.';
     }
 
-    // Log analytics event (simple server-side log). Integrate with analytics provider later.
+    // Log analytics event for message sent
     console.log('Ena analytics event: ena.message_sent', { userId, message });
 
     return res.json({ reply, success: true });

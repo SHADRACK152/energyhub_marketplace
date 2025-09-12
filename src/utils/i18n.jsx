@@ -176,6 +176,22 @@ const translations = {
     'messages.passwordUpdated': 'Password updated successfully!',
     'messages.preferencesUpdated': 'Preferences updated successfully!',
 
+  // Auth specific strings
+  'auth.loginSubtitle': 'Enter your credentials to access your dashboard or continue as a guest.',
+  'auth.emailPlaceholder': 'you@company.com',
+  'auth.passwordPlaceholder': 'Enter your password',
+  'auth.enterEmailForReset': 'Please enter your email to receive a password reset link',
+  'auth.sendingReset': 'Sending reset link...',
+  'auth.resetSent': 'If this email exists, a reset link has been sent.',
+
+  // Validation messages
+  'validation.emailRequired': 'Email is required',
+  'validation.emailInvalid': 'Please enter a valid email address',
+  'validation.passwordRequired': 'Password is required',
+
+  // Misc fallbacks
+  'misc.loginRequired': 'Please sign in to access this feature',
+
   // Testimonials / Landing CTAs
   'testimonials.title': 'Success Stories from Our Community',
   'testimonials.subtitle': 'Discover how EnergyHub is empowering businesses and individuals to achieve their energy goals',
@@ -202,6 +218,7 @@ const translations = {
   'ena.open': 'Open Ena chat',
   'ena.placeholder': 'Type a question or choose a suggestion',
   'ena.send': 'Send',
+  'ena.processing': 'Ena is thinking...',
   // Coming Soon
   'comingSoon.title': 'Coming Soon',
   'comingSoon.description': "We're working hard to bring you this feature. Stay tuned for updates!",
@@ -528,6 +545,7 @@ const translations = {
     'ena.open': 'Ouvrir Ena chat',
     'ena.placeholder': 'Tapez une question ou choisissez une suggestion',
     'ena.send': 'Envoyer',
+    'ena.processing': 'Ena est en train de réfléchir...',
   },
   
   sw: {
@@ -709,12 +727,25 @@ const translations = {
   'ena.open': 'Fungua chat ya Ena',
   'ena.placeholder': 'Andika swali au chagua pendekezo',
   'ena.send': 'Tuma',
+  'ena.processing': 'Ena anafikiria...',
   'testimonials.subtitle': 'Gundua jinsi EnergyHub inavyowasaidia biashara na watu kufikia malengo yao ya nishati',
   'testimonials.sellers': 'Hadithi za Wauuzaji',
   'testimonials.buyers': 'Hadithi za Wanunuzi',
   'testimonials.ctaTitle': 'Tayari Kujiunga na Hadithi Zetu za Mafanikio?',
   'testimonials.ctaSubtitle': 'Ikiwa unatafuta kuuza bidhaa za nishati au kupata suluhisho kamili kwa mahitaji yako, EnergyHub iko hapa kukusaidia kufanikiwa.',
   'testimonials.startSelling': 'Anza Kuuza Leo',
+  // Auth strings (Swahili)
+  'auth.loginSubtitle': 'Ingiza taarifa zako za kuingia ili kupata dashibodi yako au endelea kama mgeni.',
+  'auth.emailPlaceholder': 'wewe@kampuni.com',
+  'auth.passwordPlaceholder': 'Ingiza nywila yako',
+  'auth.enterEmailForReset': 'Tafadhali ingiza barua pepe yako ili kupokea kiungo cha kubadilisha nywila',
+  'auth.sendingReset': 'Inatuma kiungo cha kubadilisha...',
+  'auth.resetSent': 'Ikiwa barua pepe hii ipo, kiungo cha kubadilisha nywila kimepelekwa.',
+
+  // Validation (Swahili)
+  'validation.emailRequired': 'Barua pepe inahitajika',
+  'validation.emailInvalid': 'Tafadhali ingiza barua pepe halali',
+  'validation.passwordRequired': 'Nywila inahitajika',
   // Coming Soon (Swahili)
   'comingSoon.title': 'Inakuja Karibu',
   'comingSoon.description': 'Tunaweka bidii kuleta kipengele hiki kwako. Endelea kufuatilia sasisho!',

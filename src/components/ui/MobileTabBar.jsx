@@ -53,18 +53,26 @@ const MobileTabBar = ({ user, onNavigate }) => {
       path: '/account',
       icon: 'User',
     },
+    // Ena chat quick-open for mobile
+    {
+      id: 'ena',
+      label: 'Ena',
+      path: '#',
+      icon: 'MessageCircle',
+      action: () => window.openEnaChat && window.openEnaChat()
+    },
   ];
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border z-100">
       <div className="flex items-center justify-around px-2 py-2">
-        {tabs?.map((tab) => {
+    {tabs?.map((tab) => {
           const active = isActive(tab?.path);
           
           return (
             <button
               key={tab?.id}
-              onClick={() => handleNavigation(tab?.path)}
+      onClick={() => (tab?.action ? tab.action() : handleNavigation(tab?.path))}
               className={`flex flex-col items-center justify-center min-w-0 flex-1 px-2 py-2 rounded-md transition-smooth ${
                 active
                   ? 'text-primary bg-primary/10' :'text-muted-foreground hover:text-foreground hover:bg-muted'

@@ -17,22 +17,80 @@ export default function EnaChatbot() {
   ]);
   const [input, setInput] = useState('');
 
-  const send = (text) => {
+  const emitEvent = async (eventName, payload = {}) => {
+    try {
+      // Send lightweight analytics to the server
+      await fetch('/api/ena-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: eventName, ...payload })
+      });
+    } catch (err) {
+      // swallow analytics errors
+      console.warn('Ena analytics error', err?.message || err);
+    }
+  };
+
+  const requestReply = async (message, userId) => {
+    try {
+      const res = await fetch('/api/ena-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, userId })
+      });
+      if (!res.ok) throw new Error('Ena backend error');
+      const data = await res.json();
+      return data.reply || t('ena.cannedResponse');
+    } catch (err) {
+      console.warn('Ena request failed, falling back to canned response', err?.message || err);
+      return t('ena.cannedResponse');
+    }
+  };
+
+  const send = async (text, opts = {}) => {
+    const userId = (window.__ENERGYHUB_USER && window.__ENERGYHUB_USER.id) || opts.userId || null;
     if (!text) return;
+    // Append user message
     setMessages((m) => [...m, { from: 'user', text }]);
-    // Simulate a quick canned response
-    setTimeout(() => {
-      setMessages((m) => [...m, { from: 'ena', text: t('ena.cannedResponse') }]);
-    }, 600);
+
+    // Emit client-side analytics
+    emitEvent('ena.send', { message: text, userId });
+
+    // Append a temporary 'processing' message and remember its index
+    const processingText = t('ena.processing') || 'Ena is thinking...';
+    setMessages((m) => {
+      return [...m, { from: 'ena', text: processingText, _temp: true }];
+    });
+
+    // Try backend reply and replace the temporary message
+    const reply = await requestReply(text, userId);
+    setMessages((m) => {
+      const idx = m.findIndex(msg => msg._temp);
+      if (idx === -1) return [...m, { from: 'ena', text: reply }];
+      const copy = [...m];
+      copy[idx] = { from: 'ena', text: reply };
+      return copy;
+    });
     setInput('');
   };
 
   // Expose global helpers so external UI (headers, dashboards) can open/close the chat
   React.useEffect(() => {
     // eslint-disable-next-line no-undef
-    window.toggleEnaChat = () => setOpen((s) => !s);
+    window.toggleEnaChat = () => setOpen((s) => {
+      const newState = !s;
+      if (newState) {
+        const userId = (window.__ENERGYHUB_USER && window.__ENERGYHUB_USER.id) || null;
+        emitEvent('ena.open', { userId });
+      }
+      return newState;
+    });
     // eslint-disable-next-line no-undef
-    window.openEnaChat = () => setOpen(true);
+    window.openEnaChat = () => {
+      setOpen(true);
+      const userId = (window.__ENERGYHUB_USER && window.__ENERGYHUB_USER.id) || null;
+      emitEvent('ena.open', { userId });
+    };
     // eslint-disable-next-line no-undef
     window.closeEnaChat = () => setOpen(false);
 
@@ -62,7 +120,11 @@ export default function EnaChatbot() {
 
             <div className="mt-2 border-t pt-2 space-y-2">
               {suggestions.map((s) => (
-                <button key={s.id} onClick={() => send(t(s.textKey))} className="text-xs text-primary-foreground/80 hover:underline">
+                <button key={s.id} onClick={() => {
+                  const text = t(s.textKey);
+                  emitEvent('ena.suggestion_click', { suggestion: s.textKey, text });
+                  send(text);
+                }} className="text-xs text-primary-foreground/80 hover:underline">
                   {t(s.textKey)}
                 </button>
               ))}

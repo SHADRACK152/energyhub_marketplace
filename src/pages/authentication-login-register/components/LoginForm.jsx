@@ -52,17 +52,17 @@ const LoginForm = ({ onSwitchToRegister }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData?.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('validation.emailRequired') || 'Email is required';
     } else if (!/\S+@\S+\.\S+/?.test(formData?.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = t('validation.emailInvalid') || 'Please enter a valid email address';
     }
-    
+
     if (!formData?.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('validation.passwordRequired') || 'Password is required';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors)?.length === 0;
   };
@@ -122,13 +122,13 @@ const LoginForm = ({ onSwitchToRegister }) => {
     e.preventDefault();
     setForgotStatus('');
     if (!forgotEmail) {
-      setForgotStatus('Please enter your email.');
+      setForgotStatus(t('auth.enterEmailForReset') || 'Please enter your email.');
       return;
     }
     // Simulate API call
-    setForgotStatus('Sending reset link...');
+    setForgotStatus(t('auth.sendingReset') || 'Sending reset link...');
     setTimeout(() => {
-      setForgotStatus('If this email exists, a reset link has been sent.');
+      setForgotStatus(t('auth.resetSent') || 'If this email exists, a reset link has been sent.');
     }, 1200);
   };
 
@@ -137,7 +137,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
       <div className="w-full max-w-md mx-auto bg-white/90 rounded-2xl shadow-2xl p-8 relative animate-fade-in backdrop-blur-md">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-extrabold text-primary mb-2 tracking-tight drop-shadow">{t('hero.title')}</h2>
-          <p className="text-muted-foreground">{t('nav.signin')} {t('footer.description')}</p>
+          <p className="text-muted-foreground">{t('nav.signin')} — {t('auth.loginSubtitle')}</p>
         </div>
       {errors?.general && (
         <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
@@ -152,7 +152,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
           label={t('profile.email')}
           type="email"
           name="email"
-          placeholder={t('footer.newsletter.placeholder')}
+          placeholder={t('auth.emailPlaceholder')}
           value={formData?.email}
           onChange={handleInputChange}
           error={errors?.email}
@@ -164,7 +164,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
             label={t('profile.password') || 'Password'}
             type={showPassword ? 'text' : 'password'}
             name="password"
-            placeholder={t('payment.enterPin') || 'Enter your password'}
+            placeholder={t('auth.passwordPlaceholder')}
             value={formData?.password}
             onChange={handleInputChange}
             error={errors?.password}
