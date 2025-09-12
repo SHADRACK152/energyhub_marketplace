@@ -14,6 +14,12 @@ const translations = {
     'hero.signupBuyer': 'Sign Up as Buyer',
     'hero.browseProducts': 'Browse products without signing up →',
     'hero.featuredIn': 'Featured In',
+  // Brand & footer CTAs (user-facing real names)
+  'brand.name': 'EnergyHub',
+  'footer.ctaTitle': 'Ready to transform your energy procurement?',
+  'footer.ctaSubtitle': 'Sign up as a seller or browse the marketplace to get started.',
+  'footer.ctaPrimary': 'Get Started',
+  'footer.ctaSecondary': 'Browse Products',
 
     // Footer Section
     'footer.newsletter.title': 'Stay Updated',
