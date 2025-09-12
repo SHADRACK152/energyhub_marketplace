@@ -145,7 +145,7 @@ const FooterSection = () => {
   ];
 
   return (
-    <footer className="bg-primary text-primary-foreground">
+    <footer className="bg-gradient-to-t from-primary/8 via-transparent to-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid lg:grid-cols-4 gap-12 mb-12">
           <div className="lg:col-span-1">
@@ -184,12 +184,12 @@ const FooterSection = () => {
               </button>
             </div>
 
-            <div className="flex space-x-4">
+    <div className="flex space-x-4">
               {socialLinks.map((social) => (
                 <button
                   key={social.name}
                   onClick={() => handleSocialClick(social.name, social.url)}
-                  className="w-10 h-10 bg-primary-foreground/10 hover:bg-primary-foreground/20 rounded-lg flex items-center justify-center transition-colors duration-300"
+      className="w-10 h-10 bg-primary-foreground/10 hover:bg-primary-foreground/20 rounded-lg flex items-center justify-center transition-colors duration-300"
                   aria-label={social.name}
                   title={`${t('footer.followUs')} ${social.name}`}
                 >
@@ -263,7 +263,7 @@ const FooterSection = () => {
           </div>
         </div>
 
-        <div className="bg-primary-foreground/5 rounded-2xl p-8 mb-8">
+    <div className="bg-white/70 rounded-2xl p-8 mb-8 glass-panel">
           <form onSubmit={handleEmailSubscription} className="flex items-center space-x-3">
             <input
               type="email"
@@ -275,7 +275,7 @@ const FooterSection = () => {
             <button
               type="submit"
               disabled={isSubscribing}
-              className="bg-primary-foreground text-primary rounded-md px-4 py-2 text-sm"
+      className="btn-gradient rounded-md px-4 py-2 text-sm"
             >
               {isSubscribing ? t('footer.newsletter.subscribing') : t('footer.newsletter.subscribe')}
             </button>

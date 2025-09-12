@@ -52,7 +52,7 @@ const HeroSection = () => {
   }, [taglineIndex]);
 
   return (
-  <section className="relative bg-white pt-24 pb-20 lg:pt-32 lg:pb-28 overflow-hidden">
+  <section className="relative bg-gradient-to-br from-secondary/6 via-background to-primary/6 pt-24 pb-20 lg:pt-32 lg:pb-28 overflow-hidden">
       {/* Animated Gradient Overlays */}
       {/* Subtle white/gray background pattern for depth */}
       <div className="absolute inset-0 pointer-events-none">
@@ -78,15 +78,15 @@ const HeroSection = () => {
               {t('hero.description')}
             </p>
 
-            {/* CTA Buttons */}
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+      {/* CTA Buttons */}
+      <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Button
                 variant="default"
                 size="xl"
                 iconName="Store"
                 iconPosition="left"
                 onClick={handleSellerSignup}
-                className="px-10 py-5 text-xl font-bold shadow-lg hover:scale-105 transition-transform"
+        className="px-10 py-5 text-xl font-bold shadow-lg hover:scale-105 transition-transform btn-gradient"
               >
                 {t('hero.signupSeller')}
               </Button>
@@ -96,7 +96,7 @@ const HeroSection = () => {
                 iconName="ShoppingBag"
                 iconPosition="left"
                 onClick={handleBuyerSignup}
-                className="px-10 py-5 text-xl font-bold shadow-lg hover:scale-105 transition-transform"
+        className="px-10 py-5 text-xl font-bold shadow-lg hover:scale-105 transition-transform"
               >
                 {t('hero.signupBuyer')}
               </Button>
@@ -140,7 +140,7 @@ const HeroSection = () => {
 
           {/* Hero Image with Glassmorphism and Floating Icons */}
           <div className="relative flex items-center justify-center">
-            <div className="relative rounded-3xl shadow-2xl border-4 border-white/10 bg-white">
+            <div className="relative rounded-3xl shadow-2xl border-0 glass-panel overflow-hidden">
               <Image
                 src="/assets/images/solar.jpg"
                 alt="Solar panels and renewable energy infrastructure"
@@ -152,7 +152,7 @@ const HeroSection = () => {
               <Icon name="Battery" size={40} className="absolute bottom-8 right-8 text-green-400/90 animate-float-reverse drop-shadow-lg" />
               <Icon name="Zap" size={36} className="absolute bottom-10 left-10 text-blue-400/90 animate-float drop-shadow-lg" />
               {/* Floating Stats Card */}
-              <div className="absolute -bottom-6 -left-6 bg-card/90 border border-border rounded-xl p-4 shadow-lg">
+              <div className="absolute -bottom-6 -left-6 bg-card/80 glass-panel rounded-xl p-4 shadow-lg">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center">
                     <div className="w-6 h-6 bg-success rounded-full"></div>

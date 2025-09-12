@@ -113,7 +113,7 @@ const TestimonialsSection = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="py-16 lg:py-24 bg-muted/30">
+    <section className="py-16 lg:py-24 bg-gradient-to-b from-transparent to-secondary/6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
@@ -150,7 +150,7 @@ const TestimonialsSection = () => {
           {currentTestimonials?.map((testimonial) => (
             <div
               key={testimonial?.id}
-              className="bg-card border border-border rounded-2xl p-8 shadow-card hover:shadow-modal transition-all duration-300"
+              className="bg-white/80 border border-border rounded-2xl p-8 shadow-card hover:shadow-modal transition-all duration-300 glass-panel"
             >
               {/* Rating */}
               <div className="flex items-center mb-4">
@@ -163,7 +163,7 @@ const TestimonialsSection = () => {
               </blockquote>
 
               {/* Metrics */}
-              <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-muted/50 rounded-lg">
+              <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-accent-gradient-soft rounded-lg">
                 {Object.entries(testimonial?.metrics)?.map(([key, value]) => (
                   <div key={key} className="text-center">
                     <div className="text-sm font-semibold text-foreground">
