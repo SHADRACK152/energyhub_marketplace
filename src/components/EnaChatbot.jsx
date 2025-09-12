@@ -3,17 +3,16 @@ import Icon from './AppIcon';
 import { useTranslation } from '../utils/i18n.jsx';
 
 const suggestions = [
-  { id: 1, textKey: 'ena.greet' },
-  { id: 2, textKey: 'ena.howToBuy' },
-  { id: 3, textKey: 'ena.howToSell' },
-  { id: 4, textKey: 'ena.contactSupport' }
+  { id: 1, textKey: 'ena.howToBuy' },
+  { id: 2, textKey: 'ena.howToSell' },
+  { id: 3, textKey: 'ena.contactSupport' }
 ];
 
 export default function EnaChatbot() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { from: 'ena', text: t('ena.welcome') }
+  { from: 'ena', text: t('ena.welcome') }
   ]);
   const [input, setInput] = useState('');
 
@@ -119,15 +118,22 @@ export default function EnaChatbot() {
             ))}
 
             <div className="mt-2 border-t pt-2 space-y-2">
-              {suggestions.map((s) => (
-                <button key={s.id} onClick={() => {
-                  const text = t(s.textKey);
-                  emitEvent('ena.suggestion_click', { suggestion: s.textKey, text });
-                  send(text);
-                }} className="text-xs text-primary-foreground/80 hover:underline">
-                  {t(s.textKey)}
-                </button>
-              ))}
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => {
+                      const translated = t(s.textKey);
+                      // emit the suggestion key and the resolved text
+                      emitEvent('ena.suggestion_click', { suggestionKey: s.textKey, text: translated });
+                      send(translated);
+                    }}
+                    className="text-xs px-2 py-1 bg-primary-foreground/5 rounded-full hover:bg-primary-foreground/10"
+                  >
+                    {t(s.textKey)}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
