@@ -146,6 +146,19 @@ const FooterSection = () => {
 
   return (
     <footer className="bg-gradient-to-t from-primary/8 via-transparent to-background">
+      {/* Conversion CTA strip */}
+      <div className="w-full bg-gradient-to-r from-secondary to-primary text-primary-foreground py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <div className="text-2xl font-bold">{t('footer.ctaTitle') || 'Ready to transform your energy procurement?'}</div>
+            <div className="text-sm text-primary-foreground/90 mt-1">{t('footer.ctaSubtitle') || 'Sign up as a seller or browse the marketplace to get started.'}</div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate('/authentication-login-register')} className="btn-gradient rounded-md px-4 py-2 font-semibold">{t('footer.ctaPrimary') || 'Get Started'}</button>
+            <button onClick={() => navigate('/product-catalog-search')} className="bg-white/20 rounded-md px-4 py-2 text-primary-foreground font-medium">{t('footer.ctaSecondary') || 'Browse Products'}</button>
+          </div>
+        </div>
+      </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid lg:grid-cols-4 gap-12 mb-12">
           <div className="lg:col-span-1">

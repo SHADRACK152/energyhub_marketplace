@@ -147,10 +147,10 @@ const TestimonialsSection = () => {
 
         {/* Testimonials Grid */}
         <div className="grid lg:grid-cols-3 gap-8">
-          {currentTestimonials?.map((testimonial) => (
+          {currentTestimonials?.map((testimonial, idx) => (
             <div
               key={testimonial?.id}
-              className="bg-white/80 border border-border rounded-2xl p-8 shadow-card hover:shadow-modal transition-all duration-300 glass-panel"
+              className={`bg-white/90 border border-border rounded-2xl p-8 shadow-card hover:shadow-modal transition-all duration-300 glass-panel ${idx===0? 'ring-1 ring-secondary/40 scale-102': ''}`}
             >
               {/* Rating */}
               <div className="flex items-center mb-4">
@@ -158,8 +158,8 @@ const TestimonialsSection = () => {
               </div>
 
               {/* Content */}
-              <blockquote className="text-muted-foreground leading-relaxed mb-6">
-                "{testimonial?.content}"
+              <blockquote className="text-foreground text-lg sm:text-xl font-medium leading-relaxed mb-6">
+                “{testimonial?.content}”
               </blockquote>
 
               {/* Metrics */}
@@ -189,14 +189,11 @@ const TestimonialsSection = () => {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <div className="font-semibold text-foreground">
+                  <div className="font-semibold text-foreground text-sm">
                     {testimonial?.name}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {testimonial?.role}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {testimonial?.company}
+                    {testimonial?.role} — <span className="font-medium text-foreground">{testimonial?.company}</span>
                   </div>
                 </div>
               </div>

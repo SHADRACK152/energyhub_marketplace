@@ -65,16 +65,18 @@ const HeroSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Content */}
           <div className="text-center lg:text-left">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight drop-shadow-lg">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight drop-shadow-lg">
               {t('hero.title')}
             </h1>
-            <div className="mt-4 min-h-[32px]">
-              <span className="text-xl sm:text-2xl font-semibold text-accent drop-shadow animate-fade-in" ref={taglineRef}>
+
+            <div className="mt-4 min-h-[40px]">
+              <span className="text-2xl sm:text-3xl font-semibold text-secondary drop-shadow animate-fade-in" ref={taglineRef}>
                 {displayedTagline}
                 <span className="animate-blink">|</span>
               </span>
             </div>
-            <p className="mt-6 text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto lg:mx-0">
+
+            <p className="mt-6 text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto lg:mx-0">
               {t('hero.description')}
             </p>
 
@@ -122,7 +124,7 @@ const HeroSection = () => {
             </div>
 
             {/* Trust Indicators */}
-            <div className="grid grid-cols-3 gap-6 text-center lg:text-left">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center lg:text-left mt-8">
               <div>
                 <div className="text-3xl font-extrabold text-primary drop-shadow">2,500+</div>
                 <div className="text-sm text-muted-foreground">Verified Sellers</div>
@@ -134,6 +136,22 @@ const HeroSection = () => {
               <div>
                 <div className="text-3xl font-extrabold text-primary drop-shadow">KSh 2.5M+</div>
                 <div className="text-sm text-muted-foreground">Transactions</div>
+              </div>
+            </div>
+
+            {/* Quick features - cards to catch scrollers */}
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 rounded-xl glass-panel border border-border shadow-card text-center">
+                <div className="text-2xl font-bold text-foreground">Fast Quotes</div>
+                <div className="text-sm text-muted-foreground mt-2">Get instant price estimates from verified sellers.</div>
+              </div>
+              <div className="p-4 rounded-xl glass-panel border border-border shadow-card text-center">
+                <div className="text-2xl font-bold text-foreground">Secure Payments</div>
+                <div className="text-sm text-muted-foreground mt-2">Escrow-style payments protect buyers and sellers.</div>
+              </div>
+              <div className="p-4 rounded-xl glass-panel border border-border shadow-card text-center">
+                <div className="text-2xl font-bold text-foreground">Expert Support</div>
+                <div className="text-sm text-muted-foreground mt-2">Local installers and support teams available.</div>
               </div>
             </div>
           </div>
