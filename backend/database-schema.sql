@@ -1,5 +1,5 @@
 -- Create orders table for EnergyHub Marketplace
--- Run this SQL in your Supabase SQL editor
+-- SQL schema included for reference; this project uses SQLite `energyhub.db` by default.
 
 CREATE TABLE IF NOT EXISTS orders (
   id BIGINT PRIMARY KEY,

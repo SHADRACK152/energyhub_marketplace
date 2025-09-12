@@ -21,10 +21,10 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 app.use(cors());
 
-// In-memory storage for created products (fallback when Supabase fails)
+// In-memory storage for created products (fallback when SQLite or DB access fails)
 let createdProducts = [];
 
-// In-memory storage for promo codes (fallback when Supabase fails)
+// In-memory storage for promo codes (fallback when SQLite or DB access fails)
 let promoCodes = [
   {
     id: 1,
@@ -204,6 +204,37 @@ app.get('/api/products', async (req, res) => {
   } catch (err) {
     console.error('❌ Error fetching products from SQLite:', err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Ena chat endpoint - simple canned response and analytics logging
+app.post('/api/ena-chat', async (req, res) => {
+  try {
+    const { message, userId } = req.body || {};
+
+    console.log('Ena chat request from', userId || 'anonymous', 'message:', message);
+
+    // Simple canned responses - echo + guidance
+    const lower = (message || '').toLowerCase();
+    let reply = "Thanks for reaching out — Ena is here to help. Can you share more details?";
+
+    if (!message) {
+      reply = 'Hi — how can I help you today? You can ask about orders, products, or selling.';
+    } else if (lower.includes('order')) {
+      reply = 'I can help track or update orders. Provide an order number or open your Orders page.';
+    } else if (lower.includes('sell') || lower.includes('listing') || lower.includes('inventory')) {
+      reply = 'To list products, go to Inventory Management. I can walk you through bulk upload or pricing tips.';
+    } else if (lower.includes('buy') || lower.includes('product')) {
+      reply = 'Looking to buy? Use the Product Catalog to find items or contact sellers directly from an order.';
+    }
+
+    // Log analytics event (simple server-side log). Integrate with analytics provider later.
+    console.log('Ena analytics event: ena.message_sent', { userId, message });
+
+    return res.json({ reply, success: true });
+  } catch (err) {
+    console.error('Ena chat error:', err);
+    return res.status(500).json({ error: 'Ena chat failed' });
   }
 });
 
@@ -449,30 +480,32 @@ app.put('/api/promo-codes/:id', async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
     
-    // Try Supabase first
+    // Update promo code in SQLite
     try {
-      const { data, error } = await supabase
-        .from('promo_codes')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (!error && data) {
-        return res.json(data);
+      // Build dynamic SQL for updates
+      const fields = [];
+      const params = [];
+      for (const key in updates) {
+        fields.push(`${key} = ?`);
+        params.push(updates[key]);
       }
-    } catch (supabaseError) {
-      console.log('Supabase promo code update failed, using fallback');
+      if (fields.length === 0) return res.status(400).json({ error: 'No updates provided' });
+      params.push(id);
+      const updateSql = `UPDATE promo_codes SET ${fields.join(', ')}, updatedAt = CURRENT_TIMESTAMP WHERE id = ?`;
+      await dbHelpers.run(updateSql, params);
+      const updated = await dbHelpers.get('SELECT * FROM promo_codes WHERE id = ?', [id]);
+      if (!updated) return res.status(404).json({ error: 'Promo code not found' });
+      return res.json(updated);
+    } catch (err) {
+      console.error('SQLite promo code update failed, using fallback:', err.message);
+      // Fallback to in-memory storage
+      const promoIndex = promoCodes.findIndex(p => p.id === parseInt(id));
+      if (promoIndex === -1) {
+        return res.status(404).json({ error: 'Promo code not found' });
+      }
+      promoCodes[promoIndex] = { ...promoCodes[promoIndex], ...updates };
+      return res.json(promoCodes[promoIndex]);
     }
-    
-    // Fallback to in-memory storage
-    const promoIndex = promoCodes.findIndex(p => p.id === parseInt(id));
-    if (promoIndex === -1) {
-      return res.status(404).json({ error: 'Promo code not found' });
-    }
-    
-    promoCodes[promoIndex] = { ...promoCodes[promoIndex], ...updates };
-    res.json(promoCodes[promoIndex]);
   } catch (error) {
     console.error('Error updating promo code:', error);
     res.status(500).json({ error: 'Failed to update promo code' });
@@ -484,28 +517,22 @@ app.delete('/api/promo-codes/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Try Supabase first
+    // Delete promo code from SQLite
     try {
-      const { error } = await supabase
-        .from('promo_codes')
-        .delete()
-        .eq('id', id);
-      
-      if (!error) {
-        return res.json({ message: 'Promo code deleted successfully' });
+      const existing = await dbHelpers.get('SELECT * FROM promo_codes WHERE id = ?', [id]);
+      if (!existing) return res.status(404).json({ error: 'Promo code not found' });
+      await dbHelpers.run('DELETE FROM promo_codes WHERE id = ?', [id]);
+      return res.json({ message: 'Promo code deleted successfully' });
+    } catch (err) {
+      console.error('SQLite promo code deletion failed, using fallback:', err.message);
+      // Fallback to in-memory storage
+      const promoIndex = promoCodes.findIndex(p => p.id === parseInt(id));
+      if (promoIndex === -1) {
+        return res.status(404).json({ error: 'Promo code not found' });
       }
-    } catch (supabaseError) {
-      console.log('Supabase promo code deletion failed, using fallback');
+      promoCodes.splice(promoIndex, 1);
+      return res.json({ message: 'Promo code deleted successfully' });
     }
-    
-    // Fallback to in-memory storage
-    const promoIndex = promoCodes.findIndex(p => p.id === parseInt(id));
-    if (promoIndex === -1) {
-      return res.status(404).json({ error: 'Promo code not found' });
-    }
-    
-    promoCodes.splice(promoIndex, 1);
-    res.json({ message: 'Promo code deleted successfully' });
   } catch (error) {
     console.error('Error deleting promo code:', error);
     res.status(500).json({ error: 'Failed to delete promo code' });
@@ -521,20 +548,12 @@ app.post('/api/promo-codes/validate', async (req, res) => {
       return res.status(400).json({ error: 'Promo code is required' });
     }
     
-    // Find promo code
+    // Lookup promo code in SQLite
     let promoCode = null;
     try {
-      const { data, error } = await supabase
-        .from('promo_codes')
-        .select('*')
-        .eq('code', code.toUpperCase())
-        .single();
-      
-      if (!error && data) {
-        promoCode = data;
-      }
-    } catch (supabaseError) {
-      console.log('Supabase promo code validation failed, using fallback');
+      promoCode = await dbHelpers.get('SELECT * FROM promo_codes WHERE UPPER(code) = UPPER(?)', [code]);
+    } catch (err) {
+      console.error('SQLite promo code lookup failed, using fallback:', err.message);
       promoCode = promoCodes.find(p => p.code.toLowerCase() === code.toLowerCase());
     }
     
@@ -615,7 +634,7 @@ app.post('/api/promo-codes/validate', async (req, res) => {
 
 // ==================== END PROMO CODES API ====================
 
-const PORT = process.env.PORT || 5000;
+  const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
 });
@@ -722,7 +741,12 @@ app.get('/api/protected', authenticateToken, (req, res) => {
 // Get user info by id
 app.get('/api/users/:id', async (req, res) => {
   const { id } = req.params;
-  const { data, error } = await supabase.from('users').select('id, email, name, role, created_at').eq('id', id).single();
-  if (error || !data) return res.status(404).json({ error: 'User not found' });
-  res.json(data);
+  try {
+    const user = await dbHelpers.get('SELECT id, email, name, role, createdAt as created_at FROM users WHERE id = ?', [id]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    console.error('Error fetching user from SQLite:', err.message);
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
 });

@@ -524,6 +524,17 @@ const B2BSellerDashboard = () => {
                 onRestockItem={handleRestockItem}
                 onViewInventory={handleViewInventory}
               />
+              {/* Quick-open Ena chat button in the sidebar */}
+              <div className="pt-2">
+                <button
+                  onClick={() => window.openEnaChat && window.openEnaChat()}
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-border bg-primary/5 text-sm font-medium text-primary hover:bg-primary/10"
+                  title="Open Ena Chat"
+                >
+                  <Icon name="MessageCircle" size={16} />
+                  Chat with Ena
+                </button>
+              </div>
             </div>
           </div>
 

@@ -105,6 +105,17 @@ const translations = {
     'profile.cancel': 'Cancel',
     'profile.saving': 'Saving...',
     'profile.updating': 'Updating...',
+  // Additional profile UI strings
+  'profile.photo': 'Profile Photo',
+  'profile.photoDescription': 'Update your profile photo to personalize your account',
+  'profile.uploadPhoto': 'Upload Photo',
+  'profile.removePhoto': 'Remove',
+  'profile.changePassword': 'Change Password',
+  'profile.changePasswordDesc': 'Ensure your account stays secure with a strong password',
+  'profile.passwordRequirementsTitle': 'Password Requirements:',
+  'profile.passwordRequirement1': 'At least 8 characters long',
+  'profile.passwordRequirement2': 'Include uppercase and lowercase letters',
+  'profile.passwordRequirement3': 'Include at least one number',
     
     // Orders & Shopping
     'orders.title': 'Orders',
@@ -158,6 +169,36 @@ const translations = {
     'messages.profileUpdated': 'Profile updated successfully!',
     'messages.passwordUpdated': 'Password updated successfully!',
     'messages.preferencesUpdated': 'Preferences updated successfully!',
+
+  // Testimonials / Landing CTAs
+  'testimonials.title': 'Success Stories from Our Community',
+  'testimonials.subtitle': 'Discover how EnergyHub is empowering businesses and individuals to achieve their energy goals',
+  'testimonials.sellers': 'Seller Stories',
+  'testimonials.buyers': 'Buyer Stories',
+  'testimonials.ctaTitle': 'Ready to Join Our Success Stories?',
+  'testimonials.ctaSubtitle': "Whether you're looking to sell energy products or find the perfect solution for your needs, EnergyHub is here to help you succeed.",
+  'testimonials.startSelling': 'Start Selling Today',
+  // Coming Soon
+  'comingSoon.title': 'Coming Soon',
+  'comingSoon.description': "We're working hard to bring you this feature. Stay tuned for updates!",
+  'comingSoon.goHome': 'Go to Homepage',
+  'comingSoon.contactUs': 'Contact Us',
+  'comingSoon.inTheMeantime': 'In the meantime...',
+  // Misc
+  'misc.featureComingSoon': 'Feature coming soon!',
+  // Ena chatbot
+  'ena.title': 'Ena — Help Assistant',
+  'ena.welcome': 'Hi, I\'m Ena. How can I help buyers and sellers today?',
+  'ena.cannedResponse': 'Here are some quick links and tips. You can ask about products, orders, or selling.',
+  'ena.howToBuy': 'How do I buy?',
+  'ena.howToSell': 'How do I sell?',
+  'ena.contactSupport': 'Contact support',
+  'ena.open': 'Open Ena chat',
+  'ena.placeholder': 'Type a question or choose a suggestion',
+  'ena.send': 'Send',
+  // Coming Soon
+  'comingSoon.title': 'Coming Soon',
+  'comingSoon.description': "We're working hard to bring you this feature. Stay tuned for updates!",
     
     // Common Actions
     'actions.edit': 'Edit',
@@ -172,7 +213,8 @@ const translations = {
     'actions.search': 'Search',
     'actions.filter': 'Filter',
     'actions.sort': 'Sort',
-    'actions.refresh': 'Refresh',
+  'actions.refresh': 'Refresh',
+  'actions.back': 'Back',
     
     // Time & Dates
     'time.today': 'Today',
@@ -390,6 +432,9 @@ const translations = {
     'footer.trust.isoCertified': 'Certificado ISO',
     'footer.trust.support247': 'Soporte 24/7',
     'footer.trust.verifiedSellers': 'Vendedores Verificados',
+  'comingSoon.title': 'Próximamente',
+  'comingSoon.description': 'Estamos trabajando para traerle esta función. ¡Esté atento a las actualizaciones!',
+  'misc.featureComingSoon': '¡Función próximamente!',
   },
 
   fr: {
@@ -464,6 +509,19 @@ const translations = {
     'footer.trust.isoCertified': 'Certifié ISO',
     'footer.trust.support247': 'Support 24/7',
     'footer.trust.verifiedSellers': 'Vendeurs Vérifiés',
+    'comingSoon.title': 'Bientôt Disponible',
+    'comingSoon.description': "Nous travaillons dur pour vous apporter cette fonctionnalité. Restez à l'écoute des mises à jour!",
+    'misc.featureComingSoon': 'Fonction bientôt disponible!',
+    // Ena chatbot (French fallback)
+    'ena.title': 'Ena — Assistant',
+    'ena.welcome': 'Bonjour, je suis Ena. Comment puis-je aider acheteurs et vendeurs aujourd\'hui ?',
+    'ena.cannedResponse': 'Voici quelques liens rapides et conseils. Vous pouvez demander sur les produits, commandes ou ventes.',
+    'ena.howToBuy': 'Comment acheter?',
+    'ena.howToSell': 'Comment vendre?',
+    'ena.contactSupport': 'Contacter le support',
+    'ena.open': 'Ouvrir Ena chat',
+    'ena.placeholder': 'Tapez une question ou choisissez une suggestion',
+    'ena.send': 'Envoyer',
   },
   
   sw: {
@@ -568,6 +626,17 @@ const translations = {
     'profile.cancel': 'Ghairi',
     'profile.saving': 'Inahifadhi...',
     'profile.updating': 'Inasasisha...',
+  // Additional profile UI strings (Swahili)
+  'profile.photo': 'Picha ya Wasifu',
+  'profile.photoDescription': 'Sasisha picha yako ya wasifu ili kubinafsisha akaunti yako',
+  'profile.uploadPhoto': 'Pakia Picha',
+  'profile.removePhoto': 'Ondoa',
+  'profile.changePassword': 'Badilisha Nywila',
+  'profile.changePasswordDesc': 'Hakikisha akaunti yako inabaki salama kwa kutumia nywila yenye nguvu',
+  'profile.passwordRequirementsTitle': 'Mahitaji ya Nywila:',
+  'profile.passwordRequirement1': 'Angalau herufi 8',
+  'profile.passwordRequirement2': 'Jumuisha herufi kubwa na ndogo',
+  'profile.passwordRequirement3': 'Jumuisha angalau nambari 1',
     
     // Orders & Shopping
     'orders.title': 'Maagizo',
@@ -621,6 +690,31 @@ const translations = {
     'messages.profileUpdated': 'Wasifu umesasishwa kwa mafanikio!',
     'messages.passwordUpdated': 'Nywila imesasishwa kwa mafanikio!',
     'messages.preferencesUpdated': 'Mapendeleo yamesasishwa kwa mafanikio!',
+
+  // Testimonials / Landing CTAs (Swahili)
+  'testimonials.title': 'Hadithi za Mafanikio kutoka Jamii Yetu',
+  // Ena chatbot (Swahili)
+  'ena.title': 'Ena — Msaidizi',
+  'ena.welcome': 'Habari, mimi ni Ena. Naweza kusaidia vipi wanunuzi na wauzaji leo?',
+  'ena.cannedResponse': 'Hapa kuna viungo vya haraka na vidokezo. Unaweza kuuliza kuhusu bidhaa, maagizo, au uuzaji.',
+  'ena.howToBuy': 'Ninunueje?',
+  'ena.howToSell': 'Ninauzaje?',
+  'ena.contactSupport': 'Wasiliana na msaada',
+  'ena.open': 'Fungua chat ya Ena',
+  'ena.placeholder': 'Andika swali au chagua pendekezo',
+  'ena.send': 'Tuma',
+  'testimonials.subtitle': 'Gundua jinsi EnergyHub inavyowasaidia biashara na watu kufikia malengo yao ya nishati',
+  'testimonials.sellers': 'Hadithi za Wauuzaji',
+  'testimonials.buyers': 'Hadithi za Wanunuzi',
+  'testimonials.ctaTitle': 'Tayari Kujiunga na Hadithi Zetu za Mafanikio?',
+  'testimonials.ctaSubtitle': 'Ikiwa unatafuta kuuza bidhaa za nishati au kupata suluhisho kamili kwa mahitaji yako, EnergyHub iko hapa kukusaidia kufanikiwa.',
+  'testimonials.startSelling': 'Anza Kuuza Leo',
+  // Coming Soon (Swahili)
+  'comingSoon.title': 'Inakuja Karibu',
+  'comingSoon.description': 'Tunaweka bidii kuleta kipengele hiki kwako. Endelea kufuatilia sasisho!',
+  'comingSoon.goHome': 'Nenda Kwenye Nyumbani',
+  'comingSoon.contactUs': 'Wasiliana Nasi',
+  'comingSoon.inTheMeantime': 'Wakati huo...' ,
     
     // Common Actions
     'actions.edit': 'Hariri',
@@ -636,6 +730,7 @@ const translations = {
     'actions.filter': 'Chuja',
     'actions.sort': 'Panga',
     'actions.refresh': 'Onyesha upya',
+  'actions.back': 'Rudi',
     
     // Time & Dates
     'time.today': 'Leo',

@@ -5,7 +5,7 @@ Node.js/Express backend for the EnergyHub Marketplace, providing RESTful APIs fo
 
 ## Setup
 
-1. Copy `.env.example` to `.env` and fill in your Supabase and other credentials.
+1. Copy `.env.example` to `.env` if you want to override defaults (optional). This backend uses the local SQLite database by default.
 2. Install dependencies:
     ```sh
     npm install
@@ -44,7 +44,8 @@ Node.js/Express backend for the EnergyHub Marketplace, providing RESTful APIs fo
 
 ## Notes
 
-- Uses Supabase for authentication and data storage.
+- Uses local SQLite (`energyhub.db`) for data storage and falls back to file-based persistence for some in-memory features.
+- Supabase-related configuration and dependencies have been removed; all APIs now use SQLite.
 - Extend with more endpoints as needed for your business logic.
 
 ## License

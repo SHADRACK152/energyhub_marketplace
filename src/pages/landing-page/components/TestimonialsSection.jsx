@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Image from '../../../components/AppImage';
 import Button from '../../../components/ui/Button';
+import { useTranslation } from '../../../utils/i18n.jsx';
 
 const TestimonialsSection = () => {
   const [activeTab, setActiveTab] = useState('sellers');
@@ -109,16 +110,18 @@ const TestimonialsSection = () => {
     ));
   };
 
+  const { t } = useTranslation();
+
   return (
     <section className="py-16 lg:py-24 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-6">
-            Success Stories from Our Community
+            {t('testimonials.title') || 'Success Stories from Our Community'}
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto mb-8">
-            Discover how EnergyHub is empowering businesses and individuals to achieve their energy goals
+            {t('testimonials.subtitle') || "Discover how EnergyHub is empowering businesses and individuals to achieve their energy goals"}
           </p>
 
           {/* Tab Switcher */}
@@ -129,7 +132,7 @@ const TestimonialsSection = () => {
                 activeTab === 'sellers' ?'bg-primary text-primary-foreground shadow-sm' :'text-muted-foreground hover:text-foreground'
               }`}
             >
-              Seller Stories
+              {t('testimonials.sellers') || 'Seller Stories'}
             </button>
             <button
               onClick={() => setActiveTab('buyers')}
@@ -137,7 +140,7 @@ const TestimonialsSection = () => {
                 activeTab === 'buyers' ?'bg-primary text-primary-foreground shadow-sm' :'text-muted-foreground hover:text-foreground'
               }`}
             >
-              Buyer Stories
+              {t('testimonials.buyers') || 'Buyer Stories'}
             </button>
           </div>
         </div>
@@ -202,14 +205,13 @@ const TestimonialsSection = () => {
         </div>
 
         {/* CTA */}
-        <div className="text-center mt-12">
+          <div className="text-center mt-12">
           <div className="bg-card border border-border rounded-2xl p-8 lg:p-12">
             <h3 className="text-2xl font-bold text-foreground mb-4">
-              Ready to Join Our Success Stories?
+              {t('testimonials.ctaTitle') || 'Ready to Join Our Success Stories?'}
             </h3>
             <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Whether you're looking to sell energy products or find the perfect solution for your needs, 
-              EnergyHub is here to help you succeed.
+              {t('testimonials.ctaSubtitle') || "Whether you're looking to sell energy products or find the perfect solution for your needs, EnergyHub is here to help you succeed."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -218,7 +220,7 @@ const TestimonialsSection = () => {
                 onClick={() => window.location.href = '/authentication-login-register'}
                 className="px-8"
               >
-                Start Selling Today
+                {t('testimonials.startSelling') || 'Start Selling Today'}
               </Button>
               <Button
                 variant="outline"
@@ -226,7 +228,7 @@ const TestimonialsSection = () => {
                 onClick={() => window.location.href = '/product-catalog-search'}
                 className="px-8"
               >
-                Browse Products
+                {t('footer.browseProducts')}
               </Button>
             </div>
           </div>

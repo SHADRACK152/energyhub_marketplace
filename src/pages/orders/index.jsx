@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Button from '../../components/ui/Button';
 import Icon from '../../components/AppIcon';
+import { useTranslation } from '../../utils/i18n.jsx';
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -57,6 +58,8 @@ const OrdersPage = () => {
 
     fetchOrders();
   }, []);
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top Navigation */}
@@ -82,12 +85,12 @@ const OrdersPage = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <h1 className="text-3xl font-bold text-foreground">Your Orders</h1>
           <div className="flex gap-2">
-            <input type="text" placeholder="Search orders..." className="border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            <input type="text" placeholder={t('products.search')} className="border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             <select className="border border-border rounded-lg px-3 py-2 text-sm focus:outline-none">
-              <option value="">All Statuses</option>
-              <option value="Processing">Processing</option>
-              <option value="Shipped">Shipped</option>
-              <option value="Delivered">Delivered</option>
+              <option value="">{t('orders.status')}</option>
+              <option value="Processing">{t('orders.processing')}</option>
+              <option value="Shipped">{t('orders.shipped')}</option>
+              <option value="Delivered">{t('orders.delivered')}</option>
             </select>
           </div>
         </div>
@@ -107,26 +110,26 @@ const OrdersPage = () => {
 
         {/* Orders Table */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <Icon name="Loader2" className="animate-spin mx-auto mb-4 text-primary" size={40} />
-              <p className="text-muted-foreground">Loading your orders...</p>
+        <p className="text-muted-foreground">{t('messages.loading')}</p>
             </div>
           </div>
         ) : error ? (
           <div className="text-center py-12">
             <Icon name="AlertTriangle" className="mx-auto mb-4 text-warning" size={40} />
-            <p className="text-muted-foreground mb-4">Failed to load orders: {error}</p>
+            <p className="text-muted-foreground mb-4">{t('messages.error')}: {error}</p>
             <Button onClick={() => window.location.reload()} variant="outline">
-              Retry
+              {t('actions.refresh')}
             </Button>
           </div>
         ) : orders.length === 0 ? (
           <div className="text-center py-12">
             <Icon name="ShoppingCart" className="mx-auto mb-4 text-muted-foreground" size={40} />
-            <p className="text-muted-foreground mb-4">No orders found</p>
+            <p className="text-muted-foreground mb-4">{t('messages.noData')}</p>
             <Button onClick={() => window.location.href = '/product-catalog-search'} variant="default">
-              Start Shopping
+              {t('checkout.continueShopping')}
             </Button>
           </div>
         ) : (

@@ -3,9 +3,11 @@ import { useLocation } from 'react-router-dom';
 import Icon from '../components/AppIcon';
 import Image from '../components/AppImage';
 import Button from '../components/ui/Button';
+import { useTranslation } from '../utils/i18n.jsx';
 
 
 function OrdersPage() {
+  const { t } = useTranslation();
   const location = useLocation();
   // State variables
   const [orders, setOrders] = useState([]);
@@ -140,18 +142,18 @@ function OrdersPage() {
           <div className="flex items-center gap-4">
             <span className="font-semibold text-sm text-foreground">Shadrack Emadau</span>
             <Icon name="User" className="text-primary" size={24} />
-            <Button variant="outline" size="sm" iconName="LogOut" iconPosition="left">Logout</Button>
+            <Button variant="outline" size="sm" iconName="LogOut" iconPosition="left">{t('nav.logout')}</Button>
           </div>
         </header>
 
         {/* Main Content */}
         <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Your Orders</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('orders.title')}</h1>
             <div className="flex gap-2 items-center">
               <input
                 type="text"
-                placeholder="Search orders..."
+                placeholder={t('products.search')}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"

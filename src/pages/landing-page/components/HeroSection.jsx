@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/ui/Button';
 import Image from '../../../components/AppImage';
 import Icon from '../../../components/AppIcon';
+import { useTranslation } from '../../../utils/i18n.jsx';
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -21,10 +22,11 @@ const HeroSection = () => {
   };
 
   // Animated tagline (typewriter effect)
+  const { t } = useTranslation();
   const taglines = [
-    'Empowering Clean Energy Futures.',
-    'Connecting Buyers & Sellers Globally.',
-    'Your Marketplace for Solar, Storage & More.'
+    t('hero.tagline1'),
+    t('hero.tagline2'),
+    t('hero.tagline3')
   ];
   const [taglineIndex, setTaglineIndex] = useState(0);
   const [displayedTagline, setDisplayedTagline] = useState('');
@@ -64,9 +66,7 @@ const HeroSection = () => {
           {/* Content */}
           <div className="text-center lg:text-left">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight drop-shadow-lg">
-              The Future of{' '}
-              <span className="text-primary">Energy Trading</span>{' '}
-              is Here
+              {t('hero.title')}
             </h1>
             <div className="mt-4 min-h-[32px]">
               <span className="text-xl sm:text-2xl font-semibold text-accent drop-shadow animate-fade-in" ref={taglineRef}>
@@ -75,7 +75,7 @@ const HeroSection = () => {
               </span>
             </div>
             <p className="mt-6 text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto lg:mx-0">
-              Connect with trusted energy product suppliers and discover cutting-edge solar panels, batteries, and inverters. Join thousands of businesses and homeowners building a sustainable future.
+              {t('hero.description')}
             </p>
 
             {/* CTA Buttons */}
@@ -88,7 +88,7 @@ const HeroSection = () => {
                 onClick={handleSellerSignup}
                 className="px-10 py-5 text-xl font-bold shadow-lg hover:scale-105 transition-transform"
               >
-                Sign Up as Seller
+                {t('hero.signupSeller')}
               </Button>
               <Button
                 variant="outline"
@@ -98,7 +98,7 @@ const HeroSection = () => {
                 onClick={handleBuyerSignup}
                 className="px-10 py-5 text-xl font-bold shadow-lg hover:scale-105 transition-transform"
               >
-                Sign Up as Buyer
+                {t('hero.signupBuyer')}
               </Button>
             </div>
 
@@ -108,13 +108,13 @@ const HeroSection = () => {
                 onClick={handleBrowseProducts}
                 className="text-primary hover:text-primary/80 font-medium transition-smooth text-lg underline underline-offset-4"
               >
-                Browse products without signing up →
+                {t('hero.browseProducts')}
               </button>
             </div>
 
             {/* Featured In Bar - now more visible */}
             <div className="mt-12 mb-8 flex flex-wrap items-center justify-center lg:justify-start gap-8 bg-white/90 rounded-xl shadow-lg py-4 px-6 border border-gray-100">
-              <span className="text-gray-500 text-base font-semibold mr-4 tracking-wide">Featured In</span>
+              <span className="text-gray-500 text-base font-semibold mr-4 tracking-wide">{t('hero.featuredIn')}</span>
               <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Forbes_logo.svg" alt="Forbes" className="h-8 grayscale hover:grayscale-0 transition duration-200" />
               <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/TechCrunch_logo.svg" alt="TechCrunch" className="h-8 grayscale hover:grayscale-0 transition duration-200" />
               <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Bloomberg_logo.svg" alt="Bloomberg" className="h-8 grayscale hover:grayscale-0 transition duration-200" />

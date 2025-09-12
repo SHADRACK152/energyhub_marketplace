@@ -30,7 +30,7 @@ const saveOrdersToFile = () => {
   }
 };
 
-// Use Supabase for persistent order storage
+// Persistent order storage using SQLite with file fallback
 
 // POST /api/orders - Create a new order (from payment completion)
 router.post('/', async (req, res) => {
@@ -129,10 +129,10 @@ router.post('/', async (req, res) => {
         order: responseOrder,
         message: 'Order created and saved to SQLite database successfully'
       });
-    } catch (supabaseError) {
-      console.log('Supabase order creation failed, using memory storage:', supabaseError.message);
+    } catch (err) {
+      console.log('SQLite order creation failed, using memory storage:', err.message);
       
-      // Fallback: Add to memory storage if Supabase fails
+  // Fallback: Add to memory storage if SQLite/db access fails
       const memoryOrder = {
         ...orderData,
         statusSteps: [
@@ -144,7 +144,7 @@ router.post('/', async (req, res) => {
       };
       
       memoryOrders.push(memoryOrder);
-      saveOrdersToFile(); // Persist to file
+  saveOrdersToFile(); // Persist to file
       console.log('Order saved to memory:', memoryOrder);
       
       res.status(201).json({

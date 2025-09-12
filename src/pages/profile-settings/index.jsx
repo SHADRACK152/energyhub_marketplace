@@ -131,15 +131,15 @@ const ProfileSettings = () => {
                 </button>
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-semibold text-foreground mb-1">Profile Photo</h3>
-                <p className="text-sm text-muted-foreground mb-3">Update your profile photo to personalize your account</p>
+                <h3 className="text-xl font-semibold text-foreground mb-1">{t('profile.photo')}</h3>
+                <p className="text-sm text-muted-foreground mb-3">{t('profile.photoDescription')}</p>
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm">
-                    Upload Photo
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                    Remove
-                  </Button>
+                      {t('profile.uploadPhoto')}
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                      {t('profile.removePhoto')}
+                    </Button>
                 </div>
               </div>
             </div>
@@ -222,8 +222,8 @@ const ProfileSettings = () => {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">Change Password</h3>
-              <p className="text-sm text-muted-foreground mb-6">Ensure your account stays secure with a strong password</p>
+              <h3 className="text-xl font-semibold text-foreground mb-2">{t('profile.changePassword')}</h3>
+              <p className="text-sm text-muted-foreground mb-6">{t('profile.changePasswordDesc')}</p>
             </div>
 
             <form onSubmit={handleSecuritySubmit} className="space-y-4">
@@ -259,29 +259,29 @@ const ProfileSettings = () => {
               </div>
 
               <div className="bg-muted p-4 rounded-lg">
-                <h4 className="font-medium text-foreground mb-2">Password Requirements:</h4>
+                <h4 className="font-medium text-foreground mb-2">{t('profile.passwordRequirementsTitle')}</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
                   <li className="flex items-center space-x-2">
                     <Icon name="Check" size={16} className="text-green-500" />
-                    <span>At least 8 characters long</span>
+                    <span>{t('profile.passwordRequirement1')}</span>
                   </li>
                   <li className="flex items-center space-x-2">
                     <Icon name="Check" size={16} className="text-green-500" />
-                    <span>Include uppercase and lowercase letters</span>
+                    <span>{t('profile.passwordRequirement2')}</span>
                   </li>
                   <li className="flex items-center space-x-2">
                     <Icon name="Check" size={16} className="text-green-500" />
-                    <span>Include at least one number</span>
+                    <span>{t('profile.passwordRequirement3')}</span>
                   </li>
                 </ul>
               </div>
 
               <div className="flex justify-end space-x-3">
                 <Button type="button" variant="outline" onClick={() => setSecurityData({ currentPassword: '', newPassword: '', confirmPassword: '' })}>
-                  Cancel
+                  {t('profile.cancel')}
                 </Button>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading ? 'Updating...' : 'Update Password'}
+                  {isLoading ? t('profile.updating') : t('profile.changePassword')}
                 </Button>
               </div>
             </form>
@@ -308,8 +308,8 @@ const ProfileSettings = () => {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">Notification Preferences</h3>
-              <p className="text-sm text-muted-foreground mb-6">Choose how you want to be notified about updates</p>
+                <h3 className="text-xl font-semibold text-foreground mb-2">{t('profile.preferences')}</h3>
+              <p className="text-sm text-muted-foreground mb-6">{t('messages.tryAgain')}</p>
             </div>
 
             <form onSubmit={handlePreferencesSubmit} className="space-y-6">

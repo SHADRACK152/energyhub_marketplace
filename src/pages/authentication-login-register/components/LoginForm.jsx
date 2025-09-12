@@ -5,10 +5,12 @@ import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import Icon from '../../../components/AppIcon';
+import { useTranslation } from '../../../utils/i18n.jsx';
 
 const LoginForm = ({ onSwitchToRegister }) => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -134,8 +136,8 @@ const LoginForm = ({ onSwitchToRegister }) => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-background py-12 px-2">
       <div className="w-full max-w-md mx-auto bg-white/90 rounded-2xl shadow-2xl p-8 relative animate-fade-in backdrop-blur-md">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-extrabold text-primary mb-2 tracking-tight drop-shadow">Welcome Back</h2>
-          <p className="text-muted-foreground">Sign in to your EnergyHub account</p>
+          <h2 className="text-3xl font-extrabold text-primary mb-2 tracking-tight drop-shadow">{t('hero.title')}</h2>
+          <p className="text-muted-foreground">{t('nav.signin')} {t('footer.description')}</p>
         </div>
       {errors?.general && (
         <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
@@ -147,10 +149,10 @@ const LoginForm = ({ onSwitchToRegister }) => {
       )}
   <form onSubmit={handleSubmit} className="space-y-6">
         <Input
-          label="Email Address"
+          label={t('profile.email')}
           type="email"
           name="email"
-          placeholder="Enter your email"
+          placeholder={t('footer.newsletter.placeholder')}
           value={formData?.email}
           onChange={handleInputChange}
           error={errors?.email}
@@ -158,11 +160,11 @@ const LoginForm = ({ onSwitchToRegister }) => {
         />
 
         <div className="relative">
-          <Input
-            label="Password"
+            <Input
+            label={t('profile.password') || 'Password'}
             type={showPassword ? 'text' : 'password'}
             name="password"
-            placeholder="Enter your password"
+            placeholder={t('payment.enterPin') || 'Enter your password'}
             value={formData?.password}
             onChange={handleInputChange}
             error={errors?.password}
@@ -183,7 +185,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
 
         <div className="flex items-center justify-between">
           <Checkbox
-            label="Remember me"
+            label={t('profile.preferences')}
             name="rememberMe"
             checked={formData?.rememberMe}
             onChange={handleInputChange}
@@ -193,7 +195,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
             className="text-sm text-primary hover:text-primary/80 transition-smooth"
             onClick={() => setShowForgotModal(true)}
           >
-            Forgot password?
+            {t('profile.changePassword')}
           </button>
         </div>
 
@@ -204,7 +206,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
           loading={isLoading}
           disabled={isLoading}
         >
-          {isLoading ? 'Signing In...' : 'Sign In'}
+          {isLoading ? t('messages.loading') : t('nav.signin')}
         </Button>
   {/* Demo login buttons removed */}
       </form>

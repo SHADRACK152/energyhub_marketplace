@@ -154,13 +154,13 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
                 onClick={() => handleNavigation('/product-catalog-search')}
                 className="block w-full text-left px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-smooth"
               >
-                Browse Products
+                {t('products.browse')}
               </button>
               <button
                 onClick={() => handleNavigation('/authentication-login-register')}
                 className="block w-full text-left px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-smooth"
               >
-                Sign In
+                {t('nav.signin')}
               </button>
               <div className="px-3 py-2">
                 <Button
@@ -168,7 +168,7 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
                   fullWidth
                   onClick={() => handleNavigation('/authentication-login-register')}
                 >
-                  Get Started
+                  {t('nav.getStarted')}
                 </Button>
               </div>
             </div>
@@ -200,13 +200,13 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <button
-              onClick={() => handleNavigation('/b2b-seller-dashboard')}
-              className={`text-sm font-medium transition-smooth ${
-                isActive('/b2b-seller-dashboard')
-                  ? 'text-primary' :'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {t('nav.dashboard')}
+                onClick={() => handleNavigation('/b2b-seller-dashboard')}
+                className={`text-sm font-medium transition-smooth ${
+                  isActive('/b2b-seller-dashboard')
+                    ? 'text-primary' :'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {t('nav.dashboard')}
             </button>
             <button
               onClick={() => handleNavigation('/b2b-inventory-management')}
@@ -229,6 +229,16 @@ const RoleBasedHeader = ({ user = null, onNavigate }) => {
 
             {/* User Menu */}
             <div className="flex items-center space-x-4">
+              {/* Ena Chat quick open */}
+              <div>
+                <button
+                  onClick={() => window.openEnaChat && window.openEnaChat()}
+                  className="p-2 rounded-md hover:bg-muted transition-colors"
+                  title={t('ena.open')}
+                >
+                  <Icon name="MessageCircle" size={18} />
+                </button>
+              </div>
               {/* Notifications */}
               <div className="relative notifications-dropdown">
                 <button 
@@ -1194,14 +1204,14 @@ function ProfileDropdown({ user, onNavigate, onLogout }) {
 
                 <button 
                   onClick={() => {
-                    alert('Live Chat feature coming soon! For immediate assistance, please call 1-800-ENERGY-HUB');
+                    alert(t('help.liveChatAlert') || 'Live Chat feature coming soon! For immediate assistance, please call 1-800-ENERGY-HUB');
                   }}
                   className="w-full text-left p-3 hover:bg-gray-50 rounded-lg flex items-center gap-3"
                 >
                   <Icon name="MessageCircle" size={16} className="text-green-600" />
                   <div>
-                    <div className="font-medium text-sm">Live Chat</div>
-                    <div className="text-xs text-muted-foreground">Chat with our support team</div>
+                    <div className="font-medium text-sm">{t('help.liveChat') || 'Live Chat'}</div>
+                    <div className="text-xs text-muted-foreground">{t('help.liveChatDesc') || 'Chat with our support team'}</div>
                   </div>
                 </button>
 
