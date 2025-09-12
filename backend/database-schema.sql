@@ -68,3 +68,12 @@ CREATE TRIGGER update_orders_updated_at
 --   'Test Customer',
 --   'customer@example.com'
 -- );
+
+-- Ena analytics table
+CREATE TABLE IF NOT EXISTS ena_analytics (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_name TEXT NOT NULL,
+  userId TEXT,
+  payload TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

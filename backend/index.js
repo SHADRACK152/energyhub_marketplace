@@ -215,7 +215,17 @@ app.post('/api/ena-chat', async (req, res) => {
     // If request contains an 'event' field, treat as analytics event
     if (body.event) {
       console.log('Ena analytics event received:', body.event, body);
-      // TODO: persist analytics to DB or analytics provider
+      // Persist analytics to SQLite ena_analytics table
+      try {
+        await dbHelpers.run(`INSERT INTO ena_analytics (event_name, userId, payload) VALUES (?, ?, ?)` , [
+          body.event,
+          body.userId || null,
+          JSON.stringify(body.payload || body)
+        ]);
+        console.log('✅ Ena analytics saved to SQLite');
+      } catch (err) {
+        console.error('Failed to save Ena analytics to SQLite:', err.message);
+      }
       return res.json({ ok: true });
     }
 
@@ -239,6 +249,18 @@ app.post('/api/ena-chat', async (req, res) => {
 
     // Log analytics event for message sent
     console.log('Ena analytics event: ena.message_sent', { userId, message });
+
+    // Persist message event to ena_analytics
+    try {
+      await dbHelpers.run(`INSERT INTO ena_analytics (event_name, userId, payload) VALUES (?, ?, ?)` , [
+        'ena.message_sent',
+        userId || null,
+        JSON.stringify({ message })
+      ]);
+      console.log('✅ Ena message saved to SQLite');
+    } catch (err) {
+      console.error('Failed to save Ena message to SQLite:', err.message);
+    }
 
     return res.json({ reply, success: true });
   } catch (err) {

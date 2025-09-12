@@ -122,6 +122,20 @@ const createTables = () => {
     if (err) console.error('Error creating product_qna table:', err);
     else console.log('✅ QnA table ready');
   });
+
+  // Ena analytics table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS ena_analytics (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_name TEXT NOT NULL,
+      userId TEXT,
+      payload TEXT, -- JSON string
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `, (err) => {
+    if (err) console.error('Error creating ena_analytics table:', err);
+    else console.log('✅ Ena analytics table ready');
+  });
 };
 
 // Initialize tables
