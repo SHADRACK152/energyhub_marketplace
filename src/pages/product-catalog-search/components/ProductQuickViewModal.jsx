@@ -6,13 +6,8 @@ import Button from '../../../components/ui/Button';
 
 const ProductQuickViewModal = (props) => {
   const { product, isOpen, onClose, onAddToCart, onAddToWishlist, onAddToCompare, isInWishlist, isInComparison } = props;
-  if (!isOpen || !product) return null;
-  // Only define images and galleryIndex after confirming product exists
-  const images = Array.isArray(product.images) && product.images.length > 0
-    ? product.images.filter(Boolean)
-    : product.image
-      ? [product.image]
-      : [];
+
+  // Hooks must be called unconditionally at top-level of component
   const [galleryIndex, setGalleryIndex] = useState(0);
   // QnA state from backend
   const [qnaList, setQnaList] = useState([]);
@@ -46,6 +41,15 @@ const ProductQuickViewModal = (props) => {
       setQnaError('Could not submit question');
     }
   };
+
+  // Early return after hooks are declared
+  if (!isOpen || !product) return null;
+
+  const images = Array.isArray(product.images) && product.images.length > 0
+    ? product.images.filter(Boolean)
+    : product.image
+      ? [product.image]
+      : [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">

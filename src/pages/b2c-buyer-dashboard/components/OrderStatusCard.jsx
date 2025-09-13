@@ -35,9 +35,9 @@ const OrderStatusCard = ({ order, onTrackOrder, onBuyAgain }) => {
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 shadow-card">
+    <div className="card-3d bg-card border border-border rounded-lg p-3">
       <div className="flex items-start space-x-4">
-        <div className="w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+        <div className="w-16 h-16 bg-muted rounded-md overflow-hidden flex-shrink-0">
           <Image
             src={order?.productImage}
             alt={order?.productName}
@@ -78,6 +78,7 @@ const OrderStatusCard = ({ order, onTrackOrder, onBuyAgain }) => {
                   iconName="MapPin"
                   iconPosition="left"
                   iconSize={14}
+                  className="px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                 >
                   Track
                 </Button>
@@ -90,6 +91,7 @@ const OrderStatusCard = ({ order, onTrackOrder, onBuyAgain }) => {
                   iconName="RotateCcw"
                   iconPosition="left"
                   iconSize={14}
+                  className="px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                 >
                   Buy Again
                 </Button>
