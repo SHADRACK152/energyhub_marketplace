@@ -342,8 +342,30 @@ const B2CBuyerDashboard = () => {
           )}
 
           {/* Welcome Header */}
-          <div className="mb-4 animate-fade-in-up">
-            <WelcomeHeader user={user} />
+          <div className="mb-6 animate-fade-in-up">
+            <div className="glass-3d p-5 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-secondary to-primary flex items-center justify-center text-white font-semibold">EH</div>
+                <div>
+                  <h3 className="text-lg font-bold">Good afternoon{user?.name ? `, ${user.name}` : ''}!</h3>
+                  <p className="text-sm text-muted-foreground">Email: {user?.email || 'ecosolar@gmail.com'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <div className="text-sm text-muted-foreground">Total Orders</div>
+                  <div className="text-xl font-bold">{orderStats.totalOrders}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm text-muted-foreground">In Transit</div>
+                  <div className="text-xl font-bold">{orderStats.inTransit}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm text-muted-foreground">Total Spent</div>
+                  <div className="text-xl font-bold">${orderStats.totalSpent.toLocaleString()}</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Order Summary Stats */}
@@ -387,7 +409,7 @@ const B2CBuyerDashboard = () => {
                     </div>
                   ))}
                 </div>
-            </div>
+              </div>
 
             {/* Sidebar - Right Column */}
             <div className="space-y-8">
@@ -423,6 +445,7 @@ const B2CBuyerDashboard = () => {
               </div>
             </div>
           </div>
+        </div>
         </div>
       </main>
   <MobileTabBar user={user} onNavigate={handleNavigation} />
