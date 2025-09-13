@@ -382,43 +382,11 @@ const B2CBuyerDashboard = () => {
                 </div>
                 <div className="space-y-6">
                   {recentOrders?.map((order) => (
-                    <OrderStatusCard
-                      key={order?.id}
-                      order={order}
-                      onTrackOrder={handleTrackOrder}
-                      onBuyAgain={handleBuyAgain}
-                    />
+                    <div key={order.id} className="card-3d p-3">
+                      <OrderStatusCard order={order} />
+                    </div>
                   ))}
                 </div>
-              </div>
-
-              {/* Continue Shopping */}
-              <div className="animate-fade-in-up delay-200">
-                {productsLoading ? (
-                  <div className="bg-card border border-border rounded-lg p-8 text-center text-muted-foreground">Loading products...</div>
-                ) : productsError ? (
-                  <div className="bg-card border border-border rounded-lg p-8 text-center text-error">{productsError}</div>
-                ) : (
-                  <ContinueShoppingSection
-                    recentlyViewed={recentlyViewed}
-                    abandonedCart={abandonedCart}
-                    onAddToCart={handleAddToCart}
-                    onViewProduct={handleViewProduct}
-                  />
-                )}
-              </div>
-
-              {/* Recommended Products */}
-              <div className="animate-fade-in-up delay-300">
-                {!productsLoading && !productsError && (
-                  <RecommendedProducts
-                    products={recommendedProducts}
-                    onAddToCart={handleAddToCart}
-                    onViewProduct={handleViewProduct}
-                    onAddToWishlist={handleAddToWishlist}
-                  />
-                )}
-              </div>
             </div>
 
             {/* Sidebar - Right Column */}

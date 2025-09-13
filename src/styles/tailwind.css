@@ -106,4 +106,35 @@
   .accent-gradient-soft {
     background: linear-gradient(180deg, rgba(45,212,191,0.08), rgba(14,165,132,0.03));
   }
+
+  /* 3D card and texture utilities */
+  .card-3d {
+    background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,247,250,0.9));
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(14, 20, 26, 0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+    transform-style: preserve-3d;
+    transition: transform 300ms ease, box-shadow 300ms ease;
+  }
+
+  .card-3d:hover {
+    transform: translateY(-6px) rotateX(2deg) rotateY(-2deg);
+    box-shadow: 0 20px 40px rgba(14, 20, 26, 0.18), inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+
+  .card-tilt { /* subtle tilt for header/hero */
+    transform: perspective(800px) rotateX(1deg) rotateY(-1deg);
+  }
+
+  .texture-bg {
+    background-image: radial-gradient(rgba(0,0,0,0.02) 1px, transparent 1px), linear-gradient(45deg, rgba(255,255,255,0.02), transparent 25%);
+    background-size: 18px 18px, 100% 100%;
+  }
+
+  .glass-3d {
+    background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.35));
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow: 0 10px 30px rgba(2,6,23,0.12);
+  }
 }
