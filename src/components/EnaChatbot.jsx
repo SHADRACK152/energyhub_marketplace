@@ -32,10 +32,28 @@ export default function EnaChatbot() {
 
   const requestReply = async (message, userId) => {
     try {
+      // Get user context for better responses
+      const user = window.__ENERGYHUB_USER;
+      const userRole = user?.role || 'buyer';
+      
+      // Build conversation history (last 6 messages for context)
+      const conversationHistory = messages
+        .filter(m => !m._temp)
+        .slice(-6)
+        .map(m => ({
+          role: m.from === 'user' ? 'user' : 'assistant',
+          content: m.text
+        }));
+
       const res = await fetch('/api/ena-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, userId })
+        body: JSON.stringify({ 
+          message, 
+          userId, 
+          userRole,
+          conversationHistory 
+        })
       });
       if (!res.ok) throw new Error('Ena backend error');
       const data = await res.json();

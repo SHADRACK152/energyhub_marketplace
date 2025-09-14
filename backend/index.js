@@ -4,7 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const cors = require('cors');
 const { db, dbHelpers } = require('./database');
-const { queryLLM } = require('./llm');
+const { queryLLM, getFallbackResponse } = require('./llm');
 
 const app = express();
 app.use(express.json());
@@ -230,22 +230,40 @@ app.post('/api/ena-chat', async (req, res) => {
       return res.json({ ok: true });
     }
 
-    const { message, userId } = body;
+    const { message, userId, userRole, conversationHistory } = body;
 
-    console.log('Ena chat request from', userId || 'anonymous', 'message:', message);
+    console.log('Ena chat request from', userId || 'anonymous', 'role:', userRole, 'message:', message);
 
     // Try to get a richer reply from an LLM, if configured
     let reply = null;
+    let llmMetadata = null;
+    
     try {
-      const llm = await queryLLM(message, { system: 'You are Ena, a helpful assistant for an energy marketplace.' });
-      if (llm && llm.reply) {
-        reply = llm.reply;
-        // persist LLM reply as an analytics entry
+      const llmOpts = {
+        conversationHistory: conversationHistory || [],
+        maxTokens: 350,
+        temperature: 0.3
+      };
+      
+      const llmResult = await queryLLM(message, llmOpts);
+      if (llmResult && llmResult.reply) {
+        reply = llmResult.reply;
+        llmMetadata = {
+          model: llmResult.model,
+          usage: llmResult.usage
+        };
+        
+        // Persist LLM reply as an analytics entry
         try {
           await dbHelpers.run(`INSERT INTO ena_analytics (event_name, userId, payload) VALUES (?, ?, ?)` , [
             'ena.llm_reply',
             userId || null,
-            JSON.stringify({ reply })
+            JSON.stringify({ 
+              reply, 
+              metadata: llmMetadata,
+              messageLength: message?.length || 0,
+              hasHistory: !!(conversationHistory && conversationHistory.length > 0)
+            })
           ]);
           console.log('✅ Ena LLM reply saved to SQLite');
         } catch (err) {
@@ -256,20 +274,9 @@ app.post('/api/ena-chat', async (req, res) => {
       console.error('LLM call failed:', err.message || err);
     }
 
-    // Fallback to canned responses if LLM not available or failed
+    // Use enhanced fallback responses if LLM not available or failed
     if (!reply) {
-      const lower = (message || '').toLowerCase();
-      reply = "Thanks for reaching out — Ena is here to help. Can you share more details?";
-
-      if (!message) {
-        reply = 'Hi — how can I help you today? You can ask about orders, products, or selling.';
-      } else if (lower.includes('order')) {
-        reply = 'I can help track or update orders. Provide an order number or open your Orders page.';
-      } else if (lower.includes('sell') || lower.includes('listing') || lower.includes('inventory')) {
-        reply = 'To list products, go to Inventory Management. I can walk you through bulk upload or pricing tips.';
-      } else if (lower.includes('buy') || lower.includes('product')) {
-        reply = 'Looking to buy? Use the Product Catalog to find items or contact sellers directly from an order.';
-      }
+      reply = getFallbackResponse(message, { userRole, userId });
     }
 
     // Log analytics event for message sent
@@ -287,7 +294,11 @@ app.post('/api/ena-chat', async (req, res) => {
       console.error('Failed to save Ena message to SQLite:', err.message);
     }
 
-    return res.json({ reply, success: true });
+    return res.json({ 
+      reply, 
+      success: true,
+      metadata: llmMetadata ? { llm: llmMetadata } : undefined
+    });
   } catch (err) {
     console.error('Ena chat error:', err);
     return res.status(500).json({ error: 'Ena chat failed' });
