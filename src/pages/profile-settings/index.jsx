@@ -6,6 +6,7 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { useToast } from '../../components/ui/Toast';
 import { useTranslation } from '../../utils/i18n.jsx';
+import { apiCall, API_CONFIG } from '../../config/api';
 
 const ProfileSettings = () => {
   const navigate = useNavigate();
@@ -14,6 +15,12 @@ const ProfileSettings = () => {
   const { t, currentLanguage, changeLanguage, availableLanguages } = useTranslation();
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(false);
+  const [profilePicture, setProfilePicture] = useState(user?.profilePicture || null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  // Debug: Log user and profile picture state
+  console.log('Current user:', user);
+  console.log('Current profilePicture state:', profilePicture);
 
   // Profile form state
   const [profileData, setProfileData] = useState({
@@ -116,6 +123,81 @@ const ProfileSettings = () => {
     }
   };
 
+  // Profile picture functions
+  const handlePhotoUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select an image file', { type: 'error' });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Image size should be less than 5MB', { type: 'error' });
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+      formData.append('userId', user?.id || '');
+
+      console.log('Uploading profile picture for user:', user?.id);
+
+      const data = await apiCall(API_CONFIG.ENDPOINTS.UPLOAD_PROFILE_PICTURE, {
+        method: 'POST',
+        body: formData
+      });
+
+      console.log('Profile picture upload response:', data);
+      setProfilePicture(data.profilePicture);
+      
+      // Update user context
+      if (updateUser) {
+        updateUser({ ...user, profilePicture: data.profilePicture });
+      }
+
+      showToast('Profile picture updated successfully', { type: 'success' });
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      showToast('Failed to upload profile picture. Please try again.', { type: 'error' });
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handlePhotoRemove = async () => {
+    if (!profilePicture) return;
+
+    setIsUploadingPhoto(true);
+
+    try {
+      await apiCall(API_CONFIG.ENDPOINTS.REMOVE_PROFILE_PICTURE, {
+        method: 'DELETE',
+        body: JSON.stringify({ userId: user?.id })
+      });
+
+      setProfilePicture(null);
+      
+      // Update user context
+      if (updateUser) {
+        updateUser({ ...user, profilePicture: null });
+      }
+
+      showToast('Profile picture removed successfully', { type: 'success' });
+    } catch (error) {
+      console.error('Error removing profile picture:', error);
+      showToast('Failed to remove profile picture. Please try again.', { type: 'error' });
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'profile':
@@ -123,23 +205,69 @@ const ProfileSettings = () => {
           <div className="space-y-6">
             <div className="flex items-center space-x-6">
               <div className="relative">
-                <div className="w-24 h-24 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                  <Icon name="User" size={32} color="white" />
+                <div className="w-24 h-24 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center border-4 border-white shadow-lg overflow-hidden">
+                  {profilePicture ? (
+                    <img 
+                      src={profilePicture} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.error('Failed to load profile picture:', profilePicture);
+                        e.target.style.display = 'none';
+                      }}
+                      onLoad={() => {
+                        console.log('Profile picture loaded successfully:', profilePicture);
+                      }}
+                    />
+                  ) : (
+                    <Icon name="User" size={32} color="white" />
+                  )}
                 </div>
-                <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center border-2 border-white shadow-sm hover:bg-primary/90 transition-smooth">
-                  <Icon name="Camera" size={16} color="white" />
+                <input
+                  type="file"
+                  id="profilePictureInput"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                  disabled={isUploadingPhoto}
+                />
+                <button 
+                  onClick={() => document.getElementById('profilePictureInput')?.click()}
+                  disabled={isUploadingPhoto}
+                  className="absolute bottom-0 right-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center border-2 border-white shadow-sm hover:bg-primary/90 transition-smooth disabled:opacity-50"
+                >
+                  {isUploadingPhoto ? (
+                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                  ) : (
+                    <Icon name="Camera" size={16} color="white" />
+                  )}
                 </button>
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-semibold text-foreground mb-1">{t('profile.photo')}</h3>
-                <p className="text-sm text-muted-foreground mb-3">{t('profile.photoDescription')}</p>
+                <h3 className="text-xl font-semibold text-foreground mb-1">Profile Photo</h3>
+                <p className="text-sm text-muted-foreground mb-3">Update your profile photo to personalize your account</p>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
-                      {t('profile.uploadPhoto')}
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => document.getElementById('profilePictureInput')?.click()}
+                    disabled={isUploadingPhoto}
+                  >
+                    {isUploadingPhoto ? 'Uploading...' : 'Upload Photo'}
+                  </Button>
+                  {profilePicture && (
+                    <Button 
+                      type="button"
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-red-600 hover:text-red-700"
+                      onClick={handlePhotoRemove}
+                      disabled={isUploadingPhoto}
+                    >
+                      Remove
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                      {t('profile.removePhoto')}
-                    </Button>
+                  )}
                 </div>
               </div>
             </div>

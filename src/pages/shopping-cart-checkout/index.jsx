@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../../components/CartContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from '../../utils/i18n.jsx';
+import { useAuth } from '../../components/ui/AuthenticationRouter';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import MobileTabBar from '../../components/ui/MobileTabBar';
 
@@ -19,7 +20,7 @@ const ShoppingCartCheckout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const [user] = useState({ role: 'buyer', name: 'John Doe' });
+  const { user } = useAuth(); // Get authenticated user
   
   // Checkout flow state
   const [currentStep, setCurrentStep] = useState('cart');
@@ -350,8 +351,9 @@ const ShoppingCartCheckout = () => {
           totalWeight: cartItems.reduce((sum, item) => sum + (item.weight || 1) * item.quantity, 0),
           currency: 'USD'
         },
-        userId: 'demo-user', // Replace with real user ID if available
-        userEmail: 'customer@example.com', // Replace with real user email
+        userId: user?.id || 'demo-user', // Use actual user ID if available
+        userEmail: user?.email || 'customer@example.com', // Use actual user email
+        userName: user?.name || 'Customer', // Use actual user name
         orderStatus: 'confirmed'
       };
       

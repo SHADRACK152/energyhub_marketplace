@@ -423,15 +423,47 @@ const B2BInventoryManagement = () => {
   // Save handler for both add and edit
   const handleSaveProduct = async (productData) => {
     if (editProductId) {
-      // Edit existing product
+      // Edit existing product - use FormData like create
       try {
+        console.log('Updating product with data:', productData);
+        console.log('Images to upload:', productData.images?.length || 0);
+        
+        const formData = new FormData();
+        
+        // Append all fields except images
+        Object.entries(productData).forEach(([key, value]) => {
+          if (key === 'images') return;
+          // Stringify objects/arrays
+          if (typeof value === 'object' && value !== null) {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, value || '');
+          }
+        });
+        
+        // Append images as files (only new ones)
+        if (productData.images && productData.images.length > 0) {
+          console.log(`Processing ${productData.images.length} images for update...`);
+          productData.images.forEach((imgObj, index) => {
+            if (imgObj.file) {
+              formData.append('images', imgObj.file);
+              console.log(`New image ${index + 1}: ${imgObj.file.name} (${(imgObj.file.size / 1024 / 1024).toFixed(2)}MB)`);
+            }
+          });
+        }
+        
         const res = await fetch(`/api/products/${editProductId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(productData)
+          body: formData  // Use FormData instead of JSON
         });
-        if (!res.ok) throw new Error('Failed to update product');
-        setProducts(prev => prev.map(p => p.id === editProductId ? { ...productData, id: editProductId } : p));
+        
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || 'Failed to update product');
+        }
+        
+        const updatedProduct = await res.json();
+        setProducts(prev => prev.map(p => p.id === editProductId ? updatedProduct : p));
         alert('Product updated successfully!');
       } catch (err) {
         console.error('Error updating product:', err);

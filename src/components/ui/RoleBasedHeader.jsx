@@ -543,8 +543,16 @@ function ProfileDropdown({ user, onNavigate, onLogout }) {
         onClick={() => setOpen(!open)}
         aria-label="Profile menu"
       >
-        <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-          <Icon name="User" size={16} color="white" />
+        <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden">
+          {user?.profilePicture ? (
+            <img 
+              src={user.profilePicture} 
+              alt="Profile" 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <Icon name="User" size={16} color="white" />
+          )}
         </div>
         <div className="hidden sm:block text-left">
           <div className="text-sm font-medium text-foreground">
@@ -566,8 +574,16 @@ function ProfileDropdown({ user, onNavigate, onLogout }) {
           {/* Profile Header */}
           <div className="p-4 border-b border-border">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                <Icon name="User" size={20} color="white" />
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden">
+                {user?.profilePicture ? (
+                  <img 
+                    src={user.profilePicture} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Icon name="User" size={20} color="white" />
+                )}
               </div>
               <div className="flex-1">
                 <div className="font-semibold text-foreground">
@@ -707,8 +723,16 @@ function ProfileDropdown({ user, onNavigate, onLogout }) {
             {/* Profile Section */}
             <div className="px-4 py-3 border-b border-border">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                  <Icon name="User" size={18} color="white" />
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden">
+                  {user?.profilePicture ? (
+                    <img 
+                      src={user.profilePicture} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Icon name="User" size={18} color="white" />
+                  )}
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-foreground">

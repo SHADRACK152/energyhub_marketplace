@@ -7,7 +7,8 @@ const { db, dbHelpers } = require('./database');
 const { queryLLM, getFallbackResponse } = require('./llm');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Multer setup for image uploads
 const storage = multer.diskStorage({
@@ -19,7 +20,13 @@ const storage = multer.diskStorage({
     cb(null, uniqueSuffix + '-' + file.originalname);
   }
 });
-const upload = multer({ storage });
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit per file
+    files: 10 // Maximum 10 files
+  }
+});
 app.use(cors());
 
 // In-memory storage for created products (fallback when SQLite or DB access fails)
@@ -161,16 +168,20 @@ app.use('/api/qna', qnaRouter);
 const ordersRouter = require('./routes/orders');
 app.use('/api/orders', ordersRouter);
 
+// Users API
+const usersRouter = require('./routes/users');
+app.use('/api/users', usersRouter);
+
 // Get all products from SQLite
 app.get('/api/products', async (req, res) => {
   try {
     // Get all products from SQLite database
     const products = await dbHelpers.query('SELECT * FROM products ORDER BY createdAt DESC');
     
-    // Mock products for demo purposes
+    // Mock products for demo purposes - using negative ID to avoid conflicts
     const mockProducts = [
       {
-        id: 1,
+        id: -1,  // Use negative ID to avoid conflicts with database IDs
         name: 'Solar Panel 400W',
         description: 'High-efficiency solar panel',
         price: 299.99,
@@ -401,6 +412,204 @@ app.post('/api/products', upload.array('images', 10), async (req, res) => {
   } catch (err) {
     console.error('Server error:', err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Update an existing product
+app.put('/api/products/:id', upload.array('images', 10), async (req, res) => {
+  try {
+    const productId = req.params.id;
+    console.log(`Updating product ${productId}...`);
+    console.log('Request body:', req.body);
+    console.log('Request files:', req.files);
+
+    // Parse product fields from body
+    const {
+      name, brand, sku, category, description, specifications,
+      pricing, inventory, status, featured
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !category) {
+      return res.status(400).json({ error: 'Name and category are required' });
+    }
+
+    // Parse JSON fields if sent as string
+    let parsedSpecifications, parsedPricing, parsedInventory;
+    
+    try {
+      parsedSpecifications = typeof specifications === 'string' ? JSON.parse(specifications) : specifications;
+      parsedPricing = typeof pricing === 'string' ? JSON.parse(pricing) : pricing;
+      parsedInventory = typeof inventory === 'string' ? JSON.parse(inventory) : inventory;
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return res.status(400).json({ error: 'Invalid JSON in request data' });
+    }
+
+    // Handle images
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      imageUrls = req.files.map(file => `http://localhost:5000/uploads/${file.filename}`);
+      console.log('New image URLs:', imageUrls);
+    }
+
+    // Check if product exists first
+    const existingProduct = await dbHelpers.get('SELECT * FROM products WHERE id = ?', [productId]);
+    if (!existingProduct) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    // Parse existing data to preserve it
+    const existingSpecs = existingProduct.specifications ? JSON.parse(existingProduct.specifications) : {};
+    const existingTags = existingProduct.tags ? JSON.parse(existingProduct.tags) : [];
+
+    // Use existing images if no new ones uploaded
+    if (imageUrls.length === 0 && existingProduct.image) {
+      imageUrls = [existingProduct.image];
+    }
+
+    // Merge specifications - keep existing, add new ones
+    const mergedSpecs = {
+      ...existingSpecs,
+      ...(parsedSpecifications || {})
+    };
+
+    // Build update object - only update fields that are provided, preserve others
+    const updateObj = {
+      name: name || existingProduct.name,
+      brand: brand !== undefined ? brand : (existingProduct.sellerName || null),
+      sku: sku !== undefined ? sku : existingProduct.sku,
+      category: category || existingProduct.category,
+      description: description !== undefined ? description : existingProduct.description,
+      specifications: JSON.stringify(mergedSpecs),
+      price: parsedPricing?.basePrice ? parseFloat(parsedPricing.basePrice) : existingProduct.price,
+      stockCount: parsedInventory?.stock !== undefined ? parseInt(parsedInventory.stock) : existingProduct.stockCount,
+      image: imageUrls[0] || existingProduct.image,
+      status: status || existingProduct.status || 'active',
+      tags: JSON.stringify(existingTags), // Preserve existing tags
+      updatedAt: new Date().toISOString()
+    };
+
+    console.log('Merging update with existing product data...');
+    console.log('Existing product:', existingProduct);
+    console.log('Update object:', updateObj);
+
+    // Update in SQLite database - preserve all existing fields
+    const result = await dbHelpers.run(`
+      UPDATE products SET 
+        name = ?, description = ?, price = ?, image = ?, category = ?,
+        sellerId = ?, sellerName = ?, stockCount = ?, specifications = ?, 
+        tags = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `, [
+      updateObj.name,
+      updateObj.description,
+      updateObj.price,
+      updateObj.image,
+      updateObj.category,
+      existingProduct.sellerId || ('demo-seller-' + Date.now()),
+      updateObj.brand || existingProduct.sellerName || 'Demo Seller',
+      updateObj.stockCount,
+      updateObj.specifications,
+      updateObj.tags,
+      productId
+    ]);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    // Get the updated product from database
+    const updatedProduct = await dbHelpers.get('SELECT * FROM products WHERE id = ?', [productId]);
+    
+    // Format response to match frontend expectations
+    const responseProduct = {
+      ...updatedProduct,
+      specifications: updatedProduct.specifications ? JSON.parse(updatedProduct.specifications) : {},
+      tags: updatedProduct.tags ? JSON.parse(updatedProduct.tags) : [],
+      images: updatedProduct.image ? [updatedProduct.image] : imageUrls,
+      inStock: updatedProduct.stockCount > 0,
+      seller: updatedProduct.sellerName
+    };
+
+    console.log('✅ Product updated successfully in SQLite:', responseProduct);
+    res.json(responseProduct);
+  } catch (err) {
+    console.error('Server error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update product price
+app.patch('/api/products/:id/price', async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const { price } = req.body;
+
+    if (!price || isNaN(price)) {
+      return res.status(400).json({ error: 'Valid price is required' });
+    }
+
+    const result = await dbHelpers.run(
+      'UPDATE products SET price = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [parseFloat(price), productId]
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    console.log(`✅ Updated product ${productId} price to ${price}`);
+    res.json({ success: true, price: parseFloat(price) });
+  } catch (err) {
+    console.error('Error updating product price:', err);
+    res.status(500).json({ error: 'Failed to update price' });
+  }
+});
+
+// Update product stock
+app.patch('/api/products/:id/stock', async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const { stock } = req.body;
+
+    if (stock === undefined || isNaN(stock)) {
+      return res.status(400).json({ error: 'Valid stock is required' });
+    }
+
+    const result = await dbHelpers.run(
+      'UPDATE products SET stockCount = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [parseInt(stock), productId]
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    console.log(`✅ Updated product ${productId} stock to ${stock}`);
+    res.json({ success: true, stock: parseInt(stock) });
+  } catch (err) {
+    console.error('Error updating product stock:', err);
+    res.status(500).json({ error: 'Failed to update stock' });
+  }
+});
+
+// Delete product
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    const productId = req.params.id;
+
+    const result = await dbHelpers.run('DELETE FROM products WHERE id = ?', [productId]);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    console.log(`✅ Deleted product ${productId}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error deleting product:', err);
+    res.status(500).json({ error: 'Failed to delete product' });
   }
 });
 
@@ -744,7 +953,13 @@ app.post('/api/users/register', async (req, res) => {
     console.log('✅ User registered successfully:', user.email);
     res.status(201).json({ 
       token, 
-      user: { id: user.id, email: user.email, name: user.name, role: user.role } 
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        name: user.name, 
+        role: user.role,
+        profilePicture: null
+      } 
     });
   } catch (error) {
     console.error('❌ Error registering user:', error);
@@ -778,10 +993,27 @@ app.post('/api/users/login', async (req, res) => {
       { expiresIn: '7d' }
     );
     
+    // Parse profile data to get profile picture
+    let profilePicture = null;
+    if (user.profileData) {
+      try {
+        const profileData = JSON.parse(user.profileData);
+        profilePicture = profileData.profilePicture || null;
+      } catch (e) {
+        console.log('Error parsing profile data:', e.message);
+      }
+    }
+    
     console.log('✅ User logged in successfully:', user.email);
     res.json({ 
       token, 
-      user: { id: user.id, email: user.email, name: user.name, role: user.role } 
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        name: user.name, 
+        role: user.role,
+        profilePicture: profilePicture
+      } 
     });
   } catch (error) {
     console.error('❌ Error logging in user:', error);

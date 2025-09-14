@@ -41,12 +41,30 @@ router.post('/', async (req, res) => {
       price, 
       paymentMethod, 
       userId = 'demo-user',
-      quantity = 1
+      quantity = 1,
+      userEmail,
+      userName
     } = req.body;
 
     // Generate order ID and number
     const orderId = Date.now();
     const orderNumber = `ORD-${orderId}`;
+    
+    // Try to get user information if userId is provided
+    let actualUserEmail = userEmail || 'customer@example.com';
+    let actualUserName = userName || 'Customer';
+    
+    if (userId && userId !== 'demo-user') {
+      try {
+        const user = await dbHelpers.get('SELECT email, name FROM users WHERE id = ?', [userId]);
+        if (user) {
+          actualUserEmail = user.email || actualUserEmail;
+          actualUserName = user.name || actualUserName;
+        }
+      } catch (userError) {
+        console.log('Could not fetch user details:', userError.message);
+      }
+    }
     
     // Create new order object for SQLite
     const orderData = {
@@ -63,7 +81,7 @@ router.post('/', async (req, res) => {
       paymentInfo: JSON.stringify({ method: paymentMethod }),
       items: JSON.stringify([{ name: productName, price, quantity }]),
       userId,
-      userEmail: 'customer@example.com',
+      userEmail: actualUserEmail,
       orderStatus: 'Reviewing'
     };
 
@@ -118,7 +136,7 @@ router.post('/', async (req, res) => {
         ],
         userId: savedOrder.userId,
         buyerId: 'buyer-new-' + Date.now(),
-        buyerName: 'New Customer',
+        buyerName: actualUserName,
         buyerEmail: savedOrder.userEmail,
         paymentStatus: 'Paid',
         createdAt: savedOrder.createdAt
@@ -181,31 +199,46 @@ router.get('/', async (req, res) => {
     
     const orders = await dbHelpers.query(query, params);
     
-    // Transform orders to match frontend expectations
-    const transformedOrders = orders.map(order => ({
-      id: order.id,
-      orderNumber: order.orderNumber,
-      productName: order.productName,
-      productImage: order.productImage,
-      price: order.price,
-      quantity: 1,
-      totalAmount: order.subtotal,
-      paymentMethod: order.paymentInfo ? JSON.parse(order.paymentInfo).method : 'Unknown',
-      orderDate: order.createdAt,
-      deliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-      status: order.orderStatus,
-      statusSteps: [
-        { label: 'Reviewing', completed: true },
-        { label: 'Processing', completed: false },
-        { label: 'Shipping', completed: false },
-        { label: 'Delivered', completed: false },
-      ],
-      userId: order.userId,
-      buyerId: 'buyer-' + order.id,
-      buyerName: 'Customer',
-      buyerEmail: order.userEmail,
-      paymentStatus: 'Paid',
-      createdAt: order.createdAt
+    // Transform orders to match frontend expectations with actual user names
+    const transformedOrders = await Promise.all(orders.map(async (order) => {
+      // Try to get actual user name from users table
+      let buyerName = 'Customer';
+      if (order.userId && order.userId !== 'demo-user') {
+        try {
+          const user = await dbHelpers.get('SELECT name FROM users WHERE id = ?', [order.userId]);
+          if (user && user.name) {
+            buyerName = user.name;
+          }
+        } catch (userError) {
+          console.log(`Could not fetch user name for order ${order.id}:`, userError.message);
+        }
+      }
+      
+      return {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        productName: order.productName,
+        productImage: order.productImage,
+        price: order.price,
+        quantity: 1,
+        totalAmount: order.subtotal,
+        paymentMethod: order.paymentInfo ? JSON.parse(order.paymentInfo).method : 'Unknown',
+        orderDate: order.createdAt,
+        deliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        status: order.orderStatus,
+        statusSteps: [
+          { label: 'Reviewing', completed: true },
+          { label: 'Processing', completed: false },
+          { label: 'Shipping', completed: false },
+          { label: 'Delivered', completed: false },
+        ],
+        userId: order.userId,
+        buyerId: 'buyer-' + order.id,
+        buyerName: buyerName,
+        buyerEmail: order.userEmail,
+        paymentStatus: 'Paid',
+        createdAt: order.createdAt
+      };
     }));
     
     console.log(`✅ Retrieved ${orders.length} orders from SQLite`);
@@ -227,6 +260,19 @@ router.get('/:id', async (req, res) => {
     const order = await dbHelpers.get('SELECT * FROM orders WHERE id = ? OR orderNumber = ?', [orderId, orderId]);
     
     if (order) {
+      // Try to get actual user name
+      let buyerName = 'Customer';
+      if (order.userId && order.userId !== 'demo-user') {
+        try {
+          const user = await dbHelpers.get('SELECT name FROM users WHERE id = ?', [order.userId]);
+          if (user && user.name) {
+            buyerName = user.name;
+          }
+        } catch (userError) {
+          console.log(`Could not fetch user name for order ${orderId}:`, userError.message);
+        }
+      }
+      
       // Transform for frontend
       const transformedOrder = {
         id: order.id,
@@ -248,7 +294,7 @@ router.get('/:id', async (req, res) => {
         ],
         userId: order.userId,
         buyerId: 'buyer-' + order.id,
-        buyerName: 'Customer',
+        buyerName: buyerName,
         buyerEmail: order.userEmail,
         paymentStatus: 'Paid',
         createdAt: order.createdAt
@@ -328,6 +374,19 @@ router.patch('/:id', async (req, res) => {
         // Get updated order
         const updatedOrder = await dbHelpers.get('SELECT * FROM orders WHERE id = ?', [existingOrder.id]);
         
+        // Try to get actual user name
+        let buyerName = 'Customer';
+        if (updatedOrder.userId && updatedOrder.userId !== 'demo-user') {
+          try {
+            const user = await dbHelpers.get('SELECT name FROM users WHERE id = ?', [updatedOrder.userId]);
+            if (user && user.name) {
+              buyerName = user.name;
+            }
+          } catch (userError) {
+            console.log(`Could not fetch user name for order update ${orderId}:`, userError.message);
+          }
+        }
+        
         // Transform for frontend format with status steps
         const statusSteps = [
           { label: 'Reviewing', completed: true },
@@ -351,7 +410,7 @@ router.patch('/:id', async (req, res) => {
           statusSteps: statusSteps,
           userId: updatedOrder.userId,
           buyerId: 'buyer-' + updatedOrder.id,
-          buyerName: 'Customer',
+          buyerName: buyerName,
           buyerEmail: updatedOrder.userEmail,
           paymentStatus: paymentStatus || 'Paid',
           trackingNumber: trackingNumber || null,

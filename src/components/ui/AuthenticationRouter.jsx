@@ -6,6 +6,7 @@ const AuthContext = createContext({
   user: null,
   login: () => {},
   logout: () => {},
+  updateUser: () => {},
   isAuthenticated: false,
 });
 
@@ -49,10 +50,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('energyhub_token');
   };
 
+  const updateUser = (updatedUserData) => {
+    setUser(updatedUserData);
+    localStorage.setItem('energyhub_user', JSON.stringify(updatedUserData));
+  };
+
   const value = {
     user,
     login,
     logout,
+    updateUser,
     isAuthenticated: !!user,
   };
 

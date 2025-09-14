@@ -43,7 +43,24 @@ const AddProductModal = ({ isOpen, onClose, onSave, product, isEdit }) => {
   useEffect(() => {
     if (isOpen) {
       if (isEdit && product) {
-        setProductData(product);
+        // Merge product data with empty product to ensure all fields have default values
+        setProductData({
+          ...emptyProduct,
+          ...product,
+          specifications: {
+            ...emptyProduct.specifications,
+            ...(product.specifications || {})
+          },
+          pricing: {
+            ...emptyProduct.pricing,
+            ...(product.pricing || {})
+          },
+          inventory: {
+            ...emptyProduct.inventory,
+            ...(product.inventory || {})
+          },
+          images: product.images || []
+        });
       } else {
         setProductData(emptyProduct);
       }
@@ -70,17 +87,17 @@ const AddProductModal = ({ isOpen, onClose, onSave, product, isEdit }) => {
   // Validation for each step
   const validateTab = (tabId) => {
     if (tabId === 'basic') {
-      return productData.name && productData.brand && productData.sku && productData.category && productData.description;
+      return productData?.name && productData?.brand && productData?.sku && productData?.category && productData?.description;
     }
     if (tabId === 'specifications') {
-      const s = productData.specifications;
+      const s = productData?.specifications || {};
       return s.power && s.voltage && s.efficiency && s.warranty && s.dimensions && s.weight;
     }
     if (tabId === 'pricing') {
-      return productData.pricing.basePrice && productData.inventory.stock;
+      return productData?.pricing?.basePrice && productData?.inventory?.stock;
     }
     if (tabId === 'images') {
-      return productData.images && productData.images.length > 0;
+      return productData?.images && productData?.images?.length > 0;
     }
     return true;
   };
