@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Icon from '../../../components/AppIcon';
 import Image from '../../../components/AppImage';
 import Button from '../../../components/ui/Button';
@@ -6,6 +6,34 @@ import { useTranslation } from '../../../utils/i18n.jsx';
 
 const TestimonialsSection = () => {
   const [activeTab, setActiveTab] = useState('sellers');
+  const { t } = useTranslation();
+  
+  // Animation state
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
 
   const sellerTestimonials = [
     {
@@ -110,10 +138,8 @@ const TestimonialsSection = () => {
     ));
   };
 
-  const { t } = useTranslation();
-
   return (
-    <section className="py-16 lg:py-24 bg-gradient-to-b from-transparent to-secondary/6">
+    <section ref={sectionRef} className="py-16 lg:py-24 bg-gradient-to-b from-transparent to-secondary/6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">

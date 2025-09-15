@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/ui/Button';
 import Image from '../../../components/AppImage';
@@ -6,6 +6,48 @@ import Icon from '../../../components/AppIcon';
 
 const ProductCategoriesSection = () => {
   const navigate = useNavigate();
+  
+  // Animation state
+  const [isVisible, setIsVisible] = useState({
+    header: false,
+    categories: []
+  });
+  
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Header animation
+            setTimeout(() => setIsVisible(prev => ({ ...prev, header: true })), 200);
+            
+            // Stagger category animations
+            categories.forEach((_, index) => {
+              setTimeout(() => {
+                setIsVisible(prev => ({
+                  ...prev, 
+                  categories: [...prev.categories, index]
+                }));
+              }, 400 + (index * 200));
+            });
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
 
   const handleCategoryClick = (category) => {
     navigate('/product-catalog-search', { state: { category } });
@@ -42,11 +84,13 @@ const ProductCategoriesSection = () => {
   ];
 
   return (
-    <section className="py-16 lg:py-24 bg-muted/30">
+    <section ref={sectionRef} className="py-16 lg:py-24 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+        <div className={`text-center mb-16 transition-all duration-700 ${
+          isVisible.header ? 'animate-fade-in-up opacity-100' : 'opacity-0'
+        }`}>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient-shift">
             Explore Our Product Categories
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
@@ -57,10 +101,15 @@ const ProductCategoriesSection = () => {
 
         {/* Categories Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {categories?.map((category) => (
+          {categories?.map((category, index) => (
             <div
               key={category?.id}
-              className="group bg-card border border-border rounded-2xl overflow-hidden shadow-card hover:shadow-modal transition-all duration-300 hover:-translate-y-1"
+              className={`group bg-card border border-border rounded-2xl overflow-hidden shadow-card hover:shadow-modal transition-all duration-500 hover:-translate-y-2 hover:scale-105 card-3d ${
+                isVisible.categories.includes(index) 
+                  ? 'animate-scale-in opacity-100' 
+                  : 'opacity-0'
+              }`}
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               {/* Category Image */}
               <div className="relative h-48 overflow-hidden">
