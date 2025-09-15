@@ -172,14 +172,34 @@ const HeroSection = () => {
             </div>
 
             {/* Featured In Bar - now more visible */}
-            <div className={`mt-12 mb-8 flex flex-wrap items-center justify-center lg:justify-start gap-8 bg-white/90 rounded-xl shadow-lg py-4 px-6 border border-gray-100 transition-all duration-700 ${
+            <div className={`mt-12 mb-8 flex flex-wrap items-center justify-center lg:justify-start gap-6 bg-white/95 rounded-xl shadow-lg py-6 px-8 border border-gray-200 transition-all duration-700 ${
               isVisible.stats ? 'animate-slide-up opacity-100' : 'opacity-0'
             }`}>
-              <span className="text-gray-500 text-base font-semibold mr-4 tracking-wide animate-fade-in">{t('hero.featuredIn')}</span>
-              <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Forbes_logo.svg" alt="Forbes" className="h-8 grayscale hover:grayscale-0 transition duration-300 hover:scale-110 animate-fade-in-left animate-delay-100" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/TechCrunch_logo.svg" alt="TechCrunch" className="h-8 grayscale hover:grayscale-0 transition duration-300 hover:scale-110 animate-fade-in-left animate-delay-200" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Bloomberg_logo.svg" alt="Bloomberg" className="h-8 grayscale hover:grayscale-0 transition duration-300 hover:scale-110 animate-fade-in-left animate-delay-300" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Fast_Company_logo.svg" alt="Fast Company" className="h-8 grayscale hover:grayscale-0 transition duration-300 hover:scale-110 animate-fade-in-left animate-delay-500" />
+              <span className="text-gray-600 text-base font-semibold mr-4 tracking-wide animate-fade-in">{t('hero.featuredIn')}</span>
+              
+              {/* Forbes */}
+              <div className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:border-gray-300 hover:scale-105 transition-all duration-300 animate-fade-in-left animate-delay-100">
+                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                <span className="text-gray-800 font-bold text-sm tracking-wider">FORBES</span>
+              </div>
+              
+              {/* TechCrunch */}
+              <div className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200 hover:border-green-300 hover:scale-105 transition-all duration-300 animate-fade-in-left animate-delay-200">
+                <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                <span className="text-green-800 font-bold text-sm tracking-wider">TECHCRUNCH</span>
+              </div>
+              
+              {/* Bloomberg */}
+              <div className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:border-blue-300 hover:scale-105 transition-all duration-300 animate-fade-in-left animate-delay-300">
+                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                <span className="text-blue-800 font-bold text-sm tracking-wider">BLOOMBERG</span>
+              </div>
+              
+              {/* Fast Company */}
+              <div className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-red-50 to-red-100 rounded-lg border border-red-200 hover:border-red-300 hover:scale-105 transition-all duration-300 animate-fade-in-left animate-delay-500">
+                <div className="w-2 h-2 bg-red-600 rounded-full"></div>
+                <span className="text-red-800 font-bold text-sm tracking-wider">FAST COMPANY</span>
+              </div>
             </div>
 
             {/* Trust Indicators */}
@@ -187,15 +207,15 @@ const HeroSection = () => {
               isVisible.stats ? 'animate-fade-in-up opacity-100' : 'opacity-0'
             }`}>
               <div className="hover:scale-105 transition-all duration-300 animate-scale-in animate-delay-100">
-                <div className="text-3xl font-extrabold text-primary drop-shadow bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">2,500+</div>
+                <div className="text-3xl font-extrabold drop-shadow bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">2,500+</div>
                 <div className="text-sm text-muted-foreground">Verified Sellers</div>
               </div>
               <div className="hover:scale-105 transition-all duration-300 animate-scale-in animate-delay-200">
-                <div className="text-3xl font-extrabold text-primary drop-shadow bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">50K+</div>
+                <div className="text-3xl font-extrabold drop-shadow bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">50K+</div>
                 <div className="text-sm text-muted-foreground">Products Listed</div>
               </div>
               <div className="hover:scale-105 transition-all duration-300 animate-scale-in animate-delay-300">
-                <div className="text-3xl font-extrabold text-primary drop-shadow bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">KSh 2.5M+</div>
+                <div className="text-3xl font-extrabold drop-shadow bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">KSh 2.5M+</div>
                 <div className="text-sm text-muted-foreground">Transactions</div>
               </div>
             </div>
@@ -205,15 +225,15 @@ const HeroSection = () => {
               isVisible.features ? 'animate-fade-in-up opacity-100' : 'opacity-0'
             }`}>
               <div className="p-4 rounded-xl glass-panel border border-border shadow-card text-center hover:scale-105 hover:shadow-lg transition-all duration-300 card-3d animate-scale-in animate-delay-100">
-                <div className="text-2xl font-bold text-foreground bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Fast Quotes</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Fast Quotes</div>
                 <div className="text-sm text-muted-foreground mt-2">Get instant price estimates from verified sellers.</div>
               </div>
               <div className="p-4 rounded-xl glass-panel border border-border shadow-card text-center hover:scale-105 hover:shadow-lg transition-all duration-300 card-3d animate-scale-in animate-delay-200">
-                <div className="text-2xl font-bold text-foreground bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">Secure Payments</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">Secure Payments</div>
                 <div className="text-sm text-muted-foreground mt-2">Escrow-style payments protect buyers and sellers.</div>
               </div>
               <div className="p-4 rounded-xl glass-panel border border-border shadow-card text-center hover:scale-105 hover:shadow-lg transition-all duration-300 card-3d animate-scale-in animate-delay-300">
-                <div className="text-2xl font-bold text-foreground bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Expert Support</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Expert Support</div>
                 <div className="text-sm text-muted-foreground mt-2">Local installers and support teams available.</div>
               </div>
             </div>

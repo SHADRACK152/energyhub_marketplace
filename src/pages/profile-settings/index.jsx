@@ -22,14 +22,58 @@ const ProfileSettings = () => {
   console.log('Current user:', user);
   console.log('Current profilePicture state:', profilePicture);
 
+  // Add billing-related state
+  const [paymentMethods, setPaymentMethods] = useState([
+    {
+      id: '1',
+      type: 'visa',
+      last4: '4242',
+      expiryMonth: '12',
+      expiryYear: '25',
+      isDefault: true
+    }
+  ]);
+
+  const [billingHistory, setBillingHistory] = useState([
+    { id: 'INV-2024-001', date: 'Sep 1, 2024', amount: 'KSh 45,000.00', status: 'Paid', description: 'Solar Panel Kit - Premium Package' },
+    { id: 'INV-2024-002', date: 'Aug 15, 2024', amount: 'KSh 32,500.00', status: 'Paid', description: 'Battery Storage System' },
+    { id: 'INV-2024-003', date: 'Aug 1, 2024', amount: 'KSh 67,800.00', status: 'Paid', description: 'Complete Solar Installation' }
+  ]);
+
+  const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
+  const [newPaymentMethod, setNewPaymentMethod] = useState({
+    cardNumber: '',
+    expiryMonth: '',
+    expiryYear: '',
+    cvv: '',
+    cardholderName: '',
+    billingAddress: ''
+  });
+
   // Profile form state
   const [profileData, setProfileData] = useState({
-    name: user?.name || 'Shadrack Emadau',
-    email: user?.email || 'shadrack@energyhub.com',
-    phone: user?.phone || '+234 901 234 5678',
-    company: user?.company || 'EnergyHub Solutions',
-    location: user?.location || 'Nairobi, Kenya',
-    bio: user?.bio || 'Passionate about renewable energy solutions and sustainable business practices.'
+    name: user?.name || 'Shadrack Mark Emadau',
+    email: user?.email || 'markemadu@gmail.com',
+    phone: user?.phone || '0704027298',
+    company: user?.company || '',
+    location: user?.location || '',
+    businessType: user?.businessType || 'Manufacturer',
+    businessDescription: user?.businessDescription || 'Describe your business and specializations...',
+    bio: user?.bio || 'Passionate about renewable energy solutions and sustainable business practices.',
+    website: user?.website || '',
+    businessAddress: user?.businessAddress || '',
+    taxId: user?.taxId || '',
+    businessLicense: user?.businessLicense || '',
+    verificationStatus: user?.verificationStatus || 'pending',
+    businessCategory: user?.businessCategory || 'renewable-energy',
+    businessHours: user?.businessHours || '9:00 AM - 6:00 PM',
+    paymentTerms: user?.paymentTerms || '30 days',
+    minimumOrder: user?.minimumOrder || '0',
+    socialMedia: {
+      linkedin: user?.socialMedia?.linkedin || '',
+      twitter: user?.socialMedia?.twitter || '',
+      facebook: user?.socialMedia?.facebook || ''
+    }
   });
 
   // Security form state
@@ -53,7 +97,9 @@ const ProfileSettings = () => {
 
   const tabs = [
     { id: 'profile', label: t('profile.personalInfo'), icon: 'User' },
-    { id: 'security', label: t('profile.security'), icon: 'Shield' },
+    { id: 'business', label: 'Business Info', icon: 'Building2' },
+    { id: 'verification', label: 'Verification', icon: 'Shield' },
+    { id: 'security', label: t('profile.security'), icon: 'Lock' },
     { id: 'preferences', label: t('profile.preferences'), icon: 'Settings' },
     { id: 'billing', label: t('profile.billing'), icon: 'CreditCard' }
   ];
@@ -196,6 +242,81 @@ const ProfileSettings = () => {
     } finally {
       setIsUploadingPhoto(false);
     }
+  };
+
+  // Payment method functions
+  const handleAddPaymentMethod = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Validate card number (basic validation)
+      if (newPaymentMethod.cardNumber.replace(/\s/g, '').length < 16) {
+        showToast('Please enter a valid card number', { type: 'error' });
+        return;
+      }
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const newCard = {
+        id: Date.now().toString(),
+        type: newPaymentMethod.cardNumber.startsWith('4') ? 'visa' : 'mastercard',
+        last4: newPaymentMethod.cardNumber.slice(-4),
+        expiryMonth: newPaymentMethod.expiryMonth,
+        expiryYear: newPaymentMethod.expiryYear,
+        isDefault: paymentMethods.length === 0
+      };
+
+      setPaymentMethods([...paymentMethods, newCard]);
+      setNewPaymentMethod({
+        cardNumber: '',
+        expiryMonth: '',
+        expiryYear: '',
+        cvv: '',
+        cardholderName: '',
+        billingAddress: ''
+      });
+      setShowAddPaymentModal(false);
+      showToast('Payment method added successfully', { type: 'success' });
+    } catch (error) {
+      showToast('Failed to add payment method', { type: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemovePaymentMethod = async (cardId) => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setPaymentMethods(paymentMethods.filter(card => card.id !== cardId));
+      showToast('Payment method removed successfully', { type: 'success' });
+    } catch (error) {
+      showToast('Failed to remove payment method', { type: 'error' });
+    }
+  };
+
+  const handleSetDefaultPaymentMethod = async (cardId) => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setPaymentMethods(paymentMethods.map(card => ({
+        ...card,
+        isDefault: card.id === cardId
+      })));
+      showToast('Default payment method updated', { type: 'success' });
+    } catch (error) {
+      showToast('Failed to update default payment method', { type: 'error' });
+    }
+  };
+
+  const downloadInvoice = (invoiceId) => {
+    // Simulate invoice download
+    showToast(`Downloading invoice ${invoiceId}...`, { type: 'info' });
+    // In a real app, this would trigger a file download
   };
 
   const renderTabContent = () => {
