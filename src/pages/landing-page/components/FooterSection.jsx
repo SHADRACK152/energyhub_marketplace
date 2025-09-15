@@ -212,7 +212,7 @@ const FooterSection = () => {
             </div>
           </div>
 
-          <div className="lg:col-span-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
             <div>
               <h3 className="font-semibold mb-4">{t('footer.marketplace')}</h3>
               <ul className="space-y-3">
@@ -249,6 +249,38 @@ const FooterSection = () => {
               <h3 className="font-semibold mb-4">{t('footer.buyers')}</h3>
               <ul className="space-y-3">
                 {footerLinks.buyers.map((link, idx) => (
+                  <li key={idx}>
+                    <button
+                      onClick={() => (link.action ? link.action() : handleNavigation(link.path))}
+                      className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300 text-sm text-left"
+                    >
+                      {t(link.label)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-4">{t('footer.support')}</h3>
+              <ul className="space-y-3">
+                {footerLinks.support.map((link, idx) => (
+                  <li key={idx}>
+                    <button
+                      onClick={() => (link.action ? link.action() : handleNavigation(link.path))}
+                      className="text-primary-foreground/80 hover:text-primary-foreground transition-colors duration-300 text-sm text-left"
+                    >
+                      {t(link.label)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-4">{t('footer.legal')}</h3>
+              <ul className="space-y-3">
+                {footerLinks.legal.map((link, idx) => (
                   <li key={idx}>
                     <button
                       onClick={() => (link.action ? link.action() : handleNavigation(link.path))}
