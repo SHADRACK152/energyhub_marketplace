@@ -5,6 +5,7 @@ import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import { cn } from '../../../utils/cn';
+import { API_BASE_URL } from '../../../config/api';
 
 const PaymentSection = ({ paymentInfo, onPaymentInfoChange, shippingInfo, subtotal, shipping, tax, total, onPaymentSuccess }) => {
   const { t } = useTranslation();
@@ -32,7 +33,7 @@ const PaymentSection = ({ paymentInfo, onPaymentInfoChange, shippingInfo, subtot
 
       console.log('Creating order with payload:', orderPayload);
 
-      const response = await fetch('http://localhost:5000/api/orders', {
+      const response = await fetch(`${API_BASE_URL}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
