@@ -173,6 +173,10 @@ app.use('/api/qna', qnaRouter);
 const ordersRouter = require('./routes/orders');
 app.use('/api/orders', ordersRouter);
 
+// Loans API
+const loansRouter = require('./routes/loans');
+app.use('/api/loans', loansRouter);
+
 // Get all products from SQLite
 app.get('/api/products', async (req, res) => {
   try {
