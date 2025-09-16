@@ -2,7 +2,7 @@
 const getApiBaseUrl = () => {
   // In production on Vercel, use the deployed backend URL
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    // Your backend will be deployed to this URL pattern
+    // Your actual backend URL from Vercel
     return 'https://energyhub-marketplace-backend.vercel.app';
   }
   
