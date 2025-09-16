@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useCart } from '../../components/CartContext';
 import { useToast } from '../../components/ui/Toast';
 import { useAuth } from '../../components/ui/AuthenticationRouter';
