@@ -1,26 +1,34 @@
-const { Configuration, OpenAIApi } = require('openai');
-require('dotenv').config();
+const axios = require('axios');
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
+// Hugging Face Inference API (free tier, limited models)
+const HF_API_URL = 'https://api-inference.huggingface.co/models/google/gemma-7b-it';
 
 async function getAIAnswer(question) {
   try {
-    const completion = await openai.createChatCompletion({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        { role: 'system', content: 'You are Ena, an expert energy marketplace assistant. Answer questions helpfully and concisely.' },
-        { role: 'user', content: question },
-      ],
-      max_tokens: 150,
-      temperature: 0.7,
+    const response = await axios.post(HF_API_URL, {
+      inputs: question,
+      parameters: {
+        max_new_tokens: 150,
+        temperature: 0.7,
+      }
+    }, {
+      headers: {
+        'Accept': 'application/json',
+        // No API key needed for public models (rate limits apply)
+      }
     });
-    return completion.data.choices[0].message.content;
+    // Hugging Face returns an array of generated text
+    if (response.data && Array.isArray(response.data) && response.data[0]?.generated_text) {
+      return response.data[0].generated_text;
+    }
+    // Some models return just 'generated_text'
+    if (response.data && response.data.generated_text) {
+      return response.data.generated_text;
+    }
+    return 'Sorry, I could not get an answer from the free AI model.';
   } catch (error) {
-    console.error('OpenAI error:', error.response?.data || error.message);
-    return 'Sorry, I could not get an answer from AI.';
+    console.error('Hugging Face error:', error.response?.data || error.message);
+    return 'Sorry, I could not get an answer from the free AI model.';
   }
 }
 
