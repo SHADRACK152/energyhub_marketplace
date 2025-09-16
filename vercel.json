@@ -3,10 +3,25 @@
     { "src": "vite.config.mjs", "use": "@vercel/static-build", "config": { "distDir": "build" } }
   ],
   "routes": [
-    { "src": "/manifest.json", "dest": "/manifest.json" },
-    { "src": "/favicon.ico", "dest": "/favicon.ico" },
-    { "src": "/robots.txt", "dest": "/robots.txt" },
-    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/manifest.json", "dest": "/manifest.json", "headers": { "cache-control": "s-maxage=31536000" } },
+    { "src": "/favicon.ico", "dest": "/favicon.ico", "headers": { "cache-control": "s-maxage=31536000" } },
+    { "src": "/robots.txt", "dest": "/robots.txt", "headers": { "cache-control": "s-maxage=31536000" } },
+    { "src": "/assets/(.*)", "dest": "/assets/$1", "headers": { "cache-control": "s-maxage=31536000" } },
     { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000"
+        }
+      ]
+    }
   ]
 }

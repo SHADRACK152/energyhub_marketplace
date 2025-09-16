@@ -6,6 +6,7 @@ import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import Icon from '../../../components/AppIcon';
+import { API_BASE_URL } from '../../../config/api';
 
 const RegisterForm = ({ onSwitchToLogin }) => {
   const navigate = useNavigate();
@@ -130,7 +131,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
     setIsLoading(true);
     setErrors({});
     try {
-      const res = await fetch('http://localhost:5000/api/users/register', {
+      const res = await fetch(`${API_BASE_URL}/api/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
