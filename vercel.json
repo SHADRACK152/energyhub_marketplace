@@ -1,7 +1,6 @@
 {
-  "builds": [
-    { "src": "vite.config.mjs", "use": "@vercel/static-build", "config": { "distDir": "build" } }
-  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
   "routes": [
     { "src": "/manifest.json", "dest": "/manifest.json", "headers": { "cache-control": "s-maxage=31536000" } },
     { "src": "/favicon.ico", "dest": "/favicon.ico", "headers": { "cache-control": "s-maxage=31536000" } },
