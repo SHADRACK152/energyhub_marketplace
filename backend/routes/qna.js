@@ -25,14 +25,18 @@ router.post('/:productId', async (req, res) => {
     const { productId } = req.params;
     const { question, user_id } = req.body;
     if (!question) return res.status(400).json({ error: 'Question required' });
-    
+
+    // Get AI answer
+    const { getAIAnswer } = require('../llm');
+    const aiAnswer = await getAIAnswer(question);
+
+    // Save question and answer to DB
     const result = await dbHelpers.run(
-      'INSERT INTO product_qna (product_id, question, user_id) VALUES (?, ?, ?)',
-      [productId, question, user_id || 'anonymous']
+      'INSERT INTO product_qna (product_id, question, answer, user_id) VALUES (?, ?, ?, ?)',
+      [productId, question, aiAnswer, user_id || 'anonymous']
     );
-    
     const newQna = await dbHelpers.get('SELECT * FROM product_qna WHERE id = ?', [result.id]);
-    console.log('✅ Question posted successfully:', newQna);
+    console.log('✅ Question posted with AI answer:', newQna);
     res.status(201).json(newQna);
   } catch (error) {
     console.error('❌ Error posting question:', error);
