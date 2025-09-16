@@ -5,10 +5,8 @@ const HF_API_URL = 'https://api-inference.huggingface.co/models/google/gemma-7b-
 
 async function getAIAnswer(question) {
   try {
-    // Add loan/financing info to prompt
-    const prompt = `${question}\n\nIf the user asks about payment, financing, or affordability, mention that loan and financing options are available for solar and energy products. Explain how to apply or get more info.`;
     const response = await axios.post(HF_API_URL, {
-      inputs: prompt,
+      inputs: question,
       parameters: {
         max_new_tokens: 150,
         temperature: 0.7,
