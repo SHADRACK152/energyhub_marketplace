@@ -8,6 +8,7 @@ import MobileTabBar from '../../components/ui/MobileTabBar';
 import Button from '../../components/ui/Button';
 import Icon from '../../components/AppIcon';
 import Image from '../../components/AppImage';
+import { API_BASE_URL } from '../../config/api';
 import WelcomeHeader from './components/WelcomeHeader';
 import OrderSummaryStats from './components/OrderSummaryStats';
 import OrderStatusCard from './components/OrderStatusCard';
@@ -98,7 +99,7 @@ const B2CBuyerDashboard = () => {
   useEffect(() => {
     setProductsLoading(true);
     setProductsError(null);
-    fetch('http://localhost:5000/api/products')
+    fetch(`${API_BASE_URL}/api/products`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch products');
         return res.json();

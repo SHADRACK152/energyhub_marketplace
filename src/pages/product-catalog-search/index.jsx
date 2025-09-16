@@ -8,6 +8,7 @@ import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import MobileTabBar from '../../components/ui/MobileTabBar';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
+import { API_BASE_URL } from '../../config/api';
 
 // Import all components
 import CategoryChips from './components/CategoryChips';
@@ -134,7 +135,7 @@ const ProductCatalogSearch = () => {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/api/products');
+        const response = await fetch(`${API_BASE_URL}/api/products`);
         if (response.ok) {
           const products = await response.json();
           // Transform API products to match UI expectations
