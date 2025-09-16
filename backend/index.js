@@ -191,8 +191,8 @@ app.get('/api/products', async (req, res) => {
         category: 'solar-panels',
         sku: 'SP-400-2024',
         featured: true,
-        image: 'http://localhost:5000/public/assets/images/solar.jpg',
-        images: ['http://localhost:5000/public/assets/images/solar.jpg'],
+  image: 'https://energyhub-marketplace-backend.vercel.app/public/assets/images/solar.jpg',
+  images: ['https://energyhub-marketplace-backend.vercel.app/public/assets/images/solar.jpg'],
         seller: 'SolarTech Pro',
         inStock: true,
         stockCount: 150
