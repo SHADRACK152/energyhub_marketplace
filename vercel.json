@@ -3,6 +3,10 @@
     { "src": "vite.config.mjs", "use": "@vercel/static-build", "config": { "distDir": "build" } }
   ],
   "routes": [
+    { "src": "/manifest.json", "dest": "/manifest.json" },
+    { "src": "/favicon.ico", "dest": "/favicon.ico" },
+    { "src": "/robots.txt", "dest": "/robots.txt" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
