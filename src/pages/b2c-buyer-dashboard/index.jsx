@@ -424,14 +424,23 @@ const B2CBuyerDashboard = () => {
 
             {/* Sidebar - Right Column */}
             <div className="space-y-8">
+
               {/* Quick Actions */}
-              <div className="animate-fade-in-up delay-200">
+              <div className="animate-fade-in-up delay-200 space-y-4">
                 <QuickActionsPanel
                   onTrackOrders={handleTrackOrders}
                   onReorderFavorites={handleReorderFavorites}
                   onBrowseCategories={handleBrowseCategories}
                   onViewProfile={handleViewProfile}
                 />
+                {/* Loan/Financing Quick Action */}
+                <div>
+                  <Link to="/loan">
+                    <Button className="bg-green-600 text-white px-6 py-3 rounded shadow hover:bg-green-700 transition-all w-full">
+                      <Icon name="DollarSign" className="mr-2" /> Apply for Solar/Energy Loan
+                    </Button>
+                  </Link>
+                </div>
               </div>
 
               {/* Wishlist Preview */}
