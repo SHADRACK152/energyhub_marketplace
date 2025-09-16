@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { useNavigate } from 'react-router-dom';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
 import NavigationBreadcrumbs from '../../components/ui/NavigationBreadcrumbs';
@@ -52,7 +53,7 @@ const B2BInventoryManagement = () => {
   useEffect(() => {
     setProductsLoading(true);
     setProductsError(null);
-    fetch('http://localhost:5000/api/products')
+  fetch(`${API_BASE_URL}/api/products`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch products');
         return res.json();
@@ -70,7 +71,7 @@ const B2BInventoryManagement = () => {
   // Update product price handler
   const handleUpdatePrice = async (productId, newPrice) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${productId}/price`, {
+  const res = await fetch(`${API_BASE_URL}/api/products/${productId}/price`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ price: newPrice })
@@ -95,7 +96,7 @@ const B2BInventoryManagement = () => {
   // Update product stock handler
   const handleUpdateStock = async (productId, newStock) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${productId}/stock`, {
+  const res = await fetch(`${API_BASE_URL}/api/products/${productId}/stock`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stock: newStock })
@@ -305,7 +306,7 @@ const B2BInventoryManagement = () => {
       }
 
       // Send to backend API
-      const response = await fetch('http://localhost:5000/api/products', {
+  const response = await fetch(`${API_BASE_URL}/api/products`, {
         method: 'POST',
         body: formData
       });
@@ -343,7 +344,7 @@ const B2BInventoryManagement = () => {
 
       // For now, we'll simulate the bulk upload process
       // In a real implementation, you'd send this to a backend endpoint
-      const response = await fetch('http://localhost:5000/api/products/bulk-upload', {
+  const response = await fetch(`${API_BASE_URL}/api/products/bulk-upload`, {
         method: 'POST',
         body: formData
       });
@@ -355,7 +356,7 @@ const B2BInventoryManagement = () => {
       const result = await response.json();
       
       // Refresh products list
-      const productsResponse = await fetch('http://localhost:5000/api/products');
+  const productsResponse = await fetch(`${API_BASE_URL}/api/products`);
       if (productsResponse.ok) {
         const updatedProducts = await productsResponse.json();
         setProducts(Array.isArray(updatedProducts) ? updatedProducts : []);

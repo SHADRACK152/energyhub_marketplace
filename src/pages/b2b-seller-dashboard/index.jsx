@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { useAuth } from '../../components/ui/AuthenticationRouter';
 import { useNavigate } from 'react-router-dom';
 import RoleBasedHeader from '../../components/ui/RoleBasedHeader';
@@ -89,7 +90,7 @@ const B2BSellerDashboard = () => {
   useEffect(() => {
     setOrdersLoading(true);
     setOrdersError(null);
-    fetch('http://localhost:5000/api/orders')
+  fetch(`${API_BASE_URL}/api/orders`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch orders');
         return res.json();
@@ -193,7 +194,7 @@ const B2BSellerDashboard = () => {
     setIsRefreshing(true);
     try {
       // Fetch fresh data
-      const ordersResponse = await fetch('http://localhost:5000/api/orders');
+  const ordersResponse = await fetch(`${API_BASE_URL}/api/orders`);
       if (ordersResponse.ok) {
         const ordersData = await ordersResponse.json();
         const transformedOrders = Array.isArray(ordersData) ? ordersData.map(order => ({

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../../config/api';
 import Icon from '../../../components/AppIcon';
 
 const PromoCodesTab = ({ sellerId, sellerName }) => {
@@ -84,7 +85,7 @@ const PromoCodesTab = ({ sellerId, sellerName }) => {
   const fetchPromoCodes = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/promo-codes?sellerId=${sellerId}`);
+  const response = await fetch(`${API_BASE_URL}/api/promo-codes?sellerId=${sellerId}`);
       if (response.ok) {
         const data = await response.json();
         setPromoCodes(data);
@@ -127,8 +128,8 @@ const PromoCodesTab = ({ sellerId, sellerName }) => {
       };
 
       const url = editingCode 
-        ? `http://localhost:5000/api/promo-codes/${editingCode.id}`
-        : 'http://localhost:5000/api/promo-codes';
+        ? `${API_BASE_URL}/api/promo-codes/${editingCode.id}`
+        : `${API_BASE_URL}/api/promo-codes`;
       
       const method = editingCode ? 'PUT' : 'POST';
 
@@ -158,7 +159,7 @@ const PromoCodesTab = ({ sellerId, sellerName }) => {
     if (!confirm('Are you sure you want to delete this promo code?')) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/promo-codes/${id}`, {
+  const response = await fetch(`${API_BASE_URL}/api/promo-codes/${id}`, {
         method: 'DELETE',
       });
 
