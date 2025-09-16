@@ -1,9 +1,6 @@
 {
   "outputDirectory": "build",
   "routes": [
-    { "src": "/favicon.ico", "dest": "/favicon.ico" },
-    { "src": "/manifest.json", "dest": "/manifest.json", "headers": { "Content-Type": "application/json" } },
-    { "src": "/robots.txt", "dest": "/robots.txt" },
     { "src": "/assets/(.*)", "dest": "/assets/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]

@@ -8,6 +8,20 @@ const { db, dbHelpers } = require('./database');
 const app = express();
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// CORS configuration for Vercel deployment
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:4028',
+    'https://energyhub-marketplace.vercel.app',
+    'https://energyhub-marketplace-git-main-shadracks-projects-a418ee81.vercel.app',
+    /https:\/\/energyhub-marketplace-.*\.vercel\.app$/
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 // Multer setup for image uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -19,7 +33,6 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage });
-app.use(cors());
 
 // In-memory storage for created products (fallback when Supabase fails)
 let createdProducts = [];
