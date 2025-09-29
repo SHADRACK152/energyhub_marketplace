@@ -641,41 +641,74 @@ const jwt = require('jsonwebtoken');
 // Register user
 app.post('/api/users/register', async (req, res) => {
   try {
+    console.log('Register endpoint called. Body:', req.body);
     const { email, password, name, role } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-    
+    // Validate all required fields
+    if (!email || !password || !name || !role) {
+      console.log('Missing required fields:', { email, password, name, role });
+      return res.status(400).json({ error: 'All fields (email, password, name, role) are required.' });
+    }
+    // Validate email format
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format.' });
+    }
+    // Validate password strength
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    }
     // Check if user already exists
     const existingUser = await dbHelpers.get('SELECT * FROM users WHERE email = ?', [email]);
     if (existingUser) {
+      console.log('User already exists:', email);
       return res.status(400).json({ error: 'User already exists' });
     }
-    
-    const password_hash = await bcrypt.hash(password, 10);
-    
+    // Hash password
+    let password_hash;
+    try {
+      password_hash = await bcrypt.hash(password, 10);
+    } catch (hashError) {
+      console.error('Error hashing password:', hashError);
+      return res.status(500).json({ error: 'Error hashing password.' });
+    }
     // Insert new user into SQLite
-    const result = await dbHelpers.run(`
-      INSERT INTO users (email, name, role, profileData) 
-      VALUES (?, ?, ?, ?)
-    `, [email, name || '', role || 'buyer', JSON.stringify({ password_hash })]);
-    
+    let result;
+    try {
+      result = await dbHelpers.run(`
+        INSERT INTO users (email, name, role, profileData)
+        VALUES (?, ?, ?, ?)
+      `, [email, name, role, JSON.stringify({ password_hash })]);
+    } catch (dbError) {
+      console.error('❌ DB error during registration:', dbError);
+      return res.status(500).json({ error: 'Database error: ' + dbError.message });
+    }
     // Get the created user
-    const user = await dbHelpers.get('SELECT * FROM users WHERE id = ?', [result.id]);
-    
+    let user;
+    try {
+      user = await dbHelpers.get('SELECT * FROM users WHERE id = ?', [result.id]);
+    } catch (fetchError) {
+      console.error('Error fetching created user:', fetchError);
+      return res.status(500).json({ error: 'Error fetching created user.' });
+    }
     // Generate JWT
-    const token = jwt.sign(
-      { id: user.id, email: user.email, name: user.name, role: user.role },
-      process.env.JWT_SECRET || 'fallback-secret',
-      { expiresIn: '7d' }
-    );
-    
+    let token;
+    try {
+      token = jwt.sign(
+        { id: user.id, email: user.email, name: user.name, role: user.role },
+        process.env.JWT_SECRET || 'fallback-secret',
+        { expiresIn: '7d' }
+      );
+    } catch (jwtError) {
+      console.error('Error generating JWT:', jwtError);
+      return res.status(500).json({ error: 'Error generating token.' });
+    }
     console.log('✅ User registered successfully:', user.email);
-    res.status(201).json({ 
-      token, 
-      user: { id: user.id, email: user.email, name: user.name, role: user.role } 
+    return res.status(201).json({
+      token,
+      user: { id: user.id, email: user.email, name: user.name, role: user.role }
     });
   } catch (error) {
     console.error('❌ Error registering user:', error);
-    res.status(500).json({ error: 'Failed to register user' });
+    return res.status(500).json({ error: 'Failed to register user: ' + error.message });
   }
 });
 
