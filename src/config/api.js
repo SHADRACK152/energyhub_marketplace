@@ -1,6 +1,6 @@
 // API configuration for different environments
 // Always use the deployed Vercel backend URL
-export const API_BASE_URL = 'http://localhost:5000';
+export const API_BASE_URL = 'https://energyhub-marketplace-backend.vercel.app';
 
 // Helper function to make API requests
 export const apiRequest = async (endpoint, options = {}) => {
