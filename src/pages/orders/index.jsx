@@ -37,7 +37,7 @@ const OrdersPage = () => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/api/orders?userId=demo-user');
+  const response = await fetch(`${API_BASE_URL}/api/orders?userId=demo-user`);
         if (!response.ok) {
           throw new Error('Failed to fetch orders');
         }

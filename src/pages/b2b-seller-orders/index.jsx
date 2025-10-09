@@ -55,7 +55,7 @@ const B2BSellerOrders = () => {
   useEffect(() => {
     // Fetch seller orders from API (all orders for seller view)
     setLoading(true);
-    fetch('http://localhost:5000/api/orders') // Remove userId filter to get all orders for seller
+  fetch(`${API_BASE_URL}/api/orders`) // Remove userId filter to get all orders for seller
       .then(res => res.json())
       .then(data => {
         console.log('Fetched orders for seller:', data);
@@ -308,7 +308,7 @@ const B2BSellerOrders = () => {
   const handleBulkStatusUpdate = async (newStatus) => {
     try {
       const updatePromises = selectedOrders.map(orderId =>
-        fetch(`http://localhost:5000/api/orders/${orderId}`, {
+  fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus })
@@ -334,7 +334,7 @@ const B2BSellerOrders = () => {
   // Enhanced Action Handlers with Backend Updates
   const handleApproveOrder = async (orderId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+  const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -364,7 +364,7 @@ const B2BSellerOrders = () => {
 
   const handleRejectOrder = async (orderId, reason) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+  const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -394,7 +394,7 @@ const B2BSellerOrders = () => {
   // Handle cancellation request approval
   const handleApproveCancellation = async (orderId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel-approve`, {
+  const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel-approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -429,7 +429,7 @@ const B2BSellerOrders = () => {
   // Handle cancellation request rejection
   const handleRejectCancellation = async (orderId, reason) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel-reject`, {
+  const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel-reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -462,7 +462,7 @@ const B2BSellerOrders = () => {
 
   const handleShipOrder = async (orderId, trackingInfo) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+  const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -500,7 +500,7 @@ const B2BSellerOrders = () => {
 
   const handleDeliverOrder = async (orderId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+  const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

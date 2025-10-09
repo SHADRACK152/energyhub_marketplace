@@ -1,127 +1,126 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const { Pool } = require('pg');
+require('dotenv').config();
 
-// Create database file path
-const dbPath = path.join(__dirname, 'energyhub.db');
+// Create PostgreSQL connection pool
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
-// Initialize SQLite database
-const db = new sqlite3.Database(dbPath, (err) => {
+// Test database connection
+pool.connect((err, client, release) => {
   if (err) {
-    console.error('Error opening database:', err.message);
-  } else {
-    console.log('✅ Connected to SQLite database:', dbPath);
+    console.error('❌ Error connecting to PostgreSQL database:', err.message);
+    return;
   }
+  console.log('✅ Connected to Neon PostgreSQL database');
+  release();
 });
 
 // Create tables if they don't exist
-const createTables = () => {
-  // Products table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      description TEXT,
-      price REAL NOT NULL,
-      originalPrice REAL,
-      image TEXT,
-      category TEXT,
-      sellerId TEXT,
-      sellerName TEXT,
-      stockCount INTEGER DEFAULT 0,
-      rating REAL DEFAULT 0,
-      reviewCount INTEGER DEFAULT 0,
-      specifications TEXT, -- JSON string
-      tags TEXT, -- JSON string
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `, (err) => {
-    if (err) console.error('Error creating products table:', err);
-    else console.log('✅ Products table ready');
-  });
+const createTables = async () => {
+  try {
+    // Products table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        price DECIMAL(10,2) NOT NULL,
+        originalPrice DECIMAL(10,2),
+        image TEXT,
+        category VARCHAR(100),
+        sellerId VARCHAR(255),
+        sellerName VARCHAR(255),
+        stockCount INTEGER DEFAULT 0,
+        rating DECIMAL(3,2) DEFAULT 0,
+        reviewCount INTEGER DEFAULT 0,
+        specifications JSONB,
+        tags JSONB,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Products table ready');
 
-  // Promo codes table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS promo_codes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      code TEXT UNIQUE NOT NULL,
-      type TEXT NOT NULL, -- 'percentage' or 'fixed'
-      value REAL NOT NULL,
-      description TEXT,
-      sellerId TEXT,
-      sellerName TEXT,
-      minimumOrder REAL DEFAULT 0,
-      maxUses INTEGER DEFAULT 1000,
-      currentUses INTEGER DEFAULT 0,
-      startDate DATETIME,
-      endDate DATETIME,
-      isActive BOOLEAN DEFAULT 1,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `, (err) => {
-    if (err) console.error('Error creating promo_codes table:', err);
-    else console.log('✅ Promo codes table ready');
-  });
+    // Promo codes table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS promo_codes (
+        id SERIAL PRIMARY KEY,
+        code VARCHAR(50) UNIQUE NOT NULL,
+        type VARCHAR(20) NOT NULL, -- 'percentage' or 'fixed'
+        value DECIMAL(10,2) NOT NULL,
+        description TEXT,
+        sellerId VARCHAR(255),
+        sellerName VARCHAR(255),
+        minimumOrder DECIMAL(10,2) DEFAULT 0,
+        maxUses INTEGER DEFAULT 1000,
+        currentUses INTEGER DEFAULT 0,
+        startDate TIMESTAMP,
+        endDate TIMESTAMP,
+        isActive BOOLEAN DEFAULT true,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Promo codes table ready');
 
-  // Orders table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS orders (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      orderNumber TEXT UNIQUE NOT NULL,
-      productName TEXT,
-      productImage TEXT,
-      price REAL,
-      subtotal REAL,
-      shipping REAL,
-      tax REAL,
-      discount REAL,
-      promoCode TEXT, -- JSON string
-      shippingInfo TEXT, -- JSON string
-      paymentInfo TEXT, -- JSON string
-      items TEXT, -- JSON string
-      userId TEXT,
-      userEmail TEXT,
-      orderStatus TEXT DEFAULT 'confirmed',
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `, (err) => {
-    if (err) console.error('Error creating orders table:', err);
-    else console.log('✅ Orders table ready');
-  });
+    // Orders table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id SERIAL PRIMARY KEY,
+        orderNumber VARCHAR(50) UNIQUE NOT NULL,
+        productName VARCHAR(255),
+        productImage TEXT,
+        price DECIMAL(10,2),
+        subtotal DECIMAL(10,2),
+        shipping DECIMAL(10,2),
+        tax DECIMAL(10,2),
+        discount DECIMAL(10,2),
+        promoCode JSONB,
+        shippingInfo JSONB,
+        paymentInfo JSONB,
+        items JSONB,
+        userId VARCHAR(255),
+        userEmail VARCHAR(255),
+        orderStatus VARCHAR(50) DEFAULT 'confirmed',
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Orders table ready');
 
-  // Users table (optional for future use)
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE,
-      name TEXT,
-      role TEXT DEFAULT 'buyer', -- 'buyer' or 'seller'
-      profileData TEXT, -- JSON string
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `, (err) => {
-    if (err) console.error('Error creating users table:', err);
-    else console.log('✅ Users table ready');
-  });
+    // Users table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE,
+        name VARCHAR(255),
+        role VARCHAR(20) DEFAULT 'buyer', -- 'buyer' or 'seller'
+        profileData JSONB,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Users table ready');
 
-  // QnA table for product questions and answers
-  db.run(`
-    CREATE TABLE IF NOT EXISTS product_qna (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      product_id TEXT NOT NULL,
-      question TEXT NOT NULL,
-      answer TEXT,
-      user_id TEXT,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `, (err) => {
-    if (err) console.error('Error creating product_qna table:', err);
-    else console.log('✅ QnA table ready');
-  });
+    // QnA table for product questions and answers
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS product_qna (
+        id SERIAL PRIMARY KEY,
+        product_id VARCHAR(255) NOT NULL,
+        question TEXT NOT NULL,
+        answer TEXT,
+        user_id VARCHAR(255),
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ QnA table ready');
+
+  } catch (error) {
+    console.error('❌ Error creating tables:', error.message);
+  }
 };
 
 // Initialize tables
@@ -130,46 +129,38 @@ createTables();
 // Helper functions for database operations
 const dbHelpers = {
   // Generic query function
-  query: (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-      db.all(sql, params, (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
-    });
+  query: async (sql, params = []) => {
+    try {
+      const result = await pool.query(sql, params);
+      return result.rows;
+    } catch (error) {
+      throw error;
+    }
   },
 
   // Generic insert/update function
-  run: (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-      db.run(sql, params, function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ 
-            id: this.lastID, 
-            changes: this.changes 
-          });
-        }
-      });
-    });
+  run: async (sql, params = []) => {
+    try {
+      const result = await pool.query(sql, params);
+      return {
+        rows: result.rows,
+        rowCount: result.rowCount,
+        insertId: result.rows[0]?.id || null
+      };
+    } catch (error) {
+      throw error;
+    }
   },
 
   // Get single row
-  get: (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-      db.get(sql, params, (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(row);
-        }
-      });
-    });
+  get: async (sql, params = []) => {
+    try {
+      const result = await pool.query(sql, params);
+      return result.rows[0] || null;
+    } catch (error) {
+      throw error;
+    }
   }
 };
 
-module.exports = { db, dbHelpers };
+module.exports = { pool, dbHelpers };

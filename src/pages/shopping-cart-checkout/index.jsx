@@ -269,7 +269,7 @@ const ShoppingCartCheckout = () => {
     setPromoFeedback('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/promo-codes/validate', {
+  const response = await fetch(`${API_BASE_URL}/api/promo-codes/validate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

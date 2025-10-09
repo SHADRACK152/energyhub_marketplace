@@ -1,5 +1,5 @@
 -- Create orders table for EnergyHub Marketplace
--- Run this SQL in your Supabase SQL editor
+-- Run this SQL in your Neon PostgreSQL editor
 
 CREATE TABLE IF NOT EXISTS orders (
   id BIGINT PRIMARY KEY,

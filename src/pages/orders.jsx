@@ -57,7 +57,7 @@ function OrdersPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${cancelOrder.id}`, {
+  const response = await fetch(`${API_BASE_URL}/api/orders/${cancelOrder.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

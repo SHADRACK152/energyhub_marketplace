@@ -21,7 +21,7 @@
 
 EnergyHub Marketplace is a cutting-edge platform designed to revolutionize the energy trading industry. Built with modern web technologies, it provides a seamless experience for both B2B and B2C transactions in the renewable energy sector.
 
-**🆕 Latest Update:** Now powered by SQLite for enhanced reliability and local development experience!
+**🆕 Latest Update:** Now powered by Neon PostgreSQL for enhanced scalability and cloud-native deployment!
 
 ## ✨ Key Features
 
@@ -35,8 +35,8 @@ EnergyHub Marketplace is a cutting-edge platform designed to revolutionize the e
 - 🛡️ Secure JWT-based authentication
 - 🔒 bcrypt password encryption
 - 💪 Password strength validation
-- � Role-based access control (Buyer/Seller)
-- �️ Local SQLite user management
+- 🎭 Role-based access control (Buyer/Seller)
+- 🗄️ Neon PostgreSQL cloud database
 
 ### 📊 **Smart Dashboards**
 - **👥 Buyer Dashboard**
@@ -76,7 +76,7 @@ EnergyHub Marketplace is a cutting-edge platform designed to revolutionize the e
 
 | Frontend | Backend | Database | Security |
 |----------|---------|----------|----------|
-| ![React](https://img.shields.io/badge/-React-61DAFB?style=flat-square&logo=react&logoColor=black) | ![Node.js](https://img.shields.io/badge/-Node.js-339933?style=flat-square&logo=node.js&logoColor=white) | ![SQLite](https://img.shields.io/badge/-SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white) | ![JWT](https://img.shields.io/badge/-JWT-000000?style=flat-square&logo=json-web-tokens&logoColor=white) |
+| ![React](https://img.shields.io/badge/-React-61DAFB?style=flat-square&logo=react&logoColor=black) | ![Node.js](https://img.shields.io/badge/-Node.js-339933?style=flat-square&logo=node.js&logoColor=white) | ![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white) | ![JWT](https://img.shields.io/badge/-JWT-000000?style=flat-square&logo=json-web-tokens&logoColor=white) |
 | ![Tailwind](https://img.shields.io/badge/-Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white) | ![Express](https://img.shields.io/badge/-Express-000000?style=flat-square&logo=express&logoColor=white) | ![Local DB](https://img.shields.io/badge/-Local_Database-4CAF50?style=flat-square) | ![bcrypt](https://img.shields.io/badge/-bcrypt-FF6B35?style=flat-square) |
 | ![React Router](https://img.shields.io/badge/-React_Router-CA4245?style=flat-square&logo=react-router&logoColor=white) | ![Multer](https://img.shields.io/badge/-Multer-FF6600?style=flat-square) | | ![Vite](https://img.shields.io/badge/-Vite-646CFF?style=flat-square&logo=vite&logoColor=white) |
 
@@ -106,7 +106,7 @@ EnergyHub Marketplace is a cutting-edge platform designed to revolutionize the e
 
 3. **🔧 Environment Setup (Optional)**
    ```bash
-   # Environment file is optional - SQLite works out of the box!
+   # Create environment file for Neon PostgreSQL configuration
    # Create only if you need custom JWT secrets
    cp .env.example .env
    ```
@@ -144,8 +144,8 @@ energyhub_marketplace/
 ├── 🖥️ backend/            # Express.js API
 │   ├── 🛣️ routes/         # API routes
 │   ├── 📁 uploads/        # File storage
-│   ├── 🗄️ database.js     # SQLite configuration
-│   └── 💾 energyhub.db    # Local SQLite database
+│   ├── 🗄️ database.js     # Neon PostgreSQL configuration
+│   └── ⚙️ .env           # Database connection config
 └── 🌐 public/            # Static assets
 ```
 
@@ -161,7 +161,7 @@ Our custom-built component library includes:
 - **🧭 Navigation** - Breadcrumbs and headers
 - **📱 Mobile** - Touch-friendly components
 
-## � What's New - SQLite Migration
+## 🚀 What's New - Neon PostgreSQL Migration
 
 ### 🗄️ **Local Database Advantages**
 - ✅ **Zero Configuration** - Works out of the box
@@ -184,14 +184,14 @@ Our custom-built component library includes:
 - 🔒 Secure password hashing and validation
 - 🛡️ Role-based permissions (Buyer/Seller)
 - 🔍 Input validation and sanitization
-- 🗄️ Local SQLite database security
+- 🗄️ Neon PostgreSQL cloud database security
 
 ### 📈 Performance Optimizations
 - ⚡ Vite for lightning-fast builds
 - 🎯 Code splitting and lazy loading
 - 🖼️ Image optimization
 - 📱 Progressive Web App features
-- 🗄️ SQLite for ultra-fast local queries
+- 🗄️ PostgreSQL for scalable cloud queries
 - 💾 Efficient file-based persistence
 
 ### 🎯 User Experience
@@ -202,7 +202,7 @@ Our custom-built component library includes:
 
 ## 🗄️ Database Schema
 
-The SQLite database includes the following tables:
+The Neon PostgreSQL database includes the following tables:
 
 ```sql
 📦 products         # Product catalog with specifications
@@ -213,7 +213,7 @@ The SQLite database includes the following tables:
 ```
 
 ### 🔄 Latest Updates (September 2025)
-- ✅ **Complete SQLite Migration** - Enhanced reliability and performance
+- ✅ **Complete Neon PostgreSQL Migration** - Enhanced scalability and cloud-native deployment
 - 🔐 **Improved Authentication** - JWT + bcrypt security
 - 🎫 **Cross-Platform Promo Codes** - B2B/B2C integration
 - 📱 **Enhanced Mobile Experience** - Touch-friendly interfaces

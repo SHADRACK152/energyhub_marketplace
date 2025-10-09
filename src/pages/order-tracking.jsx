@@ -14,7 +14,7 @@ const OrderTracking = () => {
   const [cancelLoading, setCancelLoading] = React.useState(false);
 
   React.useEffect(() => {
-    fetch(`http://localhost:5000/api/orders/${orderId}`)
+  fetch(`${API_BASE_URL}/api/orders/${orderId}`)
       .then(res => res.json())
       .then(data => {
         setOrder(data);
@@ -32,7 +32,7 @@ const OrderTracking = () => {
 
     setCancelLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/cancel-request`, {
+  const response = await fetch(`${API_BASE_URL}/api/orders/cancel-request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

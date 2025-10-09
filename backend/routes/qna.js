@@ -2,13 +2,12 @@
 const express = require('express');
 const router = express.Router();
 const { dbHelpers } = require('../database');
-
 // GET all QnA for a product
 router.get('/:productId', async (req, res) => {
   try {
     const { productId } = req.params;
     const qnaList = await dbHelpers.query(
-      'SELECT * FROM product_qna WHERE product_id = ? ORDER BY createdAt DESC', 
+      'SELECT * FROM product_qna WHERE product_id = $1 ORDER BY createdAt DESC', 
       [productId]
     );
     console.log(`✅ Retrieved ${qnaList.length} Q&A items for product ${productId}`);
@@ -32,10 +31,10 @@ router.post('/:productId', async (req, res) => {
 
     // Save question and answer to DB
     const result = await dbHelpers.run(
-      'INSERT INTO product_qna (product_id, question, answer, user_id) VALUES (?, ?, ?, ?)',
+      'INSERT INTO product_qna (product_id, question, answer, user_id) VALUES ($1, $2, $3, $4) RETURNING id',
       [productId, question, aiAnswer, user_id || 'anonymous']
     );
-    const newQna = await dbHelpers.get('SELECT * FROM product_qna WHERE id = ?', [result.id]);
+    const newQna = await dbHelpers.get('SELECT * FROM product_qna WHERE id = $1', [result.rows[0].id]);
     console.log('✅ Question posted with AI answer:', newQna);
     res.status(201).json(newQna);
   } catch (error) {
@@ -50,14 +49,13 @@ router.patch('/answer/:qnaId', async (req, res) => {
     const { qnaId } = req.params;
     const { answer } = req.body;
     if (!answer) return res.status(400).json({ error: 'Answer required' });
-    
+
+    // Update answer in Neon PostgreSQL
     await dbHelpers.run(
-      'UPDATE product_qna SET answer = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
+      'UPDATE product_qna SET answer = $1, updatedAt = CURRENT_TIMESTAMP WHERE id = $2',
       [answer, qnaId]
     );
-    
-    const updatedQna = await dbHelpers.get('SELECT * FROM product_qna WHERE id = ?', [qnaId]);
-    console.log('✅ Answer posted successfully:', updatedQna);
+    const updatedQna = await dbHelpers.get('SELECT * FROM product_qna WHERE id = $1', [qnaId]);
     res.json(updatedQna);
   } catch (error) {
     console.error('❌ Error posting answer:', error);
